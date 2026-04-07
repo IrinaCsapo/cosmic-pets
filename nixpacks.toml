@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["libgomp"]
+
+[phases.build]
+cmds = [
+  "pip install -r requirements.txt",
+  "python -c \"from rembg import new_session; new_session('birefnet-general')\""
+]
+
+[start]
+cmd = "python server.py"

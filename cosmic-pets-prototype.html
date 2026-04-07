@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Pets — Your Pet's Cosmic Portrait</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --space: #080818;
+      --purple: #7B2FBE;
+      --pink: #E040FB;
+      --blue: #00BCD4;
+      --gold: #FFD54F;
+      --text: #E8E8F5;
+      --muted: #8888aa;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+    }
+
+    html, body {
+      min-height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--space); color: var(--text); overflow-x: hidden;
+    }
+
+    #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    .screen {
+      position: relative; z-index: 1; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 20px 48px;
+    }
+    .screen[hidden] { display: none !important; }
+
+    /* ── HEADER ── */
+    .header {
+      width: 100%; max-width: 600px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 0 28px;
+    }
+    .logo img {
+      height: 48px; width: auto; display: block;
+    }
+    .attempts-pill {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(123,47,190,0.18); border: 1px solid rgba(123,47,190,0.45);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 600; color: var(--gold);
+    }
+    .attempts-pip {
+      font-size: 1rem; color: var(--gold); line-height: 1;
+      transition: color 0.3s, opacity 0.3s;
+      display: inline-block;
+    }
+    .attempts-pip.used { color: rgba(255,213,79,0.2); }
+
+    /* ── HERO ── */
+    .hero { width: 100%; max-width: 560px; text-align: center; margin-bottom: 32px; }
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 800; line-height: 1.2; margin-bottom: 12px;
+      background: linear-gradient(160deg, #fff 30%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      width: 100%; max-width: 480px; border: 2px dashed rgba(123,47,190,0.5);
+      border-radius: 20px; background: rgba(123,47,190,0.05); padding: 44px 24px;
+      text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .upload-zone::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(224,64,251,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--pink); background: rgba(224,64,251,0.07);
+      transform: translateY(-2px); box-shadow: 0 20px 60px rgba(224,64,251,0.13);
+    }
+    .upload-icon { font-size: 3rem; margin-bottom: 14px; display: block; filter: brightness(0) invert(1); }
+    .upload-zone h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .upload-zone p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+    .upload-btn {
+      display: inline-block; margin-top: 20px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white; font-weight: 600; font-size: 0.9rem;
+      padding: 12px 28px; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .upload-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(224,64,251,0.28); }
+    #file-input { display: none; }
+
+    /* Photo tips — collapsible section below upload */
+    .photo-tips {
+      width: 100%; max-width: 340px; margin-top: 14px;
+    }
+    .photo-tips-toggle {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
+      padding: 0; width: 100%; justify-content: center;
+    }
+    .photo-tips-toggle:hover { color: var(--pink); }
+    .photo-tips-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+    .photo-tips-toggle.open .arrow { transform: rotate(180deg); }
+    .photo-tips-body {
+      display: none; margin-top: 12px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 16px 14px; text-align: left;
+    }
+    .photo-tips-body.open { display: block; }
+    .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tip-item {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 0.78rem; line-height: 1.4;
+    }
+    .tip-item .tip-icon { font-size: 1.3rem; }
+    .tip-item .tip-label { font-weight: 600; font-size: 0.72rem; letter-spacing: 0.5px; }
+    .tip-item.good .tip-label { color: #7fff9a; }
+    .tip-item.bad .tip-label { color: #ff7f7f; }
+    .tip-item p { color: var(--muted); margin: 0; }
+
+    /* Photo tips — inline hero chips */
+    .hero-tips {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 8px; margin-top: 14px;
+    }
+    .hero-tip {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 0.76rem; color: var(--muted); white-space: nowrap;
+    }
+    .hero-tip .tip-emoji { font-size: 0.9rem; }
+    .hero-tip.good { border-color: rgba(127,255,154,0.20); color: rgba(200,255,210,0.85); }
+    .hero-tip.bad  { border-color: rgba(255,127,127,0.18); color: rgba(255,200,200,0.75); }
+
+    .examples-label {
+      margin-top: 36px; margin-bottom: 14px;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted);
+    }
+    .examples-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      width: 100%; max-width: 340px;
+    }
+    .example-item {
+      aspect-ratio: 3/4; border-radius: 12px; overflow: hidden;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+    }
+    .example-item canvas { width: 100%; height: 100%; display: block; }
+
+    /* ══════════════════════════════════
+       VIBE SELECTION SCREEN
+    ══════════════════════════════════ */
+    .vibe-screen-inner { width: 100%; max-width: 580px; }
+
+    .vibe-subtitle {
+      text-align: center; color: var(--muted); font-size: 0.95rem;
+      margin-bottom: 28px; line-height: 1.6;
+    }
+
+    .vibe-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 28px;
+    }
+
+    .vibe-card {
+      border-radius: 16px; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
+      position: relative;
+      background: var(--card);
+    }
+    .vibe-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+    .vibe-card.selected {
+      border-color: white;
+      box-shadow: 0 0 0 1px white, 0 16px 48px rgba(255,255,255,0.15);
+      transform: translateY(-3px);
+    }
+    .vibe-card.selected .vibe-check { opacity: 1; transform: scale(1); }
+
+    .vibe-swatch { width: 100%; aspect-ratio: 4/3; display: block; }
+
+    .vibe-check {
+      position: absolute; top: 10px; right: 10px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: white; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: #1a1a2e;
+      opacity: 0; transform: scale(0.5); transition: all 0.2s;
+    }
+
+    .vibe-info { padding: 12px 14px 14px; }
+    .vibe-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .vibe-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+    .vibe-cta-wrap { text-align: center; }
+
+    /* ── PROCESSING ── */
+    .processing-wrap {
+      width: 100%; max-width: 480px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 28px; padding-top: 32px;
+    }
+    .selected-vibe-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 7px 16px; font-size: 0.85rem;
+    }
+    .orbit-animation { width: 150px; height: 150px; position: relative; }
+    .orbit-ring {
+      position: absolute; border-radius: 50%;
+      border: 2px solid transparent; animation: spin linear infinite;
+    }
+    .orbit-ring:nth-child(1) { inset: 0; border-top-color: var(--pink); animation-duration: 2s; }
+    .orbit-ring:nth-child(2) { inset: 16px; border-right-color: var(--purple); animation-duration: 3.1s; }
+    .orbit-ring:nth-child(3) { inset: 32px; border-bottom-color: var(--blue); animation-duration: 4.3s; }
+    .orbit-core {
+      position: absolute; inset: 48px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(224,64,251,0.25), rgba(123,47,190,0.1));
+      display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .steps-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .step-item {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px 16px;
+    }
+    .step-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+      background: rgba(123,47,190,0.18); border: 1px solid rgba(123,47,190,0.35);
+    }
+    .step-icon.done { background: rgba(0,188,212,0.18); border-color: var(--blue); }
+    .step-icon.active { background: rgba(224,64,251,0.18); border-color: var(--pink); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .step-text strong { display: block; font-weight: 600; font-size: 0.9rem; }
+    .step-text span { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── RESULT ── */
+    .result-wrap {
+      width: 100%; max-width: 460px;
+      display: flex; flex-direction: column; align-items: center; gap: 22px; padding-top: 16px;
+    }
+    .portrait-frame {
+      width: 100%; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 0 60px rgba(224,64,251,0.28), 0 0 120px rgba(123,47,190,0.18);
+      border: 1px solid rgba(224,64,251,0.28); position: relative;
+    }
+    .portrait-frame canvas { width: 100%; display: block; }
+    .brand-watermark {
+      position: absolute; bottom: 12px; right: 12px;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+      color: rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.38); backdrop-filter: blur(4px);
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    .result-actions { display: flex; flex-direction: column; gap: 11px; width: 100%; }
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white; font-weight: 700; font-size: 1rem;
+      padding: 15px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(224,64,251,0.28); }
+    .btn-secondary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--card); color: var(--text); font-weight: 600; font-size: 0.95rem;
+      padding: 14px; border-radius: 14px; border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); }
+
+    .upsell-card {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(123,47,190,0.2), rgba(224,64,251,0.1));
+      border: 1px solid rgba(224,64,251,0.3); border-radius: 16px; padding: 20px; text-align: center;
+    }
+    .upsell-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .upsell-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+    .pricing-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    .tier-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; padding: 12px 6px; cursor: pointer; transition: all 0.2s;
+      color: white; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .tier-btn:hover { border-color: var(--pink); background: rgba(224,64,251,0.15); }
+    .tier-btn.popular { border-color: var(--gold); background: rgba(255,213,79,0.08); }
+    .tier-btn .tier-price { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+    .tier-btn .tier-portraits { font-size: 0.7rem; color: var(--muted); }
+    .tier-btn .tier-badge { font-size: 0.6rem; background: var(--gold); color: #000; border-radius: 4px; padding: 1px 5px; font-weight: 700; }
+    .human-plug {
+      text-align: center; margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .human-plug a {
+      color: var(--muted); font-size: 0.78rem; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .human-plug a:hover { color: var(--pink); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: rgba(20,20,40,0.95); border: 1px solid var(--border);
+      backdrop-filter: blur(12px); border-radius: 12px;
+      padding: 12px 20px; font-size: 0.9rem; font-weight: 500;
+      z-index: 100; transition: transform 0.3s ease; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 420px) {
+      .vibe-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .vibe-info { padding: 10px 11px 12px; }
+      .vibe-name { font-size: 0.88rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- ═══════ SCREEN 1: UPLOAD ═══════ -->
+<section class="screen" id="screen-upload">
+  <div class="header">
+    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <div class="attempts-pill">
+      <span class="attempts-pip" id="pip-1">✦</span>
+      <span class="attempts-pip" id="pip-2">✦</span>
+      <span class="attempts-pip" id="pip-3">✦</span>
+      <span id="attempts-text">3 free left</span>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>Turn your pet into<br>a cosmic masterpiece</h1>
+    <p>Upload a clear photo — facing the camera, well-lit.<br>We'll handle the rest.</p>
+    <div class="hero-tips">
+      <span class="hero-tip good"><span class="tip-emoji">☀️</span> Good lighting</span>
+      <span class="hero-tip good"><span class="tip-emoji">🐾</span> Pet fills the frame</span>
+      <span class="hero-tip good"><span class="tip-emoji">🎯</span> Facing forward</span>
+      <span class="hero-tip bad"><span class="tip-emoji">🌑</span> No dark/dim photos</span>
+      <span class="hero-tip bad"><span class="tip-emoji">🌿</span> No busy backgrounds</span>
+    </div>
+  </div>
+  <div class="upload-zone" id="upload-zone">
+    <span class="upload-icon">🐾</span>
+    <h3>Drop your pet's photo here</h3>
+    <p>JPG or PNG · Clear photo, facing camera<br>works best</p>
+    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose photo</button>
+    <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg">
+  </div>
+
+
+  <div class="photo-tips">
+    <button class="photo-tips-toggle" id="tips-toggle" onclick="toggleTips()">
+      <span>✦ Tips for the best portrait</span>
+      <span class="arrow">▾</span>
+    </button>
+    <div class="photo-tips-body" id="tips-body">
+      <div class="tips-grid">
+        <div class="tip-item good">
+          <span class="tip-icon">☀️</span>
+          <span class="tip-label">✓ Good lighting</span>
+          <p>Natural daylight or a bright room — your pet's features will shine</p>
+        </div>
+        <div class="tip-item bad">
+          <span class="tip-icon">🌑</span>
+          <span class="tip-label">✗ Dark or dim photos</span>
+          <p>Low light makes it hard to detect your pet, especially dark-coloured fur</p>
+        </div>
+        <div class="tip-item good">
+          <span class="tip-icon">🐾</span>
+          <span class="tip-label">✓ Pet fills the frame</span>
+          <p>Move in close so your pet is the star — head and chest ideal</p>
+        </div>
+        <div class="tip-item bad">
+          <span class="tip-icon">🔍</span>
+          <span class="tip-label">✗ Pet too far away</span>
+          <p>Small pets in big scenes lose detail in the final portrait</p>
+        </div>
+        <div class="tip-item good">
+          <span class="tip-icon">🎯</span>
+          <span class="tip-label">✓ Facing forward</span>
+          <p>A clear face-on or three-quarter angle gives the best result</p>
+        </div>
+        <div class="tip-item bad">
+          <span class="tip-icon">🌿</span>
+          <span class="tip-label">✗ Busy background</span>
+          <p>Lots of furniture, patterns or other animals can confuse the cutout</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="examples-label">Recent cosmic portraits</p>
+  <div class="examples-grid" id="gallery-grid">
+    <div class="example-item" id="ex1"></div>
+    <div class="example-item" id="ex2"></div>
+    <div class="example-item" id="ex3"></div>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
+<section class="screen" id="screen-vibe" hidden>
+  <div class="header">
+    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <div class="attempts-pill">
+      <span class="attempts-pip" id="vibe-pip-1">✦</span>
+      <span class="attempts-pip" id="vibe-pip-2">✦</span>
+      <span class="attempts-pip" id="vibe-pip-3">✦</span>
+      <span id="vibe-attempts-text">3 free left</span>
+    </div>
+  </div>
+
+  <div class="vibe-screen-inner">
+    <div class="hero" style="margin-bottom:20px;">
+      <h1>Choose your vibe</h1>
+    </div>
+    <p class="vibe-subtitle">Each vibe shapes the world your pet will inhabit —<br>the colours, elements, and mood of your portrait.</p>
+
+    <div class="vibe-grid" id="vibe-grid">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <div class="vibe-cta-wrap">
+      <button class="btn-primary" id="vibe-confirm-btn" disabled
+        style="max-width:340px;margin:0 auto;opacity:0.4;cursor:not-allowed;">
+        ✦ Create my portrait
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN 3: PROCESSING ═══════ -->
+<section class="screen" id="screen-processing" hidden>
+  <div class="header"><div class="logo">✦ Cosmic Pets</div></div>
+  <div class="processing-wrap">
+    <div class="selected-vibe-badge" id="selected-vibe-badge">🌌 Generating…</div>
+    <div class="orbit-animation">
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-core">🌌</div>
+    </div>
+    <h2 style="font-size:1.3rem;font-weight:700;text-align:center;">Creating your portrait…</h2>
+    <ul class="steps-list">
+      <li class="step-item">
+        <div class="step-icon" id="s1-icon">🖼️</div>
+        <div class="step-text"><strong>Analysing your photo</strong><span id="s1-status">Identifying your pet…</span></div>
+      </li>
+      <li class="step-item">
+        <div class="step-icon" id="s2-icon">✂️</div>
+        <div class="step-text"><strong>Removing background</strong><span id="s2-status">Waiting…</span></div>
+      </li>
+      <li class="step-item">
+        <div class="step-icon" id="s3-icon">🎨</div>
+        <div class="step-text"><strong>Building your cosmic world</strong><span id="s3-status">Waiting…</span></div>
+      </li>
+      <li class="step-item">
+        <div class="step-icon" id="s4-icon">✨</div>
+        <div class="step-text"><strong>Compositing portrait</strong><span id="s4-status">Waiting…</span></div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN 4: RESULT ═══════ -->
+<section class="screen" id="screen-result" hidden>
+  <div class="header">
+    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <div class="attempts-pill">
+      <span class="attempts-pip" id="res-pip-1">✦</span>
+      <span class="attempts-pip" id="res-pip-2">✦</span>
+      <span class="attempts-pip" id="res-pip-3">✦</span>
+      <span id="res-attempts-text">3 free left</span>
+    </div>
+  </div>
+  <div class="result-wrap">
+    <div class="portrait-frame">
+      <canvas id="result-canvas" style="display:none;"></canvas>
+      <img id="result-img" style="width:100%;display:none;border-radius:20px;" alt="Your cosmic portrait">
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" id="download-btn">⬇ Download portrait</button>
+      <button class="btn-secondary" id="again-btn">✦ Create another portrait</button>
+    </div>
+    <div class="upsell-card" id="upsell-card" style="display:none;">
+      <h3>✦ Want more cosmic portraits?</h3>
+      <p>You've used your 3 free portraits. Pick a pack to keep creating.</p>
+      <div class="pricing-tiers">
+        <button class="tier-btn" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+          <span class="tier-price">£2.99</span>
+          <span class="tier-portraits">6 portraits</span>
+        </button>
+        <button class="tier-btn popular" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+          <span class="tier-badge">POPULAR</span>
+          <span class="tier-price">£4.99</span>
+          <span class="tier-portraits">12 portraits</span>
+        </button>
+        <button class="tier-btn" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+          <span class="tier-price">£7.99</span>
+          <span class="tier-portraits">20 portraits</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="human-plug">
+      <a href="https://cosmicpets.co.uk" target="_blank">
+        Don't like AI? Get it made by a real human →
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+
+// ══════════════════════════════════════════
+// VIBES DEFINITION
+// ══════════════════════════════════════════
+const VIBES = [
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    emoji: '🌑',
+    desc: 'Black roses, silver moon, mysterious deep navy',
+    palette: ['#03001C', '#050533', '#1a0040', '#3d0070'],
+    accent: '#C0C0FF',
+    drawSwatch(ctx, w, h) {
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#03001C'); bg.addColorStop(0.5,'#120035'); bg.addColorStop(1,'#280060');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // Moon
+      const mg = ctx.createRadialGradient(w*0.7,h*0.2,2,w*0.72,h*0.22,w*0.2);
+      mg.addColorStop(0,'#E8E8FF'); mg.addColorStop(0.6,'#9090C0'); mg.addColorStop(1,'rgba(30,0,60,0)');
+      ctx.fillStyle = mg; ctx.fillRect(0,0,w,h);
+      // Rose silhouettes
+      for(let i=0;i<5;i++){
+        ctx.beginPath();
+        ctx.arc(w*0.1+i*w*0.2, h*0.75+Math.sin(i)*h*0.05, w*0.06, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fill();
+        ctx.beginPath(); ctx.rect(w*0.115+i*w*0.2-1, h*0.78, 2, h*0.15);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
+      }
+      starsOnCanvas(ctx,w,h,60,'rgba(180,180,255,');
+    }
+  },
+  {
+    id: 'celestial',
+    name: 'Celestial',
+    emoji: '🪐',
+    desc: 'Warm gold, ancient ringed planets, regal nebula',
+    palette: ['#1a0a00', '#3d1a00', '#7a3800', '#c07020'],
+    accent: '#FFD54F',
+    drawSwatch(ctx, w, h) {
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#150800'); bg.addColorStop(0.5,'#3a1500'); bg.addColorStop(1,'#7a3800');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // Gold nebula
+      const ng = ctx.createRadialGradient(w*0.3,h*0.4,0,w*0.3,h*0.4,w*0.55);
+      ng.addColorStop(0,'rgba(200,120,20,0.35)'); ng.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = ng; ctx.fillRect(0,0,w,h);
+      // Ringed planet
+      const pg = ctx.createRadialGradient(w*0.72,h*0.25,2,w*0.72,h*0.25,w*0.18);
+      pg.addColorStop(0,'#FFD54F'); pg.addColorStop(0.6,'#C07020'); pg.addColorStop(1,'#7a3800');
+      ctx.beginPath(); ctx.arc(w*0.72,h*0.25,w*0.18,0,Math.PI*2);
+      ctx.fillStyle = pg; ctx.fill();
+      ctx.save(); ctx.translate(w*0.72,h*0.25); ctx.rotate(-0.2); ctx.scale(1,0.28);
+      ctx.beginPath(); ctx.arc(0,0,w*0.28,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,213,79,0.4)'; ctx.lineWidth=5; ctx.stroke(); ctx.restore();
+      starsOnCanvas(ctx,w,h,50,'rgba(255,220,120,');
+    }
+  },
+  {
+    id: 'garden',
+    name: 'Garden',
+    emoji: '🌸',
+    desc: 'Cherry blossom, soft pinks, butterflies, dreamy',
+    palette: ['#1a0015', '#3d0030', '#800060', '#cc60a0'],
+    accent: '#FFB7D5',
+    drawSwatch(ctx, w, h) {
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#1a0018'); bg.addColorStop(0.5,'#3d0035'); bg.addColorStop(1,'#7a2060');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // Pink bloom
+      const bg2 = ctx.createRadialGradient(w*0.4,h*0.5,0,w*0.4,h*0.5,w*0.6);
+      bg2.addColorStop(0,'rgba(220,80,150,0.25)'); bg2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = bg2; ctx.fillRect(0,0,w,h);
+      // Blossom petals scattered
+      for(let i=0;i<12;i++){
+        const x=Math.random()*w, y=Math.random()*h, r=w*0.04+Math.random()*w*0.03;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle = `rgba(255,${140+Math.floor(Math.random()*80)},${180+Math.floor(Math.random()*60)},0.6)`;
+        ctx.fill();
+      }
+      // Moon top right
+      const mg = ctx.createRadialGradient(w*0.8,h*0.15,1,w*0.8,h*0.15,w*0.13);
+      mg.addColorStop(0,'rgba(255,200,230,0.9)'); mg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = mg; ctx.fillRect(0,0,w,h);
+      starsOnCanvas(ctx,w,h,40,'rgba(255,180,220,');
+    }
+  },
+  {
+    id: 'electric',
+    name: 'Electric',
+    emoji: '⚡',
+    desc: 'Neon purple & cyan, cosmic lightning, vivid energy',
+    palette: ['#00001a', '#0a003a', '#1a0060', '#400080'],
+    accent: '#00FFFF',
+    drawSwatch(ctx, w, h) {
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#00001a'); bg.addColorStop(0.5,'#0a003a'); bg.addColorStop(1,'#200060');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // Electric glow
+      const eg = ctx.createRadialGradient(w*0.5,h*0.5,0,w*0.5,h*0.5,w*0.65);
+      eg.addColorStop(0,'rgba(0,200,255,0.2)'); eg.addColorStop(0.5,'rgba(120,0,255,0.15)'); eg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = eg; ctx.fillRect(0,0,w,h);
+      // Lightning bolts
+      ctx.strokeStyle = 'rgba(0,230,255,0.7)'; ctx.lineWidth = 1.5;
+      [[w*0.2,h*0.1,w*0.35,h*0.4,w*0.25,h*0.55,w*0.4,h*0.9],
+       [w*0.7,h*0.05,w*0.6,h*0.35,w*0.75,h*0.5,w*0.65,h*0.85]].forEach(pts=>{
+        ctx.beginPath(); ctx.moveTo(pts[0],pts[1]);
+        for(let i=2;i<pts.length;i+=2) ctx.lineTo(pts[i],pts[i+1]);
+        ctx.stroke();
+      });
+      starsOnCanvas(ctx,w,h,55,'rgba(100,200,255,');
+    }
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Deep',
+    emoji: '🌊',
+    desc: 'Teal depths, sea creatures, bioluminescent glow',
+    palette: ['#000d1a', '#001a2e', '#003a5c', '#006080'],
+    accent: '#00E5FF',
+    drawSwatch(ctx, w, h) {
+      const bg = ctx.createLinearGradient(0,0,0,h);
+      bg.addColorStop(0,'#000d1a'); bg.addColorStop(0.5,'#001a3d'); bg.addColorStop(1,'#003a60');
+      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      // Bioluminescent orbs
+      [[w*0.2,h*0.3,w*0.18,'rgba(0,200,255,0.2)'],
+       [w*0.7,h*0.6,w*0.22,'rgba(0,150,200,0.18)'],
+       [w*0.5,h*0.15,w*0.14,'rgba(0,230,200,0.22)']].forEach(([x,y,r,c])=>{
+        const g = ctx.createRadialGradient(x,y,0,x,y,r);
+        g.addColorStop(0,c); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      });
+      // Wave lines
+      ctx.strokeStyle='rgba(0,200,255,0.2)'; ctx.lineWidth=1;
+      for(let y=h*0.5;y<h;y+=h*0.08){
+        ctx.beginPath(); ctx.moveTo(0,y);
+        for(let x=0;x<=w;x+=5) ctx.lineTo(x,y+Math.sin(x/15)*4);
+        ctx.stroke();
+      }
+      starsOnCanvas(ctx,w,h,30,'rgba(0,220,255,');
+    }
+  },
+  {
+    id: 'abstract',
+    name: 'Cosmic Abstract',
+    emoji: '🔮',
+    desc: 'Bold shapes, layered geometry, vivid collage energy',
+    palette: ['#0a0a0a', '#1a001a', '#003333', '#1a1a00'],
+    accent: '#FF6EC7',
+    drawSwatch(ctx, w, h) {
+      ctx.fillStyle = '#080808'; ctx.fillRect(0,0,w,h);
+      // Bold geometric shapes
+      const shapes = [
+        {x:w*0.1, y:h*0.1, r:w*0.35, c:'rgba(224,64,251,0.35)'},
+        {x:w*0.8, y:h*0.3, r:w*0.28, c:'rgba(0,188,212,0.3)'},
+        {x:w*0.2, y:h*0.7, r:w*0.32, c:'rgba(255,213,79,0.25)'},
+        {x:w*0.75, y:h*0.75, r:w*0.25, c:'rgba(255,80,80,0.25)'},
+        {x:w*0.5, y:h*0.5, r:w*0.22, c:'rgba(100,255,150,0.2)'},
+      ];
+      shapes.forEach(s => {
+        const g = ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
+        g.addColorStop(0,s.c); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      });
+      // Bold stripe overlays
+      ctx.save(); ctx.globalAlpha=0.15;
+      [[w*0.3,0,w*0.32,h,'#E040FB'],[w*0.55,0,w*0.57,h,'#00BCD4']].forEach(([x1,y1,x2,y2,c])=>{
+        ctx.fillStyle=c;
+        ctx.fillRect(x1,y1,x2-x1,y2-y1);
+      });
+      ctx.restore();
+      starsOnCanvas(ctx,w,h,40,'rgba(255,255,255,');
+    }
+  },
+];
+
+function starsOnCanvas(ctx, w, h, n, colorPrefix) {
+  for(let i=0;i<n;i++){
+    ctx.beginPath(); ctx.arc(Math.random()*w,Math.random()*h,Math.random()*1.4+0.2,0,Math.PI*2);
+    ctx.fillStyle=colorPrefix+(Math.random()*0.7+0.3)+')'; ctx.fill();
+  }
+}
+
+// ── STATE ──
+let attemptsLeft = 3;
+let uploadedFile = null;
+let selectedVibe = null;
+let bgModule = null;
+
+// ── STARS BG ──
+const sc = document.getElementById('stars-canvas');
+const sCtx = sc.getContext('2d');
+
+// Offscreen canvas for the static nebula/Milky Way layer (painted once, blitted every frame)
+let nebCanvas = document.createElement('canvas');
+let nebCtx = nebCanvas.getContext('2d');
+
+function buildNebula(w, h) {
+  nebCanvas.width = w; nebCanvas.height = h;
+  nebCtx.clearRect(0, 0, w, h);
+  // Milky Way band + richer colour nebulae
+  const blobs = [
+    // Core Milky Way diagonal band — deeper purples and blues
+    { x:w*0.10, y:h*0.05, r:w*0.55, c:'rgba(80,50,160,0.28)' },
+    { x:w*0.30, y:h*0.22, r:w*0.48, c:'rgba(50,70,190,0.22)' },
+    { x:w*0.52, y:h*0.42, r:w*0.52, c:'rgba(100,40,160,0.20)' },
+    { x:w*0.72, y:h*0.60, r:w*0.44, c:'rgba(55,80,180,0.18)' },
+    { x:w*0.90, y:h*0.82, r:w*0.48, c:'rgba(60,50,150,0.25)' },
+    // Pink/magenta nebula clouds
+    { x:w*0.18, y:h*0.55, r:w*0.30, c:'rgba(210,40,150,0.14)' },
+    { x:w*0.65, y:h*0.30, r:w*0.26, c:'rgba(190,30,120,0.12)' },
+    { x:w*0.40, y:h*0.85, r:w*0.28, c:'rgba(220,60,140,0.11)' },
+    // Blue accent clouds
+    { x:w*0.78, y:h*0.18, r:w*0.26, c:'rgba(30,140,230,0.13)' },
+    { x:w*0.08, y:h*0.70, r:w*0.22, c:'rgba(40,110,210,0.11)' },
+    // Violet/indigo pockets
+    { x:w*0.55, y:h*0.12, r:w*0.22, c:'rgba(150,40,220,0.12)' },
+    { x:w*0.85, y:h*0.55, r:w*0.24, c:'rgba(120,50,200,0.10)' },
+    { x:w*0.25, y:h*0.38, r:w*0.18, c:'rgba(160,60,210,0.09)' },
+  ];
+  blobs.forEach(b => {
+    const g = nebCtx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+    g.addColorStop(0, b.c); g.addColorStop(1,'rgba(0,0,0,0)');
+    nebCtx.fillStyle = g; nebCtx.fillRect(0,0,w,h);
+  });
+}
+
+let stars = [];
+function resizeStars(){
+  sc.width = window.innerWidth; sc.height = window.innerHeight;
+  buildNebula(sc.width, sc.height);
+  const w = sc.width, h = sc.height;
+  stars = [];
+  // Colour palettes — vivid but space-appropriate
+  const tinyTints = ['255,255,255','255,255,255','255,255,255','200,190,255','190,210,255','255,200,230'];
+  const medTints  = ['255,255,255','180,200,255','255,180,220','200,160,255','160,210,255','255,220,200','230,170,255','170,230,255'];
+  const glintTints= ['255,255,255','210,190,255','255,190,220','180,210,255'];
+
+  // Layer 0 — tiny distant stars — faster twinkle, some tinted
+  for(let i=0;i<320;i++) stars.push({
+    x:Math.random()*w, y:Math.random()*h,
+    r:Math.random()*0.75+0.15,
+    a:Math.random()*Math.PI*2, sp:Math.random()*0.018+0.008,  // faster twinkle
+    dx:(Math.random()-0.5)*0.025, dy:(Math.random()-0.5)*0.025,
+    rgb:tinyTints[Math.floor(Math.random()*tinyTints.length)], layer:0
+  });
+  // Layer 1 — medium stars — rich colour palette, noticeable twinkle
+  for(let i=0;i<90;i++) stars.push({
+    x:Math.random()*w, y:Math.random()*h,
+    r:Math.random()*1.1+0.7,
+    a:Math.random()*Math.PI*2, sp:Math.random()*0.025+0.012,  // faster twinkle
+    dx:(Math.random()-0.5)*0.018, dy:(Math.random()-0.5)*0.018,
+    rgb:medTints[Math.floor(Math.random()*medTints.length)], layer:1
+  });
+  // Layer 2 — rare bright stars with cross glint — vivid pops of colour
+  for(let i=0;i<16;i++) stars.push({
+    x:Math.random()*w, y:Math.random()*h,
+    r:Math.random()*1.4+2.0,
+    a:Math.random()*Math.PI*2, sp:Math.random()*0.020+0.010,  // faster twinkle
+    dx:(Math.random()-0.5)*0.012, dy:(Math.random()-0.5)*0.012,
+    rgb:glintTints[Math.floor(Math.random()*glintTints.length)], layer:2,
+    glintAngle:Math.random()*Math.PI
+  });
+}
+resizeStars();
+window.addEventListener('resize', resizeStars);
+
+(function anim(){
+  sCtx.clearRect(0,0,sc.width,sc.height);
+  // Nebula layer (static, pre-rendered)
+  sCtx.drawImage(nebCanvas,0,0);
+
+  stars.forEach(s=>{
+    // Slow drift
+    s.x+=s.dx; s.y+=s.dy;
+    if(s.x<-4) s.x=sc.width+4; else if(s.x>sc.width+4) s.x=-4;
+    if(s.y<-4) s.y=sc.height+4; else if(s.y>sc.height+4) s.y=-4;
+    s.a+=s.sp;
+    const alpha=(Math.sin(s.a)*0.55+0.45)*0.95+0.05;  // wider swing: ~0.05 dim → ~1.0 bright
+
+    if(s.layer===2){
+      // Glow halo
+      const halo=sCtx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*4);
+      halo.addColorStop(0,`rgba(${s.rgb},${alpha*0.5})`);
+      halo.addColorStop(1,'rgba(0,0,0,0)');
+      sCtx.fillStyle=halo;
+      sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r*4,0,Math.PI*2); sCtx.fill();
+      // Cross glint lines
+      const gl=s.r*6;
+      for(let ang=0;ang<Math.PI;ang+=Math.PI/2){
+        const a2=ang+s.glintAngle;
+        const grd=sCtx.createLinearGradient(
+          s.x-Math.cos(a2)*gl, s.y-Math.sin(a2)*gl,
+          s.x+Math.cos(a2)*gl, s.y+Math.sin(a2)*gl
+        );
+        grd.addColorStop(0,'rgba(255,255,255,0)');
+        grd.addColorStop(0.5,`rgba(255,255,255,${alpha*0.55})`);
+        grd.addColorStop(1,'rgba(255,255,255,0)');
+        sCtx.strokeStyle=grd; sCtx.lineWidth=0.7;
+        sCtx.beginPath();
+        sCtx.moveTo(s.x-Math.cos(a2)*gl,s.y-Math.sin(a2)*gl);
+        sCtx.lineTo(s.x+Math.cos(a2)*gl,s.y+Math.sin(a2)*gl);
+        sCtx.stroke();
+      }
+    }
+    // Star dot (all layers)
+    sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sCtx.fillStyle=`rgba(${s.rgb},${alpha})`; sCtx.fill();
+  });
+  requestAnimationFrame(anim);
+})();
+
+// ── GALLERY — load recent portraits from server ──
+async function loadGallery() {
+  try {
+    const res = await fetch('/api/gallery');
+    const data = await res.json();
+    const slots = ['ex1','ex2','ex3'];
+    slots.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (data.images && data.images[i]) {
+        el.style.background = 'none';
+        const img = document.createElement('img');
+        img.src = data.images[i];
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        el.appendChild(img);
+      } else {
+        // No portrait yet — draw vibe swatch placeholder
+        const canvas = document.createElement('canvas');
+        canvas.width = 120; canvas.height = 160;
+        canvas.style.cssText = 'width:100%;height:100%;display:block;';
+        el.appendChild(canvas);
+        VIBES[i * 2].drawSwatch(canvas.getContext('2d'), 120, 160);
+      }
+    });
+  } catch(e) {
+    // Server not running — fall back to vibe swatches
+    ['ex1','ex2','ex3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = 120; canvas.height = 160;
+      canvas.style.cssText = 'width:100%;height:100%;display:block;';
+      el.appendChild(canvas);
+      VIBES[i * 2].drawSwatch(canvas.getContext('2d'), 120, 160);
+    });
+  }
+}
+loadGallery();
+
+// Refresh gallery after each successful portrait
+function refreshGallery() { loadGallery(); }
+
+// ── BUILD VIBE GRID ──
+const grid = document.getElementById('vibe-grid');
+VIBES.forEach(vibe => {
+  const card = document.createElement('div');
+  card.className = 'vibe-card';
+  card.dataset.id = vibe.id;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'vibe-swatch';
+  canvas.width = 280; canvas.height = 210;
+  card.appendChild(canvas);
+
+  const check = document.createElement('div');
+  check.className = 'vibe-check'; check.textContent = '✓';
+  card.appendChild(check);
+
+  const info = document.createElement('div');
+  info.className = 'vibe-info';
+  info.innerHTML = `<div class="vibe-name">${vibe.emoji} ${vibe.name}</div><div class="vibe-desc">${vibe.desc}</div>`;
+  card.appendChild(info);
+
+  card.addEventListener('click', () => selectVibe(vibe.id));
+  grid.appendChild(card);
+
+  // Draw swatch after appended
+  setTimeout(() => vibe.drawSwatch(canvas.getContext('2d'), 280, 210), 0);
+});
+
+function selectVibe(id) {
+  selectedVibe = id;
+  document.querySelectorAll('.vibe-card').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+  const btn = document.getElementById('vibe-confirm-btn');
+  btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+}
+
+document.getElementById('vibe-confirm-btn').addEventListener('click', () => {
+  if (!selectedVibe) return;
+  startProcessing();
+});
+
+// ── UPLOAD ──
+const uploadZone = document.getElementById('upload-zone');
+const fileInput  = document.getElementById('file-input');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('dragover');
+  if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+uploadZone.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') fileInput.click(); });
+fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
+  if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
+  uploadedFile = file;
+  updateAttemptPips('vibe');
+  showScreen('vibe');
+}
+
+// ── PROCESSING ──
+function setStep(n, state, txt) {
+  const icon = document.getElementById(`s${n}-icon`);
+  const status = document.getElementById(`s${n}-status`);
+  if(icon) icon.className = 'step-icon ' + state;
+  if(status) status.textContent = txt;
+}
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fileToDataURI(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function canvasFallback(vibe) {
+  // Client-side canvas composite used when server is not running
+  const rc = document.getElementById('result-canvas');
+  const W = 600, H = 800;
+  rc.width = W; rc.height = H;
+  rc.style.display = 'block';
+  document.getElementById('result-img').style.display = 'none';
+  const ctx = rc.getContext('2d');
+  vibe.drawSwatch(ctx, W, H);
+  addPortraitDetails(ctx, W, H, vibe);
+  const halo = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.4);
+  halo.addColorStop(0,`rgba(${hexToRgb(vibe.accent)},0.2)`);
+  halo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = halo; ctx.fillRect(0,0,W,H);
+  if (uploadedFile) {
+    const petDataURI = await fileToDataURI(uploadedFile);
+    const petImg = new Image();
+    await new Promise(r => { petImg.onload = r; petImg.src = petDataURI; });
+    const scale = Math.min((W*0.72)/petImg.width,(H*0.68)/petImg.height);
+    const pw = petImg.width*scale, ph = petImg.height*scale;
+    const px = (W-pw)/2, py = (H-ph)/2+20;
+    ctx.shadowColor = vibe.accent; ctx.shadowBlur = 35;
+    ctx.drawImage(petImg,px,py,pw,ph);
+    ctx.shadowBlur = 0;
+  }
+  drawSparkles(ctx, W, H, vibe.accent);
+  return rc.toDataURL('image/jpeg', 0.9);
+}
+
+// ── Main pipeline ─────────────────────────────────────────────────────────────
+async function startProcessing() {
+  const vibe = VIBES.find(v => v.id === selectedVibe);
+  attemptsLeft--;
+  updateAttemptPips('processing');
+  showScreen('processing');
+  document.getElementById('selected-vibe-badge').textContent = `${vibe.emoji} ${vibe.name} vibe`;
+
+  let finalResultB64 = null;
+
+  try {
+    const imageB64 = await fileToDataURI(uploadedFile);
+
+    setStep(1,'active','Preparing your photo…');
+    await delay(400);
+    setStep(1,'done','✓ Photo ready');
+
+    // Steps 2 & 3 run in parallel
+    setStep(2,'active','Removing background…');
+    setStep(3,'active',`Painting the ${vibe.name} world…`);
+
+    const [bgResult, genResult] = await Promise.all([
+      fetch('/api/remove-bg', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({image: imageB64})
+      }).then(r => r.json()),
+      fetch('/api/generate-bg', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({vibe: selectedVibe})
+      }).then(r => r.json()),
+    ]);
+
+    if (bgResult.error)  throw new Error(bgResult.error);
+    if (genResult.error) throw new Error(genResult.error);
+
+    // Show quality warning if server flagged a photo issue (non-blocking — still proceeds)
+    if (bgResult.warning) showToast(`📸 ${bgResult.warning}`, 8000);
+
+    setStep(2,'done',`✓ Background removed (${bgResult.time?.toFixed(0)}s)`);
+    setStep(3,'done',`✓ Cosmic world painted (${genResult.time?.toFixed(0)}s)`);
+
+    setStep(4,'active','Compositing your portrait…');
+    const compResult = await fetch('/api/composite', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({pet_png: bgResult.pet_png, bg_url: genResult.bg_url})
+    }).then(r => r.json());
+
+    if (compResult.error) throw new Error(compResult.error);
+    finalResultB64 = compResult.result;
+    setStep(4,'done','✓ Portrait complete');
+
+  } catch(err) {
+    console.warn('Server pipeline failed, using canvas fallback:', err.message);
+    showToast(`⚠️ Server error: ${err.message} — using preview mode`, 30000);
+    setStep(2,'done','✓ Photo processed');
+    setStep(3,'done','✓ Cosmic world ready');
+    setStep(4,'active','Placing your pet in the cosmos…');
+    finalResultB64 = await canvasFallback(vibe);
+    setStep(4,'done','✓ Portrait complete');
+  }
+
+  await delay(400);
+
+  // Show result
+  const resultImg = document.getElementById('result-img');
+  const resultCanvas = document.getElementById('result-canvas');
+  resultImg.src = finalResultB64;
+  resultCanvas.style.display = 'none';
+  resultImg.style.display = 'block';
+
+  updateAttemptPips('result');
+  showScreen('result');
+  if (attemptsLeft === 0) document.getElementById('upsell-card').style.display = 'block';
+  refreshGallery(); // update the home screen gallery with the new portrait
+
+  document.getElementById('download-btn').onclick = () => {
+    const link = document.createElement('a');
+    link.download = `cosmic-pets-${vibe.id}.jpg`;
+    link.href = finalResultB64;
+    link.click();
+    showToast(`Your ${vibe.name} portrait downloaded! ✦`);
+  };
+}
+
+function addPortraitDetails(ctx, W, H, vibe) {
+  // Additional nebula layers for full portrait
+  for(let i=0;i<3;i++){
+    const x=Math.random()*W, y=Math.random()*H, r=80+Math.random()*160;
+    const g = ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,`rgba(${hexToRgb(vibe.accent)},0.12)`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+  // Extra stars
+  for(let i=0;i<80;i++){
+    ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*1.8+0.2,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.8+0.2})`; ctx.fill();
+  }
+}
+
+function drawSparkles(ctx, W, H, accentHex) {
+  const rgb = hexToRgb(accentHex);
+  for(let i=0;i<18;i++){
+    const x=Math.random()*W, y=Math.random()*H, s=Math.random()*5+2;
+    ctx.save(); ctx.translate(x,y); ctx.rotate(Math.PI/4);
+    ctx.fillStyle=`rgba(${rgb},${Math.random()*0.5+0.5})`;
+    ctx.beginPath();
+    ctx.moveTo(0,-s); ctx.lineTo(s*0.2,-s*0.2); ctx.lineTo(s,0);
+    ctx.lineTo(s*0.2,s*0.2); ctx.lineTo(0,s); ctx.lineTo(-s*0.2,s*0.2);
+    ctx.lineTo(-s,0); ctx.lineTo(-s*0.2,-s*0.2); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function hexToRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ── ATTEMPT PIPS ──
+function updateAttemptPips(screen) {
+  const maps = {
+    upload: ['pip-1','pip-2','pip-3','attempts-text'],
+    vibe:   ['vibe-pip-1','vibe-pip-2','vibe-pip-3','vibe-attempts-text'],
+    result: ['res-pip-1','res-pip-2','res-pip-3','res-attempts-text'],
+  };
+  const ids = maps[screen] || maps.upload;
+  ids.slice(0,3).forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(el) el.className = 'attempts-pip'+(i >= attemptsLeft ? ' used' : '');
+  });
+  const txt = document.getElementById(ids[3]);
+  if(txt) txt.textContent = attemptsLeft > 0 ? `${attemptsLeft} free left` : 'No attempts left';
+}
+
+// ── NAVIGATION ──
+function showScreen(name) {
+  ['upload','vibe','processing','result'].forEach(s => {
+    const el = document.getElementById(`screen-${s}`);
+    if(el) el.hidden = s !== name;
+  });
+  window.scrollTo(0,0);
+}
+
+document.getElementById('again-btn').addEventListener('click', () => {
+  if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
+  uploadedFile = null; selectedVibe = null;
+  fileInput.value = '';
+  document.querySelectorAll('.vibe-card').forEach(c => c.classList.remove('selected'));
+  const btn = document.getElementById('vibe-confirm-btn');
+  btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';
+  updateAttemptPips('upload');
+  showScreen('upload');
+});
+
+// ── PHOTO TIPS TOGGLE ──
+window.toggleTips = function() {
+  const toggle = document.getElementById('tips-toggle');
+  const body   = document.getElementById('tips-body');
+  toggle.classList.toggle('open');
+  body.classList.toggle('open');
+};
+
+// ── TOAST ──
+window.showToast = function(msg, ms=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+};
+
+</script>
+</body>
+</html>
