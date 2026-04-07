@@ -1049,7 +1049,16 @@ async function startProcessing() {
   // Show result
   const resultImg = document.getElementById('result-img');
   const resultCanvas = document.getElementById('result-canvas');
-  resultImg.src = finalResultB64;
+
+  // Convert base64 to Blob URL for display — fixes mobile Safari rendering issue with large data URIs
+  const base64Data = finalResultB64.split(',')[1];
+  const byteChars = atob(base64Data);
+  const byteArr = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+  const blob = new Blob([byteArr], { type: 'image/jpeg' });
+  const blobUrl = URL.createObjectURL(blob);
+
+  resultImg.src = blobUrl;
   resultCanvas.style.display = 'none';
   resultImg.style.display = 'block';
 
@@ -1061,7 +1070,7 @@ async function startProcessing() {
   document.getElementById('download-btn').onclick = () => {
     const link = document.createElement('a');
     link.download = `cosmic-pets-${vibe.id}.jpg`;
-    link.href = finalResultB64;
+    link.href = blobUrl;
     link.click();
     showToast(`Your ${vibe.name} portrait downloaded! ✦`);
   };
