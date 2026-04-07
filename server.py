@@ -556,4 +556,4 @@ if __name__ == "__main__":
   ╚══════════════════════════════════════════╝
   Press Ctrl+C to stop.
 """)
-    ThreadingHTTPServer(("localhost", PORT), CosmicHandler).serve_forever()
+    ThreadingHTTPServer(("0.0.0.0", PORT), CosmicHandler).serve_forever()
