@@ -362,6 +362,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/gallery":
             self._gallery()
+        elif self.path == "/" or self.path == "":
+            self.path = "/cosmic-pets-prototype.html"
+            super().do_GET()
         else:
             super().do_GET()
 
