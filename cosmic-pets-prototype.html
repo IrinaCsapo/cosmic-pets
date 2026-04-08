@@ -324,6 +324,12 @@
     .crop-actions { display: flex; gap: 12px; width: 100%; margin-top: 4px; }
     .crop-actions .btn-secondary { flex: 1; }
     .crop-actions .btn-primary   { flex: 2; }
+    /* Circular crop overlay — mirrors the oval mask applied to the pet */
+    .cropper-view-box,
+    .cropper-face { border-radius: 50%; }
+    .cropper-view-box { outline-color: rgba(255,255,255,0.7); }
+    .cropper-dashed { display: none; }
+    .cropper-point  { display: none; }
 
     /* ── TOAST ── */
     .toast {
@@ -965,9 +971,56 @@ fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(f
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
-  // Show crop modal before proceeding to vibe selection
   openCropModal(file);
 }
+
+// ── CROP MODAL ──────────────────────────────────────────────────────────────
+let cropperInstance = null;
+
+function openCropModal(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const modal = document.getElementById('crop-modal');
+    const img   = document.getElementById('crop-image');
+    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+    img.src = e.target.result;
+    modal.classList.add('open');
+    img.onload = () => {
+      cropperInstance = new Cropper(img, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 0.85,
+        cropBoxResizable: false,
+        cropBoxMovable: false,
+        toggleDragModeOnDblclick: false,
+        background: false,
+        guides: false,
+        highlight: false,
+        zoomOnTouch: true,
+        zoomOnWheel: true,
+      });
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('crop-confirm-btn').addEventListener('click', () => {
+  if (!cropperInstance) return;
+  cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 }).toBlob(blob => {
+    uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
+    document.getElementById('crop-modal').classList.remove('open');
+    cropperInstance.destroy(); cropperInstance = null;
+    updateAttemptPips('vibe');
+    showScreen('vibe');
+  }, 'image/jpeg', 0.92);
+});
+
+document.getElementById('crop-cancel-btn').addEventListener('click', () => {
+  document.getElementById('crop-modal').classList.remove('open');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  document.getElementById('file-input').value = '';
+});
 
 // ── PROCESSING ──
 function setStep(n, state, txt) {
@@ -1212,61 +1265,7 @@ window.showToast = function(msg, ms=3000) {
 
 </script>
 
-<!-- Cropper.js — loaded outside module so it's globally available -->
+<!-- Cropper.js — must load before the module executes (modules are deferred) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-<script>
-// ── CROP MODAL ──────────────────────────────────────────────────────────────
-let cropperInstance = null;
-
-function openCropModal(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const modal = document.getElementById('crop-modal');
-    const img   = document.getElementById('crop-image');
-    // Destroy any previous cropper instance
-    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
-    img.src = e.target.result;
-    modal.classList.add('open');
-    // Init Cropper.js once image loads
-    img.onload = () => {
-      cropperInstance = new Cropper(img, {
-        aspectRatio: 1,          // square crop — matches oval mask
-        viewMode: 1,             // can't drag crop box outside image
-        dragMode: 'move',        // drag moves image, not crop box
-        autoCropArea: 0.85,      // crop box starts at 85% of image
-        cropBoxResizable: false, // fixed size crop box — just drag/zoom
-        cropBoxMovable: false,
-        toggleDragModeOnDblclick: false,
-        background: false,
-        guides: false,
-        highlight: false,
-        zoomOnTouch: true,
-        zoomOnWheel: true,
-      });
-    };
-  };
-  reader.readAsDataURL(file);
-}
-
-document.getElementById('crop-confirm-btn').addEventListener('click', () => {
-  if (!cropperInstance) return;
-  // Export the cropped area as a blob
-  cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 }).toBlob(blob => {
-    uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
-    // Close modal and proceed to vibe screen
-    document.getElementById('crop-modal').classList.remove('open');
-    cropperInstance.destroy(); cropperInstance = null;
-    updateAttemptPips('vibe');
-    showScreen('vibe');
-  }, 'image/jpeg', 0.92);
-});
-
-document.getElementById('crop-cancel-btn').addEventListener('click', () => {
-  document.getElementById('crop-modal').classList.remove('open');
-  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
-  // Reset file input so they can pick again
-  document.getElementById('file-input').value = '';
-});
-</script>
 </body>
 </html>
