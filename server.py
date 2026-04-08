@@ -231,11 +231,29 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     r, g, b, _ = pet.split()
     pet = Image.merge("RGBA", (r, g, b, blended_alpha))
     print(f"  🔵 Oval mask applied (rx={rx}, ry={ry}, cy={cy})")
+
+    # ── Bottom gradient fade ─────────────────────────────────────────────────
+    # Dissolves the lower 40% of the pet to transparent so the bottom edge
+    # never shows as a hard cutout inside the glowing halo. The garland layer
+    # composited later fills this zone naturally, hiding the transition.
+    from PIL import ImageDraw as _FadeDraw
+    _pw, _ph = pet.size
+    bottom_fade = Image.new("L", (_pw, _ph), 255)
+    fade_start = int(_ph * 0.58)   # fade begins ~60% down the pet (mid-chest area)
+    _fade_draw = _FadeDraw.Draw(bottom_fade)
+    for row in range(fade_start, _ph):
+        progress = (row - fade_start) / max(1, _ph - fade_start)
+        alpha_val = int(255 * (1.0 - progress) ** 1.6)  # accelerating ease-in
+        _fade_draw.line([(0, row), (_pw - 1, row)], fill=alpha_val)
+    _r, _g, _b, _a = pet.split()
+    pet = Image.merge("RGBA", (_r, _g, _b, _Chops.multiply(_a, bottom_fade)))
+    print(f"  🌅 Bottom fade applied (starts at {fade_start}px / {_ph}px = {fade_start/_ph:.0%})")
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Position: centred horizontally and vertically
+    # Position: centred horizontally, shifted up slightly so the garland
+    # at the bottom of the FLUX background naturally covers the pet's lower edge.
     px = (OUTPUT_W - pw) // 2
-    py = (OUTPUT_H - ph) // 2
+    py = int((OUTPUT_H - ph) / 2) - int(OUTPUT_H * 0.03)
 
     # ── Edge bloom — subtle coloured light radiating from the pet's silhouette ──
     # This replaces the "heaven spotlight" look with a natural cosmic aura.
@@ -283,9 +301,9 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     # We crop a generous band from the FLUX bg centred just below that point,
     # then apply an arch-shaped elliptical mask so only a crescent of botanicals
     # appears — strongest at the horizontal centre, fading at the sides and top.
-    garland_center_y = py + int(ph * 0.82)         # just below oval equator
-    garland_h = int(OUTPUT_H * 0.30)               # height of the crop band
-    g_top = max(0, garland_center_y - int(garland_h * 0.12))
+    garland_center_y = py + int(ph * 0.68)         # raised — covers the fade zone
+    garland_h = int(OUTPUT_H * 0.40)               # taller band = more garland coverage
+    g_top = max(0, garland_center_y - int(garland_h * 0.18))
     g_bot = min(OUTPUT_H, g_top + garland_h)
     g_h = g_bot - g_top
     if g_h > 20:
@@ -298,7 +316,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
         arx = int(OUTPUT_W * 0.48)                 # wide enough to span the portrait
         ary = int(g_h * 0.80)                      # tall enough for a chunky crescent
         _ArchDraw.Draw(arch_mask).ellipse(
-            [acx - arx, acy - ary, acx + arx, acy + ary], fill=220
+            [acx - arx, acy - ary, acx + arx, acy + ary], fill=250
         )
         arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.09)))
         g_strip.putalpha(arch_mask)

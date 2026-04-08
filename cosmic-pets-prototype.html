@@ -180,7 +180,7 @@
     }
     .vibe-card.selected .vibe-check { opacity: 1; transform: scale(1); }
 
-    .vibe-swatch { width: 100%; aspect-ratio: 4/3; display: block; }
+    .vibe-swatch { width: 100%; aspect-ratio: 5/3; display: block; }
 
     .vibe-check {
       position: absolute; top: 10px; right: 10px;
@@ -365,9 +365,13 @@
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
+    @media (max-width: 600px) {
+      .vibe-desc { display: none; }
+      .vibe-info { padding: 8px 11px 10px; }
+    }
     @media (max-width: 420px) {
       .vibe-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-      .vibe-info { padding: 10px 11px 12px; }
+      .vibe-info { padding: 7px 10px 9px; }
       .vibe-name { font-size: 0.88rem; }
     }
   </style>
@@ -950,7 +954,7 @@ VIBES.forEach(vibe => {
 
   const canvas = document.createElement('canvas');
   canvas.className = 'vibe-swatch';
-  canvas.width = 280; canvas.height = 210;
+  canvas.width = 280; canvas.height = 168;
   card.appendChild(canvas);
 
   const check = document.createElement('div');
@@ -966,7 +970,7 @@ VIBES.forEach(vibe => {
   grid.appendChild(card);
 
   // Draw swatch after appended
-  setTimeout(() => vibe.drawSwatch(canvas.getContext('2d'), 280, 210), 0);
+  setTimeout(() => vibe.drawSwatch(canvas.getContext('2d'), 280, 168), 0);
 });
 
 function selectVibe(id) {
