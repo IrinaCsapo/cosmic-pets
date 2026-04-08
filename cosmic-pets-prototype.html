@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cosmic Pets — Your Pet's Cosmic Portrait</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -27,7 +28,7 @@
     #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
     .screen {
-      position: relative; z-index: 1; min-height: 100vh;
+      position: relative; z-index: 1; min-height: 100vh; min-height: 100svh;
       display: flex; flex-direction: column; align-items: center;
       padding: 0 20px 48px;
     }
@@ -193,7 +194,12 @@
     .vibe-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
     .vibe-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
-    .vibe-cta-wrap { text-align: center; }
+    .vibe-cta-wrap {
+      text-align: center;
+      position: sticky; bottom: 20px; z-index: 10;
+      padding: 12px 0 4px;
+      background: linear-gradient(to top, rgba(8,8,24,0.98) 60%, transparent);
+    }
 
     /* ── PROCESSING ── */
     .processing-wrap {
@@ -301,6 +307,23 @@
       transition: color 0.2s;
     }
     .human-plug a:hover { color: var(--pink); }
+
+    /* ── CROP MODAL ── */
+    #crop-modal {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(8,8,24,0.98);
+      flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 24px 20px 32px; overflow-y: auto;
+    }
+    #crop-modal.open { display: flex; }
+    .crop-modal-inner { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .crop-modal-inner h2 { font-size: 1.15rem; font-weight: 700; text-align: center; }
+    .crop-modal-inner p  { color: var(--muted); font-size: 0.82rem; text-align: center; line-height: 1.5; }
+    .crop-container { width: 100%; max-height: 55vh; overflow: hidden; border-radius: 14px; background: #000; }
+    .crop-container img { display: block; max-width: 100%; }
+    .crop-actions { display: flex; gap: 12px; width: 100%; margin-top: 4px; }
+    .crop-actions .btn-secondary { flex: 1; }
+    .crop-actions .btn-primary   { flex: 2; }
 
     /* ── TOAST ── */
     .toast {
@@ -514,6 +537,21 @@
     </div>
   </div>
 </section>
+
+<!-- ═══════ CROP MODAL ═══════ -->
+<div id="crop-modal">
+  <div class="crop-modal-inner">
+    <h2>✦ Position your pet</h2>
+    <p>Pinch to zoom · drag to reframe · get your pet's face centred before generating</p>
+    <div class="crop-container">
+      <img id="crop-image" alt="Crop your pet photo">
+    </div>
+    <div class="crop-actions">
+      <button class="btn-secondary" id="crop-cancel-btn">← Back</button>
+      <button class="btn-primary" id="crop-confirm-btn">✦ Looks good</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -927,9 +965,8 @@ fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(f
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
-  uploadedFile = file;
-  updateAttemptPips('vibe');
-  showScreen('vibe');
+  // Show crop modal before proceeding to vibe selection
+  openCropModal(file);
 }
 
 // ── PROCESSING ──
@@ -1020,8 +1057,8 @@ async function startProcessing() {
     // Show quality warning if server flagged a photo issue (non-blocking — still proceeds)
     if (bgResult.warning) showToast(`📸 ${bgResult.warning}`, 8000);
 
-    setStep(2,'done',`✓ Background removed (${bgResult.time?.toFixed(0)}s)`);
-    setStep(3,'done',`✓ Cosmic world painted (${genResult.time?.toFixed(0)}s)`);
+    setStep(2,'done',`✓ Background removed${bgResult.time != null ? ' (' + Math.round(bgResult.time) + 's)' : ''}`);
+    setStep(3,'done',`✓ Cosmic world painted${genResult.time != null ? ' (' + Math.round(genResult.time) + 's)' : ''}`);
 
     setStep(4,'active','Compositing your portrait…');
     const compResult = await fetch('/api/composite', {
@@ -1067,13 +1104,24 @@ async function startProcessing() {
   if (attemptsLeft === 0) document.getElementById('upsell-card').style.display = 'block';
   refreshGallery(); // update the home screen gallery with the new portrait
 
-  document.getElementById('download-btn').onclick = () => {
-    const link = document.createElement('a');
-    link.download = `cosmic-pets-${vibe.id}.jpg`;
-    link.href = blobUrl;
-    link.click();
-    showToast(`Your ${vibe.name} portrait downloaded! ✦`);
-  };
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const dlBtn = document.getElementById('download-btn');
+  if (isIOS) {
+    dlBtn.textContent = '📸 Save to Camera Roll';
+    dlBtn.onclick = () => {
+      window.open(blobUrl, '_blank');
+      showToast('Long-press the image and tap "Save to Photos" ✦', 5000);
+    };
+  } else {
+    dlBtn.textContent = '⬇ Download portrait';
+    dlBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = `cosmic-pets-${vibe.id}.jpg`;
+      link.href = blobUrl;
+      link.click();
+      showToast(`Your ${vibe.name} portrait downloaded! ✦`);
+    };
+  }
 }
 
 function addPortraitDetails(ctx, W, H, vibe) {
@@ -1162,6 +1210,63 @@ window.showToast = function(msg, ms=3000) {
   setTimeout(() => t.classList.remove('show'), ms);
 };
 
+</script>
+
+<!-- Cropper.js — loaded outside module so it's globally available -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+// ── CROP MODAL ──────────────────────────────────────────────────────────────
+let cropperInstance = null;
+
+function openCropModal(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const modal = document.getElementById('crop-modal');
+    const img   = document.getElementById('crop-image');
+    // Destroy any previous cropper instance
+    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+    img.src = e.target.result;
+    modal.classList.add('open');
+    // Init Cropper.js once image loads
+    img.onload = () => {
+      cropperInstance = new Cropper(img, {
+        aspectRatio: 1,          // square crop — matches oval mask
+        viewMode: 1,             // can't drag crop box outside image
+        dragMode: 'move',        // drag moves image, not crop box
+        autoCropArea: 0.85,      // crop box starts at 85% of image
+        cropBoxResizable: false, // fixed size crop box — just drag/zoom
+        cropBoxMovable: false,
+        toggleDragModeOnDblclick: false,
+        background: false,
+        guides: false,
+        highlight: false,
+        zoomOnTouch: true,
+        zoomOnWheel: true,
+      });
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('crop-confirm-btn').addEventListener('click', () => {
+  if (!cropperInstance) return;
+  // Export the cropped area as a blob
+  cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 }).toBlob(blob => {
+    uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
+    // Close modal and proceed to vibe screen
+    document.getElementById('crop-modal').classList.remove('open');
+    cropperInstance.destroy(); cropperInstance = null;
+    updateAttemptPips('vibe');
+    showScreen('vibe');
+  }, 'image/jpeg', 0.92);
+});
+
+document.getElementById('crop-cancel-btn').addEventListener('click', () => {
+  document.getElementById('crop-modal').classList.remove('open');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  // Reset file input so they can pick again
+  document.getElementById('file-input').value = '';
+});
 </script>
 </body>
 </html>

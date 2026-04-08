@@ -7,10 +7,10 @@ Run:   python3 server.py
 Open:  http://localhost:8080
 """
 
-import base64, glob, io, json, os, pathlib, tempfile, time, urllib.error, urllib.request
+import base64, glob, io, json, os, pathlib, tempfile, time, threading, urllib.error, urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageFilter
-from rembg import remove as rembg_remove
+from rembg import remove as rembg_remove, new_session as rembg_new_session
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
 API_KEY      = os.environ.get("REPLICATE_API_TOKEN", "")
@@ -19,6 +19,13 @@ REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 por
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
 OUTPUT_W, OUTPUT_H = 1024, 1440
+
+# ── REMBG — pre-load once at startup, limit to one concurrent inference ──────
+# u2netp is ~30MB vs u2net's 176MB — much lighter, still great for pets
+print("  🔄 Pre-loading rembg model (u2netp)…")
+REMBG_SESSION = rembg_new_session('u2netp')
+REMBG_LOCK    = threading.Semaphore(1)   # only one rembg inference at a time
+print("  ✅ rembg model ready")
 
 # ── VIBE PROMPTS ─────────────────────────────────────────────────────────────
 BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation.
@@ -439,8 +446,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             img_in.save(buf_in, format="PNG")
             raw = buf_in.getvalue()
 
-            # Run rembg locally
-            png_bytes = rembg_remove(raw)
+            # Run rembg locally — semaphore prevents concurrent calls that would OOM
+            with REMBG_LOCK:
+                png_bytes = rembg_remove(raw, session=REMBG_SESSION)
 
             t = time.time() - t0
             result_b64 = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
