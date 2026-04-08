@@ -182,23 +182,28 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     print(f"  📐 After exif_transpose: {pet_raw.width}×{pet_raw.height}")
     pet = pet_raw.convert("RGBA")
 
-    # Crop to actual content — removes transparent padding rembg leaves
-    bbox = pet.getbbox()
-    print(f"  📐 Bounding box: {bbox}")
-    if bbox:
-        pet = pet.crop(bbox)
-    print(f"  📐 After bbox crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
+    # Detect if image came from the crop tool (square aspect ratio ≈ 1:1)
+    # If so, skip bbox crop and portrait normalisation — trust the user's positioning.
+    # If not (direct upload), bbox crop to remove rembg's transparent padding.
+    input_ratio = pet.width / pet.height if pet.height > 0 else 1
+    from_crop_tool = 0.88 <= input_ratio <= 1.14   # square ± ~13%
 
-    # Portrait normalisation — if the pet is square or landscape (lying-down pose),
-    # crop width to 3:4 portrait ratio centred horizontally.
-    # This keeps the face (which is typically central) and removes side body area,
-    # so the pet sits naturally in the portrait canvas rather than looking wide/flat.
-    if pet.width > pet.height * 0.85:
-        target_w = int(pet.height * 0.75)   # 3:4 portrait ratio
-        if target_w < pet.width:
-            x_offset = (pet.width - target_w) // 2
-            pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
-            print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
+    if from_crop_tool:
+        print(f"  📐 Square crop detected (ratio={input_ratio:.3f}) — preserving user positioning, skipping bbox crop")
+    else:
+        bbox = pet.getbbox()
+        print(f"  📐 Bounding box: {bbox}")
+        if bbox:
+            pet = pet.crop(bbox)
+        print(f"  📐 After bbox crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
+
+        # Portrait normalisation — only for direct uploads (wide/landscape pets)
+        if pet.width > pet.height * 0.85:
+            target_w = int(pet.height * 0.75)
+            if target_w < pet.width:
+                x_offset = (pet.width - target_w) // 2
+                pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
+                print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
 
     # Scale pet — max 68% of width, max 65% of height, aspect ratio strictly preserved
     scale = min((OUTPUT_W * 0.68) / pet.width, (OUTPUT_H * 0.65) / pet.height)

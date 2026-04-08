@@ -194,11 +194,35 @@
     .vibe-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
     .vibe-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
+    /* ── VIBE SCREEN: true fixed-height layout ── */
+    #screen-vibe {
+      height: 100svh;
+      min-height: unset;   /* override .screen's min-height */
+      overflow: hidden;
+      padding-bottom: 0;   /* CTA handles its own bottom gap */
+      align-items: stretch; /* children span full width */
+    }
+    #screen-vibe > .header {
+      padding-left: 20px;
+      padding-right: 20px;
+      flex-shrink: 0;
+    }
+    .vibe-scroll-area {
+      flex: 1;
+      min-height: 0;          /* crucial — lets flex child shrink & scroll */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 16px;
+    }
     .vibe-cta-wrap {
+      flex-shrink: 0;
       text-align: center;
-      position: sticky; bottom: 20px; z-index: 10;
-      padding: 12px 0 4px;
-      background: linear-gradient(to top, rgba(8,8,24,0.98) 60%, transparent);
+      padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+      background: rgba(8,8,24,0.97);
+      border-top: 1px solid rgba(255,255,255,0.07);
     }
 
     /* ── PROCESSING ── */
@@ -444,22 +468,24 @@
     </div>
   </div>
 
-  <div class="vibe-screen-inner">
-    <div class="hero" style="margin-bottom:20px;">
-      <h1>Choose your vibe</h1>
-    </div>
-    <p class="vibe-subtitle">Each vibe shapes the world your pet will inhabit —<br>the colours, elements, and mood of your portrait.</p>
+  <div class="vibe-scroll-area">
+    <div class="vibe-screen-inner">
+      <div class="hero" style="margin-bottom:20px;">
+        <h1>Choose your vibe</h1>
+      </div>
+      <p class="vibe-subtitle">Each vibe shapes the world your pet will inhabit —<br>the colours, elements, and mood of your portrait.</p>
 
-    <div class="vibe-grid" id="vibe-grid">
-      <!-- Cards injected by JS -->
+      <div class="vibe-grid" id="vibe-grid">
+        <!-- Cards injected by JS -->
+      </div>
     </div>
+  </div>
 
-    <div class="vibe-cta-wrap">
-      <button class="btn-primary" id="vibe-confirm-btn" disabled
-        style="max-width:340px;margin:0 auto;opacity:0.4;cursor:not-allowed;">
-        ✦ Create my portrait
-      </button>
-    </div>
+  <div class="vibe-cta-wrap">
+    <button class="btn-primary" id="vibe-confirm-btn" disabled
+      style="max-width:340px;margin:0 auto;opacity:0.4;cursor:not-allowed;">
+      ✦ Create my portrait
+    </button>
   </div>
 </section>
 
