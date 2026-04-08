@@ -296,34 +296,33 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     fg_layer.paste(fg_strip_rgba, (0, OUTPUT_H - strip_h))
     result = Image.alpha_composite(result, fg_layer)
 
-    # ── Floral garland arch — crescent of flowers hugging the base of the oval ──
-    # The oval mask bottom sits at approximately py + ph*0.88 on the canvas.
-    # We crop a generous band from the FLUX bg centred just below that point,
-    # then apply an arch-shaped elliptical mask so only a crescent of botanicals
-    # appears — strongest at the horizontal centre, fading at the sides and top.
-    garland_center_y = py + int(ph * 0.68)         # raised — covers the fade zone
-    garland_h = int(OUTPUT_H * 0.40)               # taller band = more garland coverage
-    g_top = max(0, garland_center_y - int(garland_h * 0.18))
-    g_bot = min(OUTPUT_H, g_top + garland_h)
-    g_h = g_bot - g_top
-    if g_h > 20:
-        g_strip = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
-        # Arch mask: ellipse centred below the strip so its upper arc forms the crescent
+    # ── Floral garland arch ──────────────────────────────────────────────────
+    # SOURCE and DESTINATION are decoupled:
+    #   src  = always the bottom 42% of the bg — the actual flower region,
+    #          never the white halo zone.
+    #   dest = placed to overlap the pet's lower area so flowers sit directly
+    #          at the base of the pet with no white gap in between.
+    garland_src_h = int(OUTPUT_H * 0.42)        # crop this many px from bg bottom
+    src_top = OUTPUT_H - garland_src_h          # bg source start y (flower region)
+    dst_top = max(0, py + int(ph * 0.72))       # paste starting here on canvas
+    fit_h   = min(garland_src_h, OUTPUT_H - dst_top)  # rows that fit on canvas
+
+    if fit_h > 20:
+        g_strip = bg.crop((0, src_top, OUTPUT_W, src_top + fit_h)).convert("RGBA")
         from PIL import ImageDraw as _ArchDraw
-        arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
+        arch_mask = Image.new("L", (OUTPUT_W, fit_h), 0)
         acx = OUTPUT_W // 2
-        acy = g_h                                  # ellipse centre at bottom edge of strip
-        arx = int(OUTPUT_W * 0.48)                 # wide enough to span the portrait
-        ary = int(g_h * 0.80)                      # tall enough for a chunky crescent
+        arx = int(OUTPUT_W * 0.48)
+        ary = int(fit_h * 0.85)                 # tall arch — max crescent coverage
         _ArchDraw.Draw(arch_mask).ellipse(
-            [acx - arx, acy - ary, acx + arx, acy + ary], fill=250
+            [acx - arx, fit_h - ary, acx + arx, fit_h + ary], fill=252
         )
-        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.09)))
+        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=max(8, int(fit_h * 0.07))))
         g_strip.putalpha(arch_mask)
         garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-        garland_layer.paste(g_strip, (0, g_top))
+        garland_layer.paste(g_strip, (0, dst_top))
         result = Image.alpha_composite(result, garland_layer)
-        print(f"  🌸 Garland arch applied (centre y={garland_center_y}, h={g_h})")
+        print(f"  🌸 Garland: bg y={src_top}–{src_top+fit_h} → canvas y={dst_top}–{dst_top+fit_h}")
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
