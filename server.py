@@ -82,7 +82,8 @@ VIBE_PROMPTS = {
         "Deep teal and midnight blue. Bioluminescent jellyfish. "
         "Coral forms. Tropical fish. "
         "Underwater and cosmic depth combined. "
-        "A whale floating gently in the distance. "
+        "A whale floating gently in the upper sky. "
+        "A large glowing moon and a ringed planet visible in the upper portion of the sky above the water. "
         "No mermaids, no ruins, no architecture, no vehicles, no rockets, no technology, no people."
     ),
     "abstract": (
@@ -205,8 +206,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
                 pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
                 print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
 
-    # Scale pet — max 82% of width, max 75% of height, aspect ratio strictly preserved
-    scale = min((OUTPUT_W * 0.82) / pet.width, (OUTPUT_H * 0.75) / pet.height)
+    # Scale pet — max 90% of width, max 82% of height, aspect ratio strictly preserved
+    scale = min((OUTPUT_W * 0.90) / pet.width, (OUTPUT_H * 0.82) / pet.height)
     pw, ph = int(pet.width * scale), int(pet.height * scale)
     print(f"  📐 After scale (×{scale:.3f}): {pw}×{ph}  ratio={pw/ph:.3f}")
     pet = pet.resize((pw, ph), Image.LANCZOS)

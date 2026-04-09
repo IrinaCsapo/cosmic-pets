@@ -355,6 +355,25 @@
     .cropper-dashed { display: none; }
     .cropper-point  { display: none; }
 
+    /* ── Brightness control ── */
+    .brightness-control { width: 100%; }
+    .brightness-control label {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;
+    }
+    .brightness-control label span { font-size: 0.75rem; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; color: var(--fg); }
+    .brightness-row { display: flex; align-items: center; gap: 10px; }
+    .brightness-row em { color: var(--muted); font-style: normal; font-size: 1.1rem; line-height: 1; }
+    #brightness-slider {
+      flex: 1; height: 4px; appearance: none; -webkit-appearance: none;
+      background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
+      accent-color: var(--accent);
+    }
+    #brightness-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(180,130,255,0.5);
+    }
+
     /* ── TOAST ── */
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
@@ -581,6 +600,14 @@
     <p>Pinch to zoom · drag to reframe · get your pet's face centred before generating</p>
     <div class="crop-container">
       <img id="crop-image" alt="Crop your pet photo">
+    </div>
+    <div class="brightness-control">
+      <label for="brightness-slider">☀️ Brightness <span id="brightness-val">100%</span></label>
+      <div class="brightness-row">
+        <em>−</em>
+        <input type="range" id="brightness-slider" min="50" max="180" value="100" step="5">
+        <em>+</em>
+      </div>
     </div>
     <div class="crop-actions">
       <button class="btn-secondary" id="crop-cancel-btn">← Back</button>
@@ -1035,12 +1062,30 @@ function openCropModal(file) {
   reader.readAsDataURL(file);
 }
 
+// Live brightness label
+document.getElementById('brightness-slider').addEventListener('input', e => {
+  document.getElementById('brightness-val').textContent = e.target.value + '%';
+});
+
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
   if (!cropperInstance) return;
-  cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 }).toBlob(blob => {
+  const brightness = parseInt(document.getElementById('brightness-slider').value, 10);
+  const cropped = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
+
+  // Apply brightness via an offscreen canvas (works even at 100% — no-op)
+  const out = document.createElement('canvas');
+  out.width = cropped.width; out.height = cropped.height;
+  const ctx = out.getContext('2d');
+  ctx.filter = `brightness(${brightness}%)`;
+  ctx.drawImage(cropped, 0, 0);
+
+  out.toBlob(blob => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
     document.getElementById('crop-modal').classList.remove('open');
     cropperInstance.destroy(); cropperInstance = null;
+    // Reset slider for next use
+    document.getElementById('brightness-slider').value = 100;
+    document.getElementById('brightness-val').textContent = '100%';
     updateAttemptPips('vibe');
     showScreen('vibe');
   }, 'image/jpeg', 0.92);
