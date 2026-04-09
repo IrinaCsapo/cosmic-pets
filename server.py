@@ -205,8 +205,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
                 pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
                 print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
 
-    # Scale pet — max 68% of width, max 65% of height, aspect ratio strictly preserved
-    scale = min((OUTPUT_W * 0.68) / pet.width, (OUTPUT_H * 0.65) / pet.height)
+    # Scale pet — max 82% of width, max 75% of height, aspect ratio strictly preserved
+    scale = min((OUTPUT_W * 0.82) / pet.width, (OUTPUT_H * 0.75) / pet.height)
     pw, ph = int(pet.width * scale), int(pet.height * scale)
     print(f"  📐 After scale (×{scale:.3f}): {pw}×{ph}  ratio={pw/ph:.3f}")
     pet = pet.resize((pw, ph), Image.LANCZOS)
