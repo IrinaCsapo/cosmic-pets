@@ -354,6 +354,9 @@
     .cropper-view-box { outline-color: rgba(255,255,255,0.7); }
     .cropper-dashed { display: none; }
     .cropper-point  { display: none; }
+    /* White centre crosshair */
+    .cropper-center::before,
+    .cropper-center::after { background-color: rgba(255,255,255,0.85) !important; }
 
     /* ── Brightness control ── */
     .brightness-control { width: 100%; }
@@ -1040,31 +1043,58 @@ function openCropModal(file) {
     const modal = document.getElementById('crop-modal');
     const img   = document.getElementById('crop-image');
     if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+
+    // Reset brightness slider each time a new photo is opened
+    const slider = document.getElementById('brightness-slider');
+    slider.value = 100;
+    document.getElementById('brightness-val').textContent = '100%';
+    updateSliderFill(slider);
+
+    // Set onload BEFORE src — avoids race condition on fast/cached iOS loads
+    img.onload = () => {
+      // Small delay lets the modal fully paint before Cropper measures dimensions
+      setTimeout(() => {
+        cropperInstance = new Cropper(img, {
+          aspectRatio: 1,
+          viewMode: 1,
+          dragMode: 'move',
+          autoCropArea: 0.85,
+          cropBoxResizable: false,
+          cropBoxMovable: false,
+          toggleDragModeOnDblclick: false,
+          background: false,
+          guides: false,
+          highlight: false,
+          zoomOnTouch: true,
+          zoomOnWheel: true,
+        });
+      }, 150);
+    };
     img.src = e.target.result;
     modal.classList.add('open');
-    img.onload = () => {
-      cropperInstance = new Cropper(img, {
-        aspectRatio: 1,
-        viewMode: 1,
-        dragMode: 'move',
-        autoCropArea: 0.85,
-        cropBoxResizable: false,
-        cropBoxMovable: false,
-        toggleDragModeOnDblclick: false,
-        background: false,
-        guides: false,
-        highlight: false,
-        zoomOnTouch: true,
-        zoomOnWheel: true,
-      });
-    };
   };
   reader.readAsDataURL(file);
 }
 
-// Live brightness label
+// Slider track fill — colours the left portion of the track up to the thumb
+function updateSliderFill(slider) {
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const pct = ((parseFloat(slider.value) - min) / (max - min)) * 100;
+  slider.style.background =
+    `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, rgba(255,255,255,0.15) ${pct}%, rgba(255,255,255,0.15) 100%)`;
+}
+
+// Initialise fill on page load
+updateSliderFill(document.getElementById('brightness-slider'));
+
+// Live brightness — update label, track fill, and preview on Cropper canvas
 document.getElementById('brightness-slider').addEventListener('input', e => {
   document.getElementById('brightness-val').textContent = e.target.value + '%';
+  updateSliderFill(e.target);
+  // Apply live preview to Cropper's internal image canvas
+  const cropperCanvas = document.querySelector('.cropper-canvas');
+  if (cropperCanvas) cropperCanvas.style.filter = `brightness(${e.target.value}%)`;
 });
 
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
@@ -1083,9 +1113,11 @@ document.getElementById('crop-confirm-btn').addEventListener('click', () => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
     document.getElementById('crop-modal').classList.remove('open');
     cropperInstance.destroy(); cropperInstance = null;
-    // Reset slider for next use
-    document.getElementById('brightness-slider').value = 100;
+    // Reset slider + fill for next use
+    const slider = document.getElementById('brightness-slider');
+    slider.value = 100;
     document.getElementById('brightness-val').textContent = '100%';
+    updateSliderFill(slider);
     updateAttemptPips('vibe');
     showScreen('vibe');
   }, 'image/jpeg', 0.92);
