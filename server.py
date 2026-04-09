@@ -370,11 +370,16 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
         arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
         acx = OUTPUT_W // 2
         arx = int(OUTPUT_W * 0.48)
-        ary = int(g_h * 0.80)
+        # ary = 0.91 × g_h pushes arch top ~60px ABOVE garland_center_y so that
+        # after Gaussian blur the flowers are solidly opaque right at the pet oval
+        # bottom — visually covering the cut edge rather than starting below it.
+        ary = int(g_h * 0.91)
         _ArchDraw.Draw(arch_mask).ellipse(
             [acx - arx, g_h - ary, acx + arx, g_h + ary], fill=252
         )
-        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.08)))
+        # Tighter blur (0.05 vs 0.08) keeps the fade zone shorter so the arch
+        # looks dense and full right where it meets the pet.
+        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.05)))
         g_strip.putalpha(arch_mask)
         garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
         garland_layer.paste(g_strip, (0, g_top))
