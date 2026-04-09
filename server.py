@@ -9,7 +9,7 @@ Open:  http://localhost:8080
 
 import base64, glob, io, json, os, pathlib, tempfile, time, threading, urllib.error, urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
@@ -149,6 +149,78 @@ def load_reference_images():
                 fmt = "jpeg" if p.suffix.lower() in (".jpg", ".jpeg") else "png"
                 refs.append(img_to_b64(p, fmt))
     return refs
+
+def auto_correct_photo(img: Image.Image):
+    """
+    Lightweight Pillow corrections applied before rembg.
+    Returns (corrected_img, list_of_applied_corrections).
+    """
+    stat = ImageStat.Stat(img)
+    avg_brightness = sum(stat.mean[:3]) / 3 / 255   # 0.0–1.0
+    corrections = []
+
+    # ── Brightness boost for dark photos ─────────────────────────────────────
+    if avg_brightness < 0.32:
+        factor = min(0.50 / max(avg_brightness, 0.01), 2.5)
+        img = ImageEnhance.Brightness(img).enhance(factor)
+        corrections.append(f"brightness×{factor:.2f}")
+
+    # ── Contrast lift for flat / overcast photos ──────────────────────────────
+    if avg_brightness > 0.75:
+        img = ImageEnhance.Contrast(img).enhance(1.25)
+        corrections.append("contrast×1.25")
+
+    # ── Gentle sharpening — always helps rembg edge detection ─────────────────
+    img = ImageEnhance.Sharpness(img).enhance(1.6)
+    corrections.append("sharpen×1.6")
+
+    return img, corrections
+
+
+def enhance_with_realesrgan(img_b64: str) -> Image.Image:
+    """
+    Send the image to Replicate's Real-ESRGAN for AI upscaling / restoration.
+    Returns a PIL Image. Falls back silently — caller should catch exceptions.
+    """
+    import urllib.request, json, time, base64, io
+
+    print("  🤖 Running Real-ESRGAN enhancement via Replicate…")
+    payload = {
+        "version": "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
+        "input": {
+            "image":        img_b64,
+            "scale":        2,
+            "face_enhance": False,
+        }
+    }
+    data = json.dumps(payload).encode()
+    req  = urllib.request.Request(
+        "https://api.replicate.com/v1/predictions",
+        data=data,
+        headers={"Authorization": f"Token {API_KEY}", "Content-Type": "application/json"},
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=30) as r:
+        pred = json.loads(r.read())
+
+    # Poll
+    poll_url = pred["urls"]["get"]
+    deadline = time.time() + 90
+    while time.time() < deadline:
+        req2 = urllib.request.Request(poll_url, headers={"Authorization": f"Token {API_KEY}"})
+        with urllib.request.urlopen(req2, timeout=15) as r:
+            pred = json.loads(r.read())
+        if pred["status"] == "succeeded":
+            out_url = pred["output"]
+            if isinstance(out_url, list): out_url = out_url[0]
+            print(f"  ✅ Real-ESRGAN done → {out_url}")
+            with urllib.request.urlopen(out_url, timeout=30) as r:
+                return Image.open(io.BytesIO(r.read())).convert("RGB")
+        if pred["status"] == "failed":
+            raise RuntimeError(f"Real-ESRGAN failed: {pred.get('error')}")
+        time.sleep(2)
+    raise TimeoutError("Real-ESRGAN timed out")
+
 
 def composite_images(pet_b64: str, bg_url: str) -> str:
     """
@@ -448,6 +520,29 @@ class CosmicHandler(SimpleHTTPRequestHandler):
                     (int(img_in.width * r), int(img_in.height * r)), Image.LANCZOS
                 )
 
+            # ── Step 1: Auto-correct brightness / contrast / sharpness ──────────
+            img_in, corrections = auto_correct_photo(img_in)
+            if corrections:
+                print(f"  🎨 Auto-corrections applied: {', '.join(corrections)}")
+
+            # ── Step 2 (optional): AI enhancement via Real-ESRGAN ───────────────
+            # Trigger when the photo is genuinely low quality (very dark or tiny).
+            stat = ImageStat.Stat(img_in)
+            avg_brightness = sum(stat.mean[:3]) / 3 / 255
+            needs_ai_boost = (
+                avg_brightness < 0.22 or
+                max(img_in.width, img_in.height) < 500
+            )
+            if needs_ai_boost and API_KEY:
+                try:
+                    buf_tmp = io.BytesIO()
+                    img_in.save(buf_tmp, format="JPEG", quality=90)
+                    b64_tmp = "data:image/jpeg;base64," + base64.b64encode(buf_tmp.getvalue()).decode()
+                    img_in = enhance_with_realesrgan(b64_tmp)
+                    print(f"  ✅ AI-enhanced image size: {img_in.width}×{img_in.height}")
+                except Exception as ae:
+                    print(f"  ⚠️  Real-ESRGAN skipped ({ae}) — using auto-corrected image")
+
             buf_in = io.BytesIO()
             img_in.save(buf_in, format="PNG")
             raw = buf_in.getvalue()
@@ -476,6 +571,8 @@ class CosmicHandler(SimpleHTTPRequestHandler):
                         quality_warning = "We had trouble detecting your pet clearly — dark fur against a dark background is tricky! For best results, try a well-lit photo where your pet stands out from the background."
                     elif coverage < 0.15:
                         quality_warning = "Your pet looks a little small in this photo — moving closer or cropping in will give a more detailed portrait."
+                    elif coverage > 0.92:
+                        quality_warning = "Your pet fills the whole frame! The portrait works best when there's a little background visible around your pet — try zooming out slightly."
             except Exception as qe:
                 print(f"  ⚠️  Quality check failed: {qe}")
 

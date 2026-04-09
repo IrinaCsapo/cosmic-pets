@@ -361,6 +361,30 @@
     .cropper-center::before,
     .cropper-center::after { background-color: rgba(255,255,255,0.85) !important; }
 
+    /* ── Crop toolbar (rotate button) ── */
+    .crop-toolbar { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -8px; }
+    .btn-rotate {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: var(--fg); font-size: 1rem; padding: 6px 12px;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      font-size: 0.8rem; transition: background 0.15s;
+    }
+    .btn-rotate:hover { background: rgba(255,255,255,0.14); }
+
+    /* ── Photo quality warnings ── */
+    .photo-warnings { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+    .photo-warning {
+      display: flex; align-items: flex-start; gap: 9px;
+      background: rgba(255,200,80,0.08); border: 1px solid rgba(255,200,80,0.25);
+      border-radius: 10px; padding: 9px 12px; font-size: 0.78rem; color: rgba(255,230,150,0.9);
+      line-height: 1.4;
+    }
+    .photo-warning .warn-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+    .photo-warning.info {
+      background: rgba(100,180,255,0.08); border-color: rgba(100,180,255,0.25);
+      color: rgba(160,210,255,0.9);
+    }
+
     /* ── Brightness control ── */
     .brightness-control { width: 100%; }
     .brightness-control label {
@@ -617,9 +641,13 @@
   <div class="crop-modal-inner">
     <h2>✦ Position your pet</h2>
     <p>Pinch to zoom · drag to reframe · get your pet's face centred before generating</p>
+    <div class="crop-toolbar">
+      <button class="btn-rotate" id="crop-rotate-btn" title="Rotate 90°">↻ Rotate</button>
+    </div>
     <div class="crop-container">
       <img id="crop-image" alt="Crop your pet photo">
     </div>
+    <div class="photo-warnings" id="photo-warnings"></div>
     <div class="brightness-control">
       <label for="brightness-slider">☀️ Brightness <span id="brightness-val">100%</span></label>
       <div class="brightness-row">
@@ -1053,6 +1081,60 @@ function handleFile(file) {
 // ── CROP MODAL ──────────────────────────────────────────────────────────────
 let cropperInstance = null;
 
+// ── Photo quality analysis ────────────────────────────────────────────────────
+function analyzePhotoQuality(imgEl) {
+  const W = 100, H = 100;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(imgEl, 0, 0, W, H);
+  const { data } = ctx.getImageData(0, 0, W, H);
+
+  let brightness = 0, n = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    brightness += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114) / 255;
+    n++;
+  }
+  brightness /= n;
+
+  const warnings = [];
+  if (brightness < 0.22)
+    warnings.push({ icon: '🌑', text: "This photo looks quite dark — we'll try to brighten it automatically, but you can also use the brightness slider below for extra help.", type: '' });
+  else if (brightness < 0.32)
+    warnings.push({ icon: '🔅', text: "This photo is a little dark. The brightness slider can help, and we'll auto-correct before processing.", type: '' });
+  if (brightness > 0.82)
+    warnings.push({ icon: '☀️', text: "This photo looks overexposed. Natural, even lighting gives the best portraits.", type: '' });
+
+  const minDim = Math.min(imgEl.naturalWidth, imgEl.naturalHeight);
+  if (minDim < 300)
+    warnings.push({ icon: '🔍', text: "This photo is quite low resolution. The portrait may not be as sharp — a higher quality photo will give better results.", type: '' });
+
+  return warnings;
+}
+
+async function checkForHuman(imgEl) {
+  if (!('FaceDetector' in window)) return false;
+  try {
+    const fd = new FaceDetector({ fastMode: true });
+    const faces = await fd.detect(imgEl);
+    return faces.length > 0;
+  } catch { return false; }
+}
+
+function showPhotoWarnings(warningList) {
+  const box = document.getElementById('photo-warnings');
+  box.innerHTML = warningList.map(w =>
+    `<div class="photo-warning ${w.type || ''}">
+      <span class="warn-icon">${w.icon}</span><span>${w.text}</span>
+    </div>`
+  ).join('');
+}
+
+// ── Crop rotate button ────────────────────────────────────────────────────────
+document.getElementById('crop-rotate-btn').addEventListener('click', () => {
+  if (cropperInstance) cropperInstance.rotate(90);
+});
+
 function openCropModal(file) {
   const modal = document.getElementById('crop-modal');
   const img   = document.getElementById('crop-image');
@@ -1086,10 +1168,22 @@ function openCropModal(file) {
         highlight: false,
         zoomOnTouch: true,
         zoomOnWheel: true,
-        ready() {
+        async ready() {
           // Revoke the object URL now that Cropper has loaded the image
           URL.revokeObjectURL(objectUrl);
           objectUrl = null;
+
+          // Run quality analysis + face detection and show any warnings
+          const warnings = analyzePhotoQuality(img);
+          const hasHuman = await checkForHuman(img);
+          if (hasHuman) {
+            warnings.unshift({
+              icon: '🧑',
+              text: "Looks like there might be a person in this photo — that's totally fine! For a pets-only portrait, try a photo of just your pet.",
+              type: 'info'
+            });
+          }
+          showPhotoWarnings(warnings);
         }
       });
     }, 300);
@@ -1153,6 +1247,7 @@ document.getElementById('crop-cancel-btn').addEventListener('click', () => {
   document.getElementById('crop-modal').classList.remove('open');
   if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
   document.getElementById('file-input').value = '';
+  document.getElementById('photo-warnings').innerHTML = '';
 });
 
 // ── PROCESSING ──
