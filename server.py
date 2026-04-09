@@ -232,24 +232,6 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     pet = Image.merge("RGBA", (r, g, b, blended_alpha))
     print(f"  🔵 Oval mask applied (rx={rx}, ry={ry}, cy={cy})")
 
-    # ── Bottom gradient fade ─────────────────────────────────────────────────
-    # Dissolves the lower 40% of the pet to transparent so the bottom edge
-    # never shows as a hard cutout inside the glowing halo. The garland layer
-    # composited later fills this zone naturally, hiding the transition.
-    from PIL import ImageDraw as _FadeDraw
-    _pw, _ph = pet.size
-    bottom_fade = Image.new("L", (_pw, _ph), 255)
-    fade_start = int(_ph * 0.58)   # fade begins ~60% down the pet (mid-chest area)
-    _fade_draw = _FadeDraw.Draw(bottom_fade)
-    for row in range(fade_start, _ph):
-        progress = (row - fade_start) / max(1, _ph - fade_start)
-        alpha_val = int(255 * (1.0 - progress) ** 1.6)  # accelerating ease-in
-        _fade_draw.line([(0, row), (_pw - 1, row)], fill=alpha_val)
-    _r, _g, _b, _a = pet.split()
-    pet = Image.merge("RGBA", (_r, _g, _b, _Chops.multiply(_a, bottom_fade)))
-    print(f"  🌅 Bottom fade applied (starts at {fade_start}px / {_ph}px = {fade_start/_ph:.0%})")
-    # ─────────────────────────────────────────────────────────────────────────
-
     # Position: centred horizontally, shifted up slightly so the garland
     # at the bottom of the FLUX background naturally covers the pet's lower edge.
     px = (OUTPUT_W - pw) // 2
@@ -297,32 +279,31 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     result = Image.alpha_composite(result, fg_layer)
 
     # ── Floral garland arch ──────────────────────────────────────────────────
-    # SOURCE and DESTINATION are decoupled:
-    #   src  = always the bottom 42% of the bg — the actual flower region,
-    #          never the white halo zone.
-    #   dest = placed to overlap the pet's lower area so flowers sit directly
-    #          at the base of the pet with no white gap in between.
-    garland_src_h = int(OUTPUT_H * 0.42)        # crop this many px from bg bottom
-    src_top = OUTPUT_H - garland_src_h          # bg source start y (flower region)
-    dst_top = max(0, py + int(ph * 0.72))       # paste starting here on canvas
-    fit_h   = min(garland_src_h, OUTPUT_H - dst_top)  # rows that fit on canvas
+    # Anchored at the oval mask bottom edge (py + ph*0.88).
+    # src = dst: we sample the bg at the same y we paste, so the flowers
+    # that actually live at that canvas position appear — no halo bleed.
+    garland_center_y = py + int(ph * 0.88)      # oval mask bottom edge
+    garland_h = int(OUTPUT_H * 0.38)
+    g_top = max(0, garland_center_y - int(garland_h * 0.20))
+    g_bot = min(OUTPUT_H, g_top + garland_h)
+    g_h = g_bot - g_top
 
-    if fit_h > 20:
-        g_strip = bg.crop((0, src_top, OUTPUT_W, src_top + fit_h)).convert("RGBA")
+    if g_h > 20:
+        g_strip = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
         from PIL import ImageDraw as _ArchDraw
-        arch_mask = Image.new("L", (OUTPUT_W, fit_h), 0)
+        arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
         acx = OUTPUT_W // 2
         arx = int(OUTPUT_W * 0.48)
-        ary = int(fit_h * 0.85)                 # tall arch — max crescent coverage
+        ary = int(g_h * 0.80)
         _ArchDraw.Draw(arch_mask).ellipse(
-            [acx - arx, fit_h - ary, acx + arx, fit_h + ary], fill=252
+            [acx - arx, g_h - ary, acx + arx, g_h + ary], fill=252
         )
-        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=max(8, int(fit_h * 0.07))))
+        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.08)))
         g_strip.putalpha(arch_mask)
         garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-        garland_layer.paste(g_strip, (0, dst_top))
+        garland_layer.paste(g_strip, (0, g_top))
         result = Image.alpha_composite(result, garland_layer)
-        print(f"  🌸 Garland: bg y={src_top}–{src_top+fit_h} → canvas y={dst_top}–{dst_top+fit_h}")
+        print(f"  🌸 Garland at oval bottom y={garland_center_y}, strip y={g_top}–{g_bot}")
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
