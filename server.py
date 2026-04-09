@@ -232,10 +232,14 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     pet = Image.merge("RGBA", (r, g, b, blended_alpha))
     print(f"  🔵 Oval mask applied (rx={rx}, ry={ry}, cy={cy})")
 
-    # Position: centred horizontally, shifted up slightly so the garland
-    # at the bottom of the FLUX background naturally covers the pet's lower edge.
+    # Position: lock the garland anchor at canvas 76% (y≈1094 on 1440px —
+    # firmly below the white-halo zone which sits around y=700–1000),
+    # then work backwards so the oval-mask bottom (ph*0.88) lands exactly there.
+    # This makes the cat always appear nestled right into the flowers
+    # regardless of how tall/short the pet image is.
+    garland_center_y = int(OUTPUT_H * 0.76)
     px = (OUTPUT_W - pw) // 2
-    py = int((OUTPUT_H - ph) / 2) - int(OUTPUT_H * 0.03)
+    py = max(0, garland_center_y - int(ph * 0.88))
 
     # ── Edge bloom — subtle coloured light radiating from the pet's silhouette ──
     # This replaces the "heaven spotlight" look with a natural cosmic aura.
@@ -279,10 +283,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     result = Image.alpha_composite(result, fg_layer)
 
     # ── Floral garland arch ──────────────────────────────────────────────────
-    # Anchored at the oval mask bottom edge (py + ph*0.88).
-    # src = dst: we sample the bg at the same y we paste, so the flowers
-    # that actually live at that canvas position appear — no halo bleed.
-    garland_center_y = py + int(ph * 0.88)      # oval mask bottom edge
+    # garland_center_y was set above when calculating pet position.
+    # src = dst: sample bg at the same y we paste — actual flowers, no halo.
     garland_h = int(OUTPUT_H * 0.38)
     g_top = max(0, garland_center_y - int(garland_h * 0.20))
     g_bot = min(OUTPUT_H, g_top + garland_h)
