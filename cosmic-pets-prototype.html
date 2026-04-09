@@ -343,7 +343,10 @@
     .crop-modal-inner { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .crop-modal-inner h2 { font-size: 1.15rem; font-weight: 700; text-align: center; }
     .crop-modal-inner p  { color: var(--muted); font-size: 0.82rem; text-align: center; line-height: 1.5; }
-    .crop-container { width: 100%; max-height: 55vh; overflow: hidden; border-radius: 14px; background: #000; }
+    .crop-container {
+      width: 100%; aspect-ratio: 4/3; max-height: 55vh;
+      overflow: hidden; border-radius: 14px; background: #111;
+    }
     .crop-container img { display: block; max-width: 100%; }
     .crop-actions { display: flex; gap: 12px; width: 100%; margin-top: 4px; }
     .crop-actions .btn-secondary { flex: 1; }
@@ -368,13 +371,26 @@
     .brightness-row { display: flex; align-items: center; gap: 10px; }
     .brightness-row em { color: var(--muted); font-style: normal; font-size: 1.1rem; line-height: 1; }
     #brightness-slider {
-      flex: 1; height: 4px; appearance: none; -webkit-appearance: none;
-      background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
-      accent-color: var(--accent);
+      flex: 1; height: 6px; appearance: none; -webkit-appearance: none;
+      background: rgba(255,255,255,0.18); border-radius: 3px; outline: none;
+      cursor: pointer;
+    }
+    #brightness-slider::-webkit-slider-runnable-track {
+      height: 6px; border-radius: 3px;
+    }
+    #brightness-slider::-moz-range-track {
+      height: 6px; border-radius: 3px; background: rgba(255,255,255,0.18);
     }
     #brightness-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
-      background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(180,130,255,0.5);
+      -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+      background: #ffffff; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.2);
+      margin-top: -8px;
+    }
+    #brightness-slider::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%; border: none;
+      background: #ffffff; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
     /* ── TOAST ── */
@@ -1038,42 +1054,49 @@ function handleFile(file) {
 let cropperInstance = null;
 
 function openCropModal(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const modal = document.getElementById('crop-modal');
-    const img   = document.getElementById('crop-image');
-    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  const modal = document.getElementById('crop-modal');
+  const img   = document.getElementById('crop-image');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
 
-    // Reset brightness slider each time a new photo is opened
-    const slider = document.getElementById('brightness-slider');
-    slider.value = 100;
-    document.getElementById('brightness-val').textContent = '100%';
-    updateSliderFill(slider);
+  // Reset brightness slider each time a new photo is opened
+  const slider = document.getElementById('brightness-slider');
+  slider.value = 100;
+  document.getElementById('brightness-val').textContent = '100%';
+  updateSliderFill(slider);
 
-    // Set onload BEFORE src — avoids race condition on fast/cached iOS loads
-    img.onload = () => {
-      // Small delay lets the modal fully paint before Cropper measures dimensions
-      setTimeout(() => {
-        cropperInstance = new Cropper(img, {
-          aspectRatio: 1,
-          viewMode: 1,
-          dragMode: 'move',
-          autoCropArea: 0.85,
-          cropBoxResizable: false,
-          cropBoxMovable: false,
-          toggleDragModeOnDblclick: false,
-          background: false,
-          guides: false,
-          highlight: false,
-          zoomOnTouch: true,
-          zoomOnWheel: true,
-        });
-      }, 150);
-    };
-    img.src = e.target.result;
-    modal.classList.add('open');
+  // createObjectURL is far more reliable on iOS Safari than a base64 data URL
+  // (large base64 strings can silently fail to trigger onload on mobile)
+  let objectUrl = URL.createObjectURL(file);
+
+  // Set onload BEFORE src — avoids race condition on fast/cached loads
+  img.onload = () => {
+    // 300ms lets the modal fully paint and the browser decode the image
+    // before Cropper.js measures the container dimensions
+    setTimeout(() => {
+      cropperInstance = new Cropper(img, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 0.85,
+        cropBoxResizable: false,
+        cropBoxMovable: false,
+        toggleDragModeOnDblclick: false,
+        background: false,
+        guides: false,
+        highlight: false,
+        zoomOnTouch: true,
+        zoomOnWheel: true,
+        ready() {
+          // Revoke the object URL now that Cropper has loaded the image
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
+        }
+      });
+    }, 300);
   };
-  reader.readAsDataURL(file);
+
+  img.src = objectUrl;
+  modal.classList.add('open');
 }
 
 // Slider track fill — colours the left portion of the track up to the thumb
@@ -1088,13 +1111,14 @@ function updateSliderFill(slider) {
 // Initialise fill on page load
 updateSliderFill(document.getElementById('brightness-slider'));
 
-// Live brightness — update label, track fill, and preview on Cropper canvas
+// Live brightness — update label, track fill, and preview
+// Apply to .cropper-container so BOTH the canvas layer and the
+// view-box image clone (the circle window) receive the filter together.
 document.getElementById('brightness-slider').addEventListener('input', e => {
   document.getElementById('brightness-val').textContent = e.target.value + '%';
   updateSliderFill(e.target);
-  // Apply live preview to Cropper's internal image canvas
-  const cropperCanvas = document.querySelector('.cropper-canvas');
-  if (cropperCanvas) cropperCanvas.style.filter = `brightness(${e.target.value}%)`;
+  const container = document.querySelector('.cropper-container');
+  if (container) container.style.filter = `brightness(${e.target.value}%)`;
 });
 
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
@@ -1113,11 +1137,13 @@ document.getElementById('crop-confirm-btn').addEventListener('click', () => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
     document.getElementById('crop-modal').classList.remove('open');
     cropperInstance.destroy(); cropperInstance = null;
-    // Reset slider + fill for next use
+    // Reset slider, fill and container filter for next use
     const slider = document.getElementById('brightness-slider');
     slider.value = 100;
     document.getElementById('brightness-val').textContent = '100%';
     updateSliderFill(slider);
+    const container = document.querySelector('.cropper-container');
+    if (container) container.style.filter = '';
     updateAttemptPips('vibe');
     showScreen('vibe');
   }, 'image/jpeg', 0.92);
