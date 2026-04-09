@@ -311,7 +311,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     # then work backwards so the oval-mask bottom (ph*0.88) lands exactly there.
     # This makes the cat always appear nestled right into the flowers
     # regardless of how tall/short the pet image is.
-    garland_center_y = int(OUTPUT_H * 0.76)
+    garland_center_y = int(OUTPUT_H * 0.72)
     px = (OUTPUT_W - pw) // 2
     py = max(0, garland_center_y - int(ph * 0.88))
 
@@ -364,8 +364,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
         # Restrict to a 120px window centred on garland_center_y so only the
         # "collar" of flowers sits on top of the pet, hiding the cut edge.
         local_cy = garland_center_y - g_top   # garland_center_y in strip coords
-        band_top = max(0, local_cy - 80)
-        band_bot = min(g_h, local_cy + 40)
+        band_top = max(0, local_cy - 110)
+        band_bot = min(g_h, local_cy + 60)
         band_mask = Image.new("L", (OUTPUT_W, g_h), 0)
         _ArchDraw.Draw(band_mask).rectangle([0, band_top, OUTPUT_W, band_bot], fill=255)
         band_mask = band_mask.filter(ImageFilter.GaussianBlur(radius=22))
