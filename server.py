@@ -33,7 +33,6 @@ Composed of real photographic cutouts layered together, alien planet with visibl
 ancient architecture, natural organic forms —
 composited against a deep cosmic background of nebulae and star fields.
 No animals, no pets, no cats, no dogs.
-Elements layered in front of and behind a soft luminous central void, leaving space for a subject.
 Rich saturated colours with intentional colour grading. Multiple ethereal light sources, glows, and halos.
 Deep blacks with vivid colour accents.
 Every element looks like a real photograph, space photography, cutout and placed by hand with multiply and screen blending modes.
@@ -43,11 +42,13 @@ Photographic grain and texture throughout.
 Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
 Elements layered at multiple depths, some botanical forms overlapping in the foreground,
 cosmic elements receding and floating into the background. No single focal plane.
-A lush crescent garland of botanical flowers and leaves arranged at the lower base of the central void,
-wrapping around the bottom of the glowing circle like a floral nest — flowers cascading and overlapping
-in front of the lower portion of the void, dense and richly layered.
-The central void is empty, ready for a subject to be placed in post-production.
-A soft warm halo at the centre, golden light, not overexposed, gentle ethereal radiance."""
+A lush crescent garland of botanical flowers and leaves arranged at the lower base of the central glowing circle,
+wrapping around the bottom like a floral nest — flowers cascading and overlapping
+in front of the lower portion, dense and richly layered.
+The central glowing circle is a cosmic portal window — richly textured inside with the curved surface
+of a planet showing continents and atmosphere, or ancient lunar craters up close, or deep swirling nebula clouds —
+creating depth and world-building within the portal. The inner circle is never empty or plain white.
+A warm luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
 
 VIBE_PROMPTS = {
     "midnight": (
@@ -525,23 +526,14 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             if corrections:
                 print(f"  🎨 Auto-corrections applied: {', '.join(corrections)}")
 
-            # ── Step 2 (optional): AI enhancement via Real-ESRGAN ───────────────
-            # Trigger when the photo is genuinely low quality (very dark or tiny).
-            stat = ImageStat.Stat(img_in)
-            avg_brightness = sum(stat.mean[:3]) / 3 / 255
-            needs_ai_boost = (
-                avg_brightness < 0.22 or
-                max(img_in.width, img_in.height) < 500
-            )
-            if needs_ai_boost and API_KEY:
-                try:
-                    buf_tmp = io.BytesIO()
-                    img_in.save(buf_tmp, format="JPEG", quality=90)
-                    b64_tmp = "data:image/jpeg;base64," + base64.b64encode(buf_tmp.getvalue()).decode()
-                    img_in = enhance_with_realesrgan(b64_tmp)
-                    print(f"  ✅ AI-enhanced image size: {img_in.width}×{img_in.height}")
-                except Exception as ae:
-                    print(f"  ⚠️  Real-ESRGAN skipped ({ae}) — using auto-corrected image")
+            # ── Step 2: AI enhancement via Real-ESRGAN ─────────────────────────
+            # DISABLED: Real-ESRGAN sharpens fur-edge boundaries in ways that
+            # confuse rembg segmentation, leaving ghost halos of the original
+            # background in the cutout. The Pillow auto-corrections above are
+            # sufficient for brightness/sharpness without disrupting segmentation.
+            # Re-enable by setting ENABLE_AI_ENHANCE=1 in env once a better
+            # integration point is found (e.g. post-composite upscaling).
+            # ──────────────────────────────────────────────────────────────────
 
             buf_in = io.BytesIO()
             img_in.save(buf_in, format="PNG")
