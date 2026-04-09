@@ -328,9 +328,60 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     bloom_layer.paste(bloom, (px, py), bloom_alpha)
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Composite: background → edge bloom (soft) → pet (clean cutout)
+    # ── Pre-build garland arch (used in two passes) ──────────────────────────
+    # Pass 1 goes UNDER the pet — creates the lush nest feel in the background.
+    # Pass 2 goes OVER the pet — a narrow top-band of the arch that covers the
+    # oval cut edge, so the flowers appear to wrap in front of the pet's body.
+    from PIL import ImageDraw as _ArchDraw
+    from PIL import ImageChops as _IChops
+
+    garland_h = int(OUTPUT_H * 0.38)
+    g_top = max(0, garland_center_y - int(garland_h * 0.20))
+    g_bot = min(OUTPUT_H, g_top + garland_h)
+    g_h = g_bot - g_top
+
+    garland_under = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
+    garland_over  = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
+
+    if g_h > 20:
+        # Arch ellipse — ary=0.91 pushes the crescent top ~60px above
+        # garland_center_y so there's plenty of opaque flower coverage there.
+        arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
+        acx = OUTPUT_W // 2
+        arx = int(OUTPUT_W * 0.48)
+        ary = int(g_h * 0.91)
+        _ArchDraw.Draw(arch_mask).ellipse(
+            [acx - arx, g_h - ary, acx + arx, g_h + ary], fill=252
+        )
+        arch_mask_soft = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.05)))
+
+        # ── Pass 1: full arch, composited UNDER the pet ──────────────────────
+        g_strip1 = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
+        g_strip1.putalpha(arch_mask_soft)
+        garland_under.paste(g_strip1, (0, g_top))
+
+        # ── Pass 2: top-band only, composited OVER the pet ───────────────────
+        # Restrict to a 120px window centred on garland_center_y so only the
+        # "collar" of flowers sits on top of the pet, hiding the cut edge.
+        local_cy = garland_center_y - g_top   # garland_center_y in strip coords
+        band_top = max(0, local_cy - 80)
+        band_bot = min(g_h, local_cy + 40)
+        band_mask = Image.new("L", (OUTPUT_W, g_h), 0)
+        _ArchDraw.Draw(band_mask).rectangle([0, band_top, OUTPUT_W, band_bot], fill=255)
+        band_mask = band_mask.filter(ImageFilter.GaussianBlur(radius=22))
+        # Intersection: arch shape AND top-band — only flowers at the edge
+        over_mask = _IChops.multiply(arch_mask_soft, band_mask)
+        g_strip2 = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
+        g_strip2.putalpha(over_mask)
+        garland_over.paste(g_strip2, (0, g_top))
+
+        print(f"  🌸 Garland (2-pass) anchor y={garland_center_y}, strip y={g_top}–{g_bot}")
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # Composite: bg → bloom → garland (under) → pet → fg strip → garland (over)
     result = bg.copy()
     result = Image.alpha_composite(result, bloom_layer)
+    result = Image.alpha_composite(result, garland_under)   # flowers behind pet
 
     pet_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     pet_layer.paste(pet, (px, py), alpha)
@@ -339,16 +390,13 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     # ── Foreground strip — bottom 30% of the FLUX background composited ON TOP of the pet ──
     # This makes botanicals/flowers/coral at the bottom of the FLUX image appear
     # to cross in front of the pet's lower body, creating natural depth layering.
-    # A gradient mask fades the strip from transparent (top) to semi-opaque (bottom)
-    # so the transition is seamless and never looks pasted on.
-    strip_h = int(OUTPUT_H * 0.30)                    # bottom 30% of canvas
+    strip_h = int(OUTPUT_H * 0.30)
     fg_strip = bg.crop((0, OUTPUT_H - strip_h, OUTPUT_W, OUTPUT_H))
-    # Build a vertical gradient mask: 0 (fully transparent) at top → ~160 (semi-opaque) at bottom
     from PIL import ImageDraw as _FgDraw
     grad_mask = Image.new("L", (OUTPUT_W, strip_h), 0)
     draw_grad = _FgDraw.Draw(grad_mask)
     for row in range(strip_h):
-        opacity = int((row / strip_h) ** 2.0 * 160)   # quadratic ease-in, max ~63% opacity at bottom
+        opacity = int((row / strip_h) ** 2.0 * 160)
         draw_grad.line([(0, row), (OUTPUT_W, row)], fill=opacity)
     fg_strip_rgba = fg_strip.convert("RGBA")
     fg_strip_rgba.putalpha(grad_mask)
@@ -356,35 +404,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     fg_layer.paste(fg_strip_rgba, (0, OUTPUT_H - strip_h))
     result = Image.alpha_composite(result, fg_layer)
 
-    # ── Floral garland arch ──────────────────────────────────────────────────
-    # garland_center_y was set above when calculating pet position.
-    # src = dst: sample bg at the same y we paste — actual flowers, no halo.
-    garland_h = int(OUTPUT_H * 0.38)
-    g_top = max(0, garland_center_y - int(garland_h * 0.20))
-    g_bot = min(OUTPUT_H, g_top + garland_h)
-    g_h = g_bot - g_top
-
-    if g_h > 20:
-        g_strip = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
-        from PIL import ImageDraw as _ArchDraw
-        arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
-        acx = OUTPUT_W // 2
-        arx = int(OUTPUT_W * 0.48)
-        # ary = 0.91 × g_h pushes arch top ~60px ABOVE garland_center_y so that
-        # after Gaussian blur the flowers are solidly opaque right at the pet oval
-        # bottom — visually covering the cut edge rather than starting below it.
-        ary = int(g_h * 0.91)
-        _ArchDraw.Draw(arch_mask).ellipse(
-            [acx - arx, g_h - ary, acx + arx, g_h + ary], fill=252
-        )
-        # Tighter blur (0.05 vs 0.08) keeps the fade zone shorter so the arch
-        # looks dense and full right where it meets the pet.
-        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.05)))
-        g_strip.putalpha(arch_mask)
-        garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-        garland_layer.paste(g_strip, (0, g_top))
-        result = Image.alpha_composite(result, garland_layer)
-        print(f"  🌸 Garland at oval bottom y={garland_center_y}, strip y={g_top}–{g_bot}")
+    result = Image.alpha_composite(result, garland_over)    # flowers in front of pet edge
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
