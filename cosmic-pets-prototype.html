@@ -385,36 +385,36 @@
       color: rgba(160,210,255,0.9);
     }
 
-    /* ── Brightness control ── */
-    .brightness-control { width: 100%; }
-    .brightness-control label {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;
+    /* ── Adjust controls (Brightness · Contrast · Saturation · Sharpness) ── */
+    .adjust-controls { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+    .adjust-row { display: flex; flex-direction: column; gap: 7px; }
+    .adjust-label {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.8rem; color: var(--muted);
     }
-    .brightness-control label span { font-size: 0.75rem; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; color: var(--fg); }
-    .brightness-row { display: flex; align-items: center; gap: 10px; }
-    .brightness-row em { color: var(--muted); font-style: normal; font-size: 1.1rem; line-height: 1; }
-    #brightness-slider {
-      flex: 1; height: 6px; appearance: none; -webkit-appearance: none;
+    .adjust-label .adjust-icon { margin-right: 5px; }
+    .adjust-val {
+      font-size: 0.75rem; font-variant-numeric: tabular-nums;
+      min-width: 28px; text-align: right; color: var(--fg);
+    }
+    .adjust-slider {
+      width: 100%; height: 6px; appearance: none; -webkit-appearance: none;
       background: rgba(255,255,255,0.18); border-radius: 3px; outline: none;
       cursor: pointer;
     }
-    #brightness-slider::-webkit-slider-runnable-track {
-      height: 6px; border-radius: 3px;
-    }
-    #brightness-slider::-moz-range-track {
+    .adjust-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; }
+    .adjust-slider::-moz-range-track {
       height: 6px; border-radius: 3px; background: rgba(255,255,255,0.18);
     }
-    #brightness-slider::-webkit-slider-thumb {
+    .adjust-slider::-webkit-slider-thumb {
       -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
       background: #ffffff; cursor: pointer;
       box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.2);
       margin-top: -8px;
     }
-    #brightness-slider::-moz-range-thumb {
+    .adjust-slider::-moz-range-thumb {
       width: 22px; height: 22px; border-radius: 50%; border: none;
-      background: #ffffff; cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      background: #ffffff; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
     /* ── TOAST ── */
@@ -675,12 +675,34 @@
     <div class="crop-container">
       <img id="crop-image" alt="Crop your pet photo">
     </div>
-    <div class="brightness-control">
-      <label for="brightness-slider">☀️ Brightness <span id="brightness-val">100%</span></label>
-      <div class="brightness-row">
-        <em>−</em>
-        <input type="range" id="brightness-slider" min="50" max="180" value="100" step="5">
-        <em>+</em>
+    <div class="adjust-controls">
+      <div class="adjust-row">
+        <div class="adjust-label">
+          <span><span class="adjust-icon">☀️</span>Brightness</span>
+          <span class="adjust-val" id="brightness-val">0</span>
+        </div>
+        <input type="range" class="adjust-slider" id="brightness-slider" min="-50" max="80" value="0" step="1">
+      </div>
+      <div class="adjust-row">
+        <div class="adjust-label">
+          <span><span class="adjust-icon">◑</span>Contrast</span>
+          <span class="adjust-val" id="contrast-val">0</span>
+        </div>
+        <input type="range" class="adjust-slider" id="contrast-slider" min="-50" max="50" value="0" step="1">
+      </div>
+      <div class="adjust-row">
+        <div class="adjust-label">
+          <span><span class="adjust-icon">🎨</span>Saturation</span>
+          <span class="adjust-val" id="saturation-val">0</span>
+        </div>
+        <input type="range" class="adjust-slider" id="saturation-slider" min="-50" max="50" value="0" step="1">
+      </div>
+      <div class="adjust-row">
+        <div class="adjust-label">
+          <span><span class="adjust-icon">◈</span>Sharpness</span>
+          <span class="adjust-val" id="sharpness-val">0</span>
+        </div>
+        <input type="range" class="adjust-slider" id="sharpness-slider" min="0" max="10" value="0" step="1">
       </div>
     </div>
     <div class="crop-actions">
@@ -1126,9 +1148,9 @@ function analyzePhotoQuality(imgEl) {
 
   const warnings = [];
   if (brightness < 0.22)
-    warnings.push({ icon: '🌑', text: "This photo looks quite dark — we'll try to brighten it automatically, but you can also use the brightness slider below for extra help.", type: '' });
+    warnings.push({ icon: '🌑', text: "This photo looks quite dark — we'll try to brighten it automatically, but you can also nudge the Brightness and Contrast sliders below.", type: '' });
   else if (brightness < 0.32)
-    warnings.push({ icon: '🔅', text: "This photo is a little dark. The brightness slider can help, and we'll auto-correct before processing.", type: '' });
+    warnings.push({ icon: '🔅', text: "This photo is a little dark. Try raising Brightness or Contrast below — we'll also auto-correct before processing.", type: '' });
   if (brightness > 0.82)
     warnings.push({ icon: '☀️', text: "This photo looks overexposed. Natural, even lighting gives the best portraits.", type: '' });
 
@@ -1167,11 +1189,8 @@ function openCropModal(file) {
   const img   = document.getElementById('crop-image');
   if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
 
-  // Reset brightness slider each time a new photo is opened
-  const slider = document.getElementById('brightness-slider');
-  slider.value = 100;
-  document.getElementById('brightness-val').textContent = '100%';
-  updateSliderFill(slider);
+  // Reset all adjust sliders each time a new photo is opened
+  resetAdjustSliders();
 
   // createObjectURL is far more reliable on iOS Safari than a base64 data URL
   // (large base64 strings can silently fail to trigger onload on mobile)
@@ -1220,7 +1239,8 @@ function openCropModal(file) {
   modal.classList.add('open');
 }
 
-// Slider track fill — colours the left portion of the track up to the thumb
+// ── Slider helpers ────────────────────────────────────────────────────────────
+// Colours the filled portion of a range track up to the thumb position.
 function updateSliderFill(slider) {
   const min = parseFloat(slider.min) || 0;
   const max = parseFloat(slider.max) || 100;
@@ -1229,40 +1249,122 @@ function updateSliderFill(slider) {
     `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, rgba(255,255,255,0.15) ${pct}%, rgba(255,255,255,0.15) 100%)`;
 }
 
-// Initialise fill on page load
-updateSliderFill(document.getElementById('brightness-slider'));
+const ADJUST_DEFAULTS = { brightness: 0, contrast: 0, saturation: 0, sharpness: 0 };
 
-// Live brightness — update label, track fill, and preview
-// Apply to .cropper-container so BOTH the canvas layer and the
-// view-box image clone (the circle window) receive the filter together.
-document.getElementById('brightness-slider').addEventListener('input', e => {
-  document.getElementById('brightness-val').textContent = e.target.value + '%';
-  updateSliderFill(e.target);
-  const container = document.querySelector('.cropper-container');
-  if (container) container.style.filter = `brightness(${e.target.value}%)`;
+function resetAdjustSliders() {
+  Object.entries(ADJUST_DEFAULTS).forEach(([name, val]) => {
+    const sl = document.getElementById(`${name}-slider`);
+    if (!sl) return;
+    sl.value = val;
+    document.getElementById(`${name}-val`).textContent = val;
+    updateSliderFill(sl);
+  });
+}
+
+// Initialise track fills on page load
+Object.keys(ADJUST_DEFAULTS).forEach(name => {
+  const sl = document.getElementById(`${name}-slider`);
+  if (sl) updateSliderFill(sl);
 });
 
+// ── Live preview — brightness/contrast/saturation via CSS filter ──────────────
+// Sharpness is canvas-only so it doesn't preview, but the slider still tracks.
+function applyLiveAdjust() {
+  const b = parseInt(document.getElementById('brightness-slider').value, 10);
+  const c = parseInt(document.getElementById('contrast-slider').value, 10);
+  const s = parseInt(document.getElementById('saturation-slider').value, 10);
+  const container = document.querySelector('.cropper-container');
+  if (container) {
+    container.style.filter =
+      `brightness(${100 + b}%) contrast(${100 + c}%) saturate(${100 + s}%)`;
+  }
+}
+
+['brightness', 'contrast', 'saturation'].forEach(name => {
+  document.getElementById(`${name}-slider`).addEventListener('input', e => {
+    document.getElementById(`${name}-val`).textContent = e.target.value;
+    updateSliderFill(e.target);
+    applyLiveAdjust();
+  });
+});
+
+document.getElementById('sharpness-slider').addEventListener('input', e => {
+  document.getElementById('sharpness-val').textContent = e.target.value;
+  updateSliderFill(e.target);
+});
+
+// ── Sharpness convolution — applied on canvas at bake time ───────────────────
+// Uses a 3×3 unsharp kernel scaled by `amount` (0–10).
+// Centre weight = 1 + 8a, each neighbour = −a, where a = amount × 0.07.
+function applySharpness(canvas, amount) {
+  if (amount <= 0) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const src = ctx.getImageData(0, 0, w, h);
+  const dst = ctx.createImageData(w, h);
+  const s = src.data, d = dst.data;
+  const a = amount * 0.07;
+  const center = 1 + 8 * a;
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = (y * w + x) * 4;
+      for (let ch = 0; ch < 3; ch++) {
+        d[i + ch] = Math.max(0, Math.min(255, Math.round(
+          center     * s[i + ch]
+          - a * s[i - 4 + ch]         // left
+          - a * s[i + 4 + ch]         // right
+          - a * s[i - w*4 + ch]       // up
+          - a * s[i + w*4 + ch]       // down
+          - a * s[i - w*4 - 4 + ch]   // up-left
+          - a * s[i - w*4 + 4 + ch]   // up-right
+          - a * s[i + w*4 - 4 + ch]   // down-left
+          - a * s[i + w*4 + 4 + ch]   // down-right
+        )));
+      }
+      d[i + 3] = s[i + 3]; // preserve alpha
+    }
+  }
+  // Copy edge pixels unchanged
+  for (let x = 0; x < w; x++) {
+    for (const y of [0, h - 1]) {
+      const i = (y * w + x) * 4;
+      d[i] = s[i]; d[i+1] = s[i+1]; d[i+2] = s[i+2]; d[i+3] = s[i+3];
+    }
+  }
+  for (let y = 0; y < h; y++) {
+    for (const x of [0, w - 1]) {
+      const i = (y * w + x) * 4;
+      d[i] = s[i]; d[i+1] = s[i+1]; d[i+2] = s[i+2]; d[i+3] = s[i+3];
+    }
+  }
+  ctx.putImageData(dst, 0, 0);
+}
+
+// ── Confirm — bake all adjustments into the exported JPEG ────────────────────
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
   if (!cropperInstance) return;
-  const brightness = parseInt(document.getElementById('brightness-slider').value, 10);
-  const cropped = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
+  const b     = parseInt(document.getElementById('brightness-slider').value, 10);
+  const c     = parseInt(document.getElementById('contrast-slider').value, 10);
+  const s     = parseInt(document.getElementById('saturation-slider').value, 10);
+  const sharp = parseInt(document.getElementById('sharpness-slider').value, 10);
 
-  // Apply brightness via an offscreen canvas (works even at 100% — no-op)
+  const cropped = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
   const out = document.createElement('canvas');
   out.width = cropped.width; out.height = cropped.height;
   const ctx = out.getContext('2d');
-  ctx.filter = `brightness(${brightness}%)`;
+  // Apply brightness / contrast / saturation in one GPU pass
+  ctx.filter = `brightness(${100 + b}%) contrast(${100 + c}%) saturate(${100 + s}%)`;
   ctx.drawImage(cropped, 0, 0);
+  ctx.filter = 'none';
+  // Apply sharpness via convolution kernel (canvas pixel-level)
+  if (sharp > 0) applySharpness(out, sharp);
 
   out.toBlob(blob => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
     document.getElementById('crop-modal').classList.remove('open');
     cropperInstance.destroy(); cropperInstance = null;
-    // Reset slider, fill and container filter for next use
-    const slider = document.getElementById('brightness-slider');
-    slider.value = 100;
-    document.getElementById('brightness-val').textContent = '100%';
-    updateSliderFill(slider);
+    // Reset all sliders and clear live filter
+    resetAdjustSliders();
     const container = document.querySelector('.cropper-container');
     if (container) container.style.filter = '';
     updateAttemptPips('vibe');
