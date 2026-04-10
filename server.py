@@ -178,6 +178,73 @@ def auto_correct_photo(img: Image.Image):
     return img, corrections
 
 
+def enhance_with_nano_banana(img: Image.Image, reason: str = "") -> Image.Image:
+    """
+    Use Google's Gemini 2.5 Flash Image (nano-banana on Replicate) to clean up
+    a problematic pet photo before feeding it to rembg.
+    Only called when ENABLE_NANO_BANANA=1 is set in the environment AND the photo
+    triggers a quality check (too dark, etc.).
+    Falls back gracefully — returns original image on any error.
+    """
+    print(f"  🍌 nano-banana enhancement triggered ({reason})…")
+    try:
+        # Encode as JPEG for the API call
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=92)
+        b64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+        prompt = (
+            "This is a photo of a pet. Please enhance it for use as a professional "
+            "portrait: correct underexposure, improve sharpness and detail, reduce noise, "
+            "and neutralise any cluttered or distracting background — especially if the "
+            "background colour is very similar to the pet's fur or feathers. "
+            "Keep the pet's appearance completely natural and photorealistic. "
+            "Do not cartoon-ify, stylise, or alter the pet itself in any way."
+        )
+
+        payload = {
+            "input": {
+                "prompt": prompt,
+                "image_input": [b64],
+                "output_format": "jpg",
+            }
+        }
+
+        data = json.dumps(payload).encode()
+        # Use Prefer: wait so fast responses come back in one round-trip
+        req = urllib.request.Request(
+            "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+            data=data,
+            headers={
+                "Authorization": f"Token {API_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "wait=55",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=65) as r:
+            pred = json.loads(r.read())
+
+        # If Prefer: wait returned a completed prediction use it directly,
+        # otherwise fall through to polling
+        if pred.get("status") != "succeeded":
+            poll_url = pred["urls"]["get"]
+            pred = replicate_poll(poll_url, timeout=120)
+
+        out_url = pred["output"]
+        if isinstance(out_url, list):
+            out_url = out_url[0]
+
+        img_bytes = download_bytes(out_url)
+        enhanced = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        print(f"  ✅ nano-banana done: {enhanced.width}×{enhanced.height}")
+        return enhanced
+
+    except Exception as exc:
+        print(f"  ⚠️  nano-banana failed ({exc}) — using original photo")
+        return img
+
+
 def enhance_with_realesrgan(img_b64: str) -> Image.Image:
     """
     Send the image to Replicate's Real-ESRGAN for AI upscaling / restoration.
@@ -551,13 +618,27 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             if corrections:
                 print(f"  🎨 Auto-corrections applied: {', '.join(corrections)}")
 
-            # ── Step 2: AI enhancement via Real-ESRGAN ─────────────────────────
-            # DISABLED: Real-ESRGAN sharpens fur-edge boundaries in ways that
-            # confuse rembg segmentation, leaving ghost halos of the original
-            # background in the cutout. The Pillow auto-corrections above are
-            # sufficient for brightness/sharpness without disrupting segmentation.
-            # Re-enable by setting ENABLE_AI_ENHANCE=1 in env once a better
-            # integration point is found (e.g. post-composite upscaling).
+            # ── Step 2: nano-banana AI enhancement (optional, gated by env flag) ──
+            # Set ENABLE_NANO_BANANA=1 on Railway to activate.
+            # Only fires for photos likely to cause rembg trouble:
+            #   • Very dark  (avg brightness < 0.28)
+            #   • Very blown-out / flat contrast (avg brightness > 0.82)
+            # The model cleans up lighting, sharpness, and cluttered backgrounds
+            # before rembg sees the image — dramatically improving cutout quality
+            # on tricky user photos without touching normal good-quality shots.
+            if os.environ.get("ENABLE_NANO_BANANA") == "1" and API_KEY:
+                from PIL import ImageStat as _IStat
+                _stat = _IStat.Stat(img_in)
+                _avg_b = sum(_stat.mean[:3]) / 3 / 255
+                if _avg_b < 0.28:
+                    img_in = enhance_with_nano_banana(img_in, reason=f"dark photo (brightness={_avg_b:.2f})")
+                elif _avg_b > 0.82:
+                    img_in = enhance_with_nano_banana(img_in, reason=f"washed-out photo (brightness={_avg_b:.2f})")
+            # ──────────────────────────────────────────────────────────────────
+
+            # ── Step 3: Real-ESRGAN (DISABLED) ────────────────────────────────
+            # Real-ESRGAN sharpens fur-edge boundaries in ways that confuse rembg,
+            # leaving ghost halos around the pet. Keeping code for reference.
             # ──────────────────────────────────────────────────────────────────
 
             buf_in = io.BytesIO()
