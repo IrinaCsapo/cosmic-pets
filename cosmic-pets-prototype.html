@@ -466,6 +466,166 @@
       .vibe-info { padding: 7px 10px 9px; }
       .vibe-name { font-size: 0.88rem; }
     }
+    /* ══════════════════════════════════════════════════
+       BURGER MENU
+    ══════════════════════════════════════════════════ */
+    .burger-btn {
+      background: none; border: none; cursor: pointer; padding: 6px;
+      display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
+      z-index: 10;
+    }
+    .burger-btn span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text); border-radius: 2px;
+      transition: all 0.25s ease;
+    }
+    /* Menu overlay */
+    #nav-overlay {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(8,8,24,0.97);
+      backdrop-filter: blur(16px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #nav-overlay.open { opacity: 1; pointer-events: all; }
+    .nav-close {
+      position: absolute; top: 28px; right: 24px;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.6rem; cursor: pointer; line-height: 1;
+      transition: color 0.15s;
+    }
+    .nav-close:hover { color: var(--text); }
+    .nav-links { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .nav-link {
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.01em;
+      color: var(--text); text-decoration: none; background: none; border: none;
+      cursor: pointer; padding: 10px 20px; border-radius: 12px;
+      transition: color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .nav-link:hover { color: var(--gold); }
+    .nav-link::after {
+      content: ''; position: absolute; left: 50%; bottom: 4px;
+      transform: translateX(-50%); width: 0; height: 2px;
+      background: var(--gold); border-radius: 2px; transition: width 0.2s;
+    }
+    .nav-link:hover::after { width: 60%; }
+    .nav-footer {
+      position: absolute; bottom: 32px;
+      font-size: 0.75rem; color: var(--muted); text-align: center; letter-spacing: 0.05em;
+    }
+
+    /* ══════════════════════════════════════════════════
+       INNER PAGES (About, Photo Guide, FAQ, Contact)
+    ══════════════════════════════════════════════════ */
+    .page-header {
+      width: 100%; max-width: 600px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 0 20px;
+    }
+    .page-back {
+      background: none; border: none; color: var(--muted);
+      font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;
+      padding: 6px 0; transition: color 0.15s;
+    }
+    .page-back:hover { color: var(--text); }
+    .page-content { width: 100%; max-width: 600px; padding-bottom: 60px; }
+    .page-title {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 6px; line-height: 1.15;
+    }
+    .page-subtitle {
+      font-size: 1rem; color: var(--muted); margin-bottom: 32px; line-height: 1.6;
+    }
+
+    /* About */
+    .about-hero {
+      text-align: center; padding: 32px 0 40px;
+    }
+    .about-hero .about-emblem {
+      font-size: 4rem; margin-bottom: 20px; display: block; line-height: 1;
+    }
+    .about-hero h2 {
+      font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em;
+    }
+    .about-hero p {
+      font-size: 1.05rem; color: var(--muted); line-height: 1.75; max-width: 480px; margin: 0 auto;
+    }
+    .about-pillars { display: flex; flex-direction: column; gap: 16px; margin-top: 36px; }
+    .about-pillar {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start;
+    }
+    .about-pillar .pillar-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+    .about-pillar h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
+    .about-pillar p  { font-size: 0.85rem; color: var(--muted); line-height: 1.55; }
+
+    /* Photo Guide */
+    .guide-section { margin-bottom: 36px; }
+    .guide-section-title {
+      font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .guide-section-title .guide-badge {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; padding: 3px 9px;
+      border-radius: 20px; text-transform: uppercase;
+    }
+    .guide-badge.good { background: rgba(72,199,116,0.15); color: #48c774; border: 1px solid rgba(72,199,116,0.3); }
+    .guide-badge.bad  { background: rgba(255,82,82,0.15);  color: #ff5252; border: 1px solid rgba(255,82,82,0.3); }
+    .guide-items { display: flex; flex-direction: column; gap: 10px; }
+    .guide-item {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .guide-item .gi-icon {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+      margin-top: 1px;
+    }
+    .guide-item.good .gi-icon { background: rgba(72,199,116,0.2); color: #48c774; }
+    .guide-item.bad  .gi-icon { background: rgba(255,82,82,0.2);  color: #ff5252; }
+    .guide-item .gi-text { font-size: 0.88rem; line-height: 1.55; color: var(--text); }
+    .guide-item .gi-text strong { font-weight: 700; }
+
+    /* FAQ */
+    .faq-list { display: flex; flex-direction: column; gap: 2px; }
+    .faq-item {
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+      background: var(--card);
+    }
+    .faq-q {
+      width: 100%; background: none; border: none; color: var(--text);
+      text-align: left; padding: 18px 20px; font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; line-height: 1.4;
+    }
+    .faq-q .faq-arrow { flex-shrink: 0; color: var(--muted); transition: transform 0.2s; font-size: 0.75rem; }
+    .faq-q[aria-expanded="true"] .faq-arrow { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.2s;
+      padding: 0 20px; font-size: 0.87rem; color: var(--muted); line-height: 1.7;
+    }
+    .faq-a.open { max-height: 300px; padding: 0 20px 18px; }
+
+    /* Contact */
+    .contact-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px 28px; text-align: center;
+    }
+    .contact-card .contact-icon { font-size: 2.8rem; margin-bottom: 16px; display: block; }
+    .contact-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+    .contact-card p { font-size: 0.92rem; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+    .contact-email {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(123,47,190,0.2); border: 1px solid rgba(123,47,190,0.45);
+      border-radius: 12px; padding: 12px 22px;
+      color: var(--gold); font-weight: 600; font-size: 0.95rem; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .contact-email:hover { background: rgba(123,47,190,0.35); }
+
   </style>
 </head>
 <body>
@@ -476,11 +636,16 @@
 <section class="screen" id="screen-upload">
   <div class="header">
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
-    <div class="attempts-pill">
-      <span class="attempts-pip" id="pip-1">✦</span>
-      <span class="attempts-pip" id="pip-2">✦</span>
-      <span class="attempts-pip" id="pip-3">✦</span>
-      <span id="attempts-text">3 free left</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="attempts-pill">
+        <span class="attempts-pip" id="pip-1">✦</span>
+        <span class="attempts-pip" id="pip-2">✦</span>
+        <span class="attempts-pip" id="pip-3">✦</span>
+        <span id="attempts-text">3 free left</span>
+      </div>
+      <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
   <div class="hero">
@@ -556,11 +721,16 @@
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
-    <div class="attempts-pill">
-      <span class="attempts-pip" id="vibe-pip-1">✦</span>
-      <span class="attempts-pip" id="vibe-pip-2">✦</span>
-      <span class="attempts-pip" id="vibe-pip-3">✦</span>
-      <span id="vibe-attempts-text">3 free left</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="attempts-pill">
+        <span class="attempts-pip" id="vibe-pip-1">✦</span>
+        <span class="attempts-pip" id="vibe-pip-2">✦</span>
+        <span class="attempts-pip" id="vibe-pip-3">✦</span>
+        <span id="vibe-attempts-text">3 free left</span>
+      </div>
+      <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 
@@ -622,11 +792,16 @@
 <section class="screen" id="screen-result" hidden>
   <div class="header">
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
-    <div class="attempts-pill">
-      <span class="attempts-pip" id="res-pip-1">✦</span>
-      <span class="attempts-pip" id="res-pip-2">✦</span>
-      <span class="attempts-pip" id="res-pip-3">✦</span>
-      <span id="res-attempts-text">3 free left</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="attempts-pill">
+        <span class="attempts-pip" id="res-pip-1">✦</span>
+        <span class="attempts-pip" id="res-pip-2">✦</span>
+        <span class="attempts-pip" id="res-pip-3">✦</span>
+        <span id="res-attempts-text">3 free left</span>
+      </div>
+      <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
   <div class="result-wrap">
@@ -1570,13 +1745,52 @@ function updateAttemptPips(screen) {
 }
 
 // ── NAVIGATION ──
+const ALL_SCREENS = ['upload','vibe','processing','result','about','photo-guide','faq','contact'];
+let previousScreen = 'upload';
+
 function showScreen(name) {
-  ['upload','vibe','processing','result'].forEach(s => {
+  ALL_SCREENS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
     if(el) el.hidden = s !== name;
   });
   window.scrollTo(0,0);
 }
+
+// ── Burger menu ──
+window.openMenu = function() {
+  document.getElementById('nav-overlay').classList.add('open');
+};
+window.closeMenu = function() {
+  document.getElementById('nav-overlay').classList.remove('open');
+};
+window.navTo = function(screen) {
+  // Remember where we came from so Back works
+  const current = ALL_SCREENS.find(s => {
+    const el = document.getElementById(`screen-${s}`);
+    return el && !el.hidden;
+  }) || 'upload';
+  // Don't go back to a page-screen from another page-screen — go back to upload
+  previousScreen = ['about','photo-guide','faq','contact'].includes(current) ? 'upload' : current;
+  closeMenu();
+  showScreen(screen);
+};
+window.navBack = function() {
+  showScreen(previousScreen || 'upload');
+};
+
+// ── FAQ accordion ──
+window.toggleFaq = function(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = answer.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-q').forEach(q => q.setAttribute('aria-expanded','false'));
+  // Open clicked if it was closed
+  if (!isOpen) {
+    answer.classList.add('open');
+    btn.setAttribute('aria-expanded','true');
+  }
+};
 
 document.getElementById('again-btn').addEventListener('click', () => {
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
@@ -1621,5 +1835,247 @@ window.hideQualityHint = function() {
 
 <!-- Cropper.js — must load before the module executes (modules are deferred) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<!-- ═══════ BURGER MENU OVERLAY ═══════ -->
+<div id="nav-overlay">
+  <button class="nav-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
+  <nav class="nav-links">
+    <button class="nav-link" onclick="navTo('about')">About</button>
+    <button class="nav-link" onclick="navTo('photo-guide')">Photo Guide</button>
+    <button class="nav-link" onclick="navTo('faq')">FAQs</button>
+    <button class="nav-link" onclick="navTo('contact')">Contact</button>
+  </nav>
+  <p class="nav-footer">✦ Cosmic Pets · Every pet deserves their moment</p>
+</div>
+
+<!-- ═══════ SCREEN: ABOUT ═══════ -->
+<section class="screen" id="screen-about" hidden>
+  <div class="page-header">
+    <button class="page-back" onclick="navBack()">← Back</button>
+    <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="page-content">
+    <div class="about-hero">
+      <span class="about-emblem">🌌</span>
+      <h2>Your pet, set against<br>the infinite.</h2>
+      <p>Your pet is one of a kind. Their eyes, their markings, their little quirks — there's genuinely nobody else in the universe quite like them. Cosmic Pets exists to honour exactly that.<br><br>We take your real photo — whiskers, wonky ears and all — and place your beloved companion in a world that matches their magnificent spirit. Ancient temples. Cosmic nebulae. Cherry blossom gardens. Oceans of starlight. Because every pet deserves to be seen as the cosmic wonder they truly are.</p>
+    </div>
+    <div class="about-pillars">
+      <div class="about-pillar">
+        <span class="pillar-icon">🐾</span>
+        <div>
+          <h3>Always your real pet</h3>
+          <p>We never replace your pet with an AI-generated version. Their unique face, markings, and character stay exactly as they are — we only change the world around them.</p>
+        </div>
+      </div>
+      <div class="about-pillar">
+        <span class="pillar-icon">🎨</span>
+        <div>
+          <h3>Handcrafted backgrounds</h3>
+          <p>Each cosmic backdrop is generated fresh just for your portrait — no two are ever the same. The flowers, the planets, the light — all woven around your pet specifically.</p>
+        </div>
+      </div>
+      <div class="about-pillar">
+        <span class="pillar-icon">✨</span>
+        <div>
+          <h3>A keepsake worth keeping</h3>
+          <p>Print it, frame it, use it as a wallpaper, send it to someone who loves your pet as much as you do. Your portrait is yours to keep and share forever.</p>
+        </div>
+      </div>
+      <div class="about-pillar">
+        <span class="pillar-icon">💜</span>
+        <div>
+          <h3>Made with love in the UK</h3>
+          <p>Cosmic Pets is an independent project built by people who are absolutely, unashamedly obsessed with their own pets. We hope it makes you smile.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN: PHOTO GUIDE ═══════ -->
+<section class="screen" id="screen-photo-guide" hidden>
+  <div class="page-header">
+    <button class="page-back" onclick="navBack()">← Back</button>
+    <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="page-content">
+    <h1 class="page-title">Photo Guide</h1>
+    <p class="page-subtitle">The better your photo, the more magical your portrait. Here's exactly what works — and what doesn't.</p>
+
+    <div class="guide-section">
+      <div class="guide-section-title">
+        <span class="guide-badge good">✓ What works</span>
+      </div>
+      <div class="guide-items">
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text">Photo taken at <strong>eye level</strong> with your pet — crouch down to their world.</div>
+        </div>
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text"><strong>Well lit</strong> — natural daylight is best. <strong>Pro tip:</strong> sit your pet in front of a window. Use a chair if you need to get them up to the light.</div>
+        </div>
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text"><strong>Close-up portrait</strong> with all features visible — head and chest is ideal. Not too far away, but not so close you lose the ears.</div>
+        </div>
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text"><strong>Sharp and in focus</strong> — you should be able to see individual hairs and whiskers clearly.</div>
+        </div>
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text">An <strong>original photo</strong>, not a screenshot of another photo or a scan.</div>
+        </div>
+        <div class="guide-item good">
+          <div class="gi-icon">✓</div>
+          <div class="gi-text">A <strong>headshot</strong> — full body isn't necessary and actually gives less detail in the final portrait.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-section-title">
+        <span class="guide-badge bad">✗ What doesn't work</span>
+      </div>
+      <div class="guide-items">
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Taken from too far away</strong> — your pet should fill a good portion of the frame, not be a tiny figure in the corner.</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Face obstructed</strong> — a hand, lead, toy, or another animal in front of the face will confuse the background removal.</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Too dark</strong> — low light is the most common cause of poor results, especially with dark-coloured pets.</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Blurry or out of focus</strong> — motion blur from a wriggly pet doesn't sharpen up well. Wait for a still moment!</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Very low resolution</strong> — small, pixelated photos will produce a soft, low-detail portrait.</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Wrong angle</strong> — photos taken from directly above or below are tricky for background removal and rarely look their best.</div>
+        </div>
+        <div class="guide-item bad">
+          <div class="gi-icon">✗</div>
+          <div class="gi-text"><strong>Eyes closed or unflattering close-up</strong> — your pet deserves their best angle! If they look sleepy, try again when they're alert.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN: FAQ ═══════ -->
+<section class="screen" id="screen-faq" hidden>
+  <div class="page-header">
+    <button class="page-back" onclick="navBack()">← Back</button>
+    <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="page-content">
+    <h1 class="page-title">FAQs</h1>
+    <p class="page-subtitle">Everything you might want to know, in one place.</p>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          Does Cosmic Pets use AI to generate my pet?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          No — and that's very much the point. We don't pass your pet's photo through an AI image generator, because that would strip away everything that makes them <em>them</em>: their unique markings, their expression, their wonderful imperfections. What we do is cut your pet out from their photo and place them into a beautifully AI-generated cosmic backdrop. Your pet stays 100% real and recognisable. Only the world around them gets the magic treatment.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          How long does it take to generate a portrait?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          Usually between 20–45 seconds. The magic happens in a few stages — removing the background, generating your cosmic world, and compositing everything together. Grab a biscuit, your portrait will be ready before you're done.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          Is it free?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          You get 3 free portraits to try — no account needed. After that, you can unlock more with a small top-up pack. We're still in early access so pricing may evolve, but we're committed to keeping it affordable.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          What pets can I use?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          Any pet you love! Cats and dogs work brilliantly, but we've seen gorgeous results with rabbits, birds, horses, and the occasional very dignified lizard. If it's a pet, it's welcome here.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          What format does my portrait download in?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          Your portrait downloads as a high-quality JPEG. It's ready to share on social media, use as a phone wallpaper, or send to a print shop. It works beautifully at A4 size and above.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          Do you store my photo?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          Your photo is used only to generate your portrait and is not stored on our servers after processing completes. We have no interest in collecting your pet photos — we just want to make them cosmic.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          The portrait doesn't look quite right — what can I do?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          Try generating again — each portrait is created fresh, so results vary. The single biggest improvement you can make is using a better photo: well-lit, close-up, and in focus. Check our Photo Guide for a full breakdown of what works best.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN: CONTACT ═══════ -->
+<section class="screen" id="screen-contact" hidden>
+  <div class="page-header">
+    <button class="page-back" onclick="navBack()">← Back</button>
+    <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="page-content">
+    <h1 class="page-title">Say hello 👋</h1>
+    <p class="page-subtitle">We're a small team and we genuinely read every message.</p>
+    <div class="contact-card">
+      <span class="contact-icon">💌</span>
+      <h3>We'd love to hear from you</h3>
+      <p>Having trouble getting the portrait you hoped for? Spotted something that could be better? Got an idea you think we'd love? Or just want to share a photo of your pet because, honestly, who wouldn't?<br><br>Drop us a line — we read everything and reply to as much as we possibly can.</p>
+      <a class="contact-email" href="mailto:hello@cosmicpets.co.uk">
+        ✉️ hello@cosmicpets.co.uk
+      </a>
+    </div>
+  </div>
+</section>
 </body>
 </html>
