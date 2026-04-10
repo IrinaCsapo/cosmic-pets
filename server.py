@@ -395,40 +395,29 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     bloom_layer.paste(bloom, (px, py), bloom_alpha)
     # ─────────────────────────────────────────────────────────────────────────
 
-    # ── Garland arch — composited UNDER the pet ──────────────────────────────
-    # src=dst: sample bg at the same y we paste — actual flowers, no halo.
-    # Placed before the pet in the pipeline so flowers frame the oval from behind.
-    # NOTE: a "garland over" pass was tried but caused a transparency ghost on
-    # the pet by sampling from the white halo zone (y<1000) and painting those
-    # semi-transparent pixels on top of dark fur. Single under-pass is cleaner.
-    from PIL import ImageDraw as _ArchDraw
-
-    garland_h = int(OUTPUT_H * 0.38)
-    g_top = max(0, garland_center_y - int(garland_h * 0.20))
-    g_bot = min(OUTPUT_H, g_top + garland_h)
-    g_h = g_bot - g_top
-
+    # ── Rembg garland — rembg cutout of flowers, composited OVER pet ─────────
+    # Crop bottom 35% of FLUX bg (y ≥ 65% height) — safely below the white
+    # halo zone (y < ~1000px) where only glows live.  rembg isolates botanical
+    # elements with clean alpha edges; no blurs or fades added.
+    # The cutout is placed so its TOP edge sits at 60% from canvas top
+    # (= 40% from bottom), overlaid on top of the pet.
+    garland_src_top = int(OUTPUT_H * 0.65)
+    garland_src = bg.crop((0, garland_src_top, OUTPUT_W, OUTPUT_H)).convert("RGB")
+    print(f"  🌸 Running rembg on garland source (y={garland_src_top}–{OUTPUT_H})…")
+    buf_g = io.BytesIO()
+    garland_src.save(buf_g, format="PNG")
+    with REMBG_LOCK:
+        garland_cut_bytes = rembg_remove(buf_g.getvalue(), session=REMBG_SESSION)
+    garland_cut = Image.open(io.BytesIO(garland_cut_bytes)).convert("RGBA")
+    garland_place_y = int(OUTPUT_H * 0.60)
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-
-    if g_h > 20:
-        arch_mask = Image.new("L", (OUTPUT_W, g_h), 0)
-        acx = OUTPUT_W // 2
-        arx = int(OUTPUT_W * 0.48)
-        ary = int(g_h * 0.91)   # extends arch top ~60px above garland_center_y
-        _ArchDraw.Draw(arch_mask).ellipse(
-            [acx - arx, g_h - ary, acx + arx, g_h + ary], fill=252
-        )
-        arch_mask = arch_mask.filter(ImageFilter.GaussianBlur(radius=int(g_h * 0.05)))
-        g_strip = bg.crop((0, g_top, OUTPUT_W, g_bot)).convert("RGBA")
-        g_strip.putalpha(arch_mask)
-        garland_layer.paste(g_strip, (0, g_top))
-        print(f"  🌸 Garland anchor y={garland_center_y}, strip y={g_top}–{g_bot}")
+    garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
+    print(f"  ✅ Garland cutout placed at y={garland_place_y}")
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Composite: bg → bloom → garland → pet → fg strip
+    # Composite: bg → bloom → pet → fg strip → garland (rembg cutout over pet)
     result = bg.copy()
     result = Image.alpha_composite(result, bloom_layer)
-    result = Image.alpha_composite(result, garland_layer)   # flowers behind pet
 
     pet_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     pet_layer.paste(pet, (px, py), alpha)
@@ -448,6 +437,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     fg_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     fg_layer.paste(fg_strip_rgba, (0, OUTPUT_H - strip_h))
     result = Image.alpha_composite(result, fg_layer)
+
+    result = Image.alpha_composite(result, garland_layer)   # garland over pet
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
