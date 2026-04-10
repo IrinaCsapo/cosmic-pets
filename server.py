@@ -364,13 +364,14 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     _MaskDraw.Draw(oval_mask).ellipse(
         [cx - rx, cy - ry, cx + rx, cy + ry], fill=255
     )
-    # Save the hard unblurred oval before softening
-    oval_hard = oval_mask.copy()
-    # Soften the full oval so the top and side edges blend into the background
+    # Soften the top/side edges so the pet blends into the background naturally
     oval_mask = oval_mask.filter(ImageFilter.GaussianBlur(radius=6))
-    # Harden the bottom half back: below cy paste the original unblurred oval so
-    # the bottom edge is crisp — the garland covers it, so no fade needed there.
-    oval_mask.paste(oval_hard.crop((0, cy, pw, ph)), (0, cy))
+    # From cy downward, stamp the mask fully opaque (255).
+    # The ellipse narrows toward its bottom, cutting into the cat's chest/flanks —
+    # exactly the transparency the user sees. The garland and fg_strip cover the
+    # lower portion, so the oval doesn't need to constrain it at all.
+    # Full opacity here = rembg alpha alone decides the shape below the midline.
+    oval_mask.paste(Image.new("L", (pw, ph - cy), 255), (0, cy))
     # Multiply with rembg alpha so we keep the existing clean cutout shape
     existing_alpha = pet.split()[3]
     blended_alpha = _Chops.multiply(existing_alpha, oval_mask)
