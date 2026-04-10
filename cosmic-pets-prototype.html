@@ -361,15 +361,21 @@
     .cropper-center::before,
     .cropper-center::after { background-color: rgba(255,255,255,0.85) !important; }
 
-    /* ── Crop toolbar (rotate button) ── */
-    .crop-toolbar { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -8px; }
-    .btn-rotate {
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px; color: var(--fg); font-size: 1rem; padding: 6px 12px;
-      cursor: pointer; display: flex; align-items: center; gap: 6px;
-      font-size: 0.8rem; transition: background 0.15s;
+    /* ── Adjust panel boost label ── */
+    .adjust-boost-label {
+      font-size: 0.78rem; color: var(--muted); text-align: center;
+      letter-spacing: 0.02em; padding-bottom: 2px;
     }
-    .btn-rotate:hover { background: rgba(255,255,255,0.14); }
+    /* ── Rotate row inside adjust panel ── */
+    .btn-rotate {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 8px; color: var(--fg); padding: 7px 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 7px; font-size: 0.82rem; transition: background 0.15s; width: 100%;
+    }
+    .btn-rotate:hover { background: rgba(255,255,255,0.13); }
+    .btn-rotate .rotate-icon { font-size: 1rem; display: inline-block; transition: transform 0.25s; }
+    .btn-rotate:active .rotate-icon { transform: rotate(90deg); }
 
     /* ── Photo quality warnings ── */
     .photo-warnings { width: 100%; display: flex; flex-direction: column; gap: 7px; }
@@ -669,13 +675,11 @@
     <h2>✦ Position your pet</h2>
     <p>Pinch to zoom · drag to reframe · get your pet's face centred before generating</p>
     <div class="photo-warnings" id="photo-warnings"></div>
-    <div class="crop-toolbar">
-      <button class="btn-rotate" id="crop-rotate-btn" title="Rotate 90°">↻ Rotate</button>
-    </div>
     <div class="crop-container">
       <img id="crop-image" alt="Crop your pet photo">
     </div>
     <div class="adjust-controls">
+      <p class="adjust-boost-label">✦ Give your photo a little boost</p>
       <div class="adjust-row">
         <div class="adjust-label">
           <span><span class="adjust-icon">☀️</span>Brightness</span>
@@ -698,11 +702,9 @@
         <input type="range" class="adjust-slider" id="saturation-slider" min="-50" max="50" value="0" step="1">
       </div>
       <div class="adjust-row">
-        <div class="adjust-label">
-          <span><span class="adjust-icon">◈</span>Sharpness</span>
-          <span class="adjust-val" id="sharpness-val">0</span>
-        </div>
-        <input type="range" class="adjust-slider" id="sharpness-slider" min="0" max="10" value="0" step="1">
+        <button class="btn-rotate" id="crop-rotate-btn" title="Rotate 90°">
+          <span class="rotate-icon">↻</span> Rotate photo
+        </button>
       </div>
     </div>
     <div class="crop-actions">
@@ -1249,7 +1251,7 @@ function updateSliderFill(slider) {
     `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, rgba(255,255,255,0.15) ${pct}%, rgba(255,255,255,0.15) 100%)`;
 }
 
-const ADJUST_DEFAULTS = { brightness: 0, contrast: 0, saturation: 0, sharpness: 0 };
+const ADJUST_DEFAULTS = { brightness: 0, contrast: 0, saturation: 0 };
 
 function resetAdjustSliders() {
   Object.entries(ADJUST_DEFAULTS).forEach(([name, val]) => {
@@ -1288,76 +1290,20 @@ function applyLiveAdjust() {
   });
 });
 
-document.getElementById('sharpness-slider').addEventListener('input', e => {
-  document.getElementById('sharpness-val').textContent = e.target.value;
-  updateSliderFill(e.target);
-});
-
-// ── Sharpness convolution — applied on canvas at bake time ───────────────────
-// Uses a 3×3 unsharp kernel scaled by `amount` (0–10).
-// Centre weight = 1 + 8a, each neighbour = −a, where a = amount × 0.07.
-function applySharpness(canvas, amount) {
-  if (amount <= 0) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  const src = ctx.getImageData(0, 0, w, h);
-  const dst = ctx.createImageData(w, h);
-  const s = src.data, d = dst.data;
-  const a = amount * 0.07;
-  const center = 1 + 8 * a;
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      const i = (y * w + x) * 4;
-      for (let ch = 0; ch < 3; ch++) {
-        d[i + ch] = Math.max(0, Math.min(255, Math.round(
-          center     * s[i + ch]
-          - a * s[i - 4 + ch]         // left
-          - a * s[i + 4 + ch]         // right
-          - a * s[i - w*4 + ch]       // up
-          - a * s[i + w*4 + ch]       // down
-          - a * s[i - w*4 - 4 + ch]   // up-left
-          - a * s[i - w*4 + 4 + ch]   // up-right
-          - a * s[i + w*4 - 4 + ch]   // down-left
-          - a * s[i + w*4 + 4 + ch]   // down-right
-        )));
-      }
-      d[i + 3] = s[i + 3]; // preserve alpha
-    }
-  }
-  // Copy edge pixels unchanged
-  for (let x = 0; x < w; x++) {
-    for (const y of [0, h - 1]) {
-      const i = (y * w + x) * 4;
-      d[i] = s[i]; d[i+1] = s[i+1]; d[i+2] = s[i+2]; d[i+3] = s[i+3];
-    }
-  }
-  for (let y = 0; y < h; y++) {
-    for (const x of [0, w - 1]) {
-      const i = (y * w + x) * 4;
-      d[i] = s[i]; d[i+1] = s[i+1]; d[i+2] = s[i+2]; d[i+3] = s[i+3];
-    }
-  }
-  ctx.putImageData(dst, 0, 0);
-}
-
 // ── Confirm — bake all adjustments into the exported JPEG ────────────────────
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
   if (!cropperInstance) return;
-  const b     = parseInt(document.getElementById('brightness-slider').value, 10);
-  const c     = parseInt(document.getElementById('contrast-slider').value, 10);
-  const s     = parseInt(document.getElementById('saturation-slider').value, 10);
-  const sharp = parseInt(document.getElementById('sharpness-slider').value, 10);
+  const b = parseInt(document.getElementById('brightness-slider').value, 10);
+  const c = parseInt(document.getElementById('contrast-slider').value, 10);
+  const s = parseInt(document.getElementById('saturation-slider').value, 10);
 
   const cropped = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
   const out = document.createElement('canvas');
   out.width = cropped.width; out.height = cropped.height;
   const ctx = out.getContext('2d');
-  // Apply brightness / contrast / saturation in one GPU pass
   ctx.filter = `brightness(${100 + b}%) contrast(${100 + c}%) saturate(${100 + s}%)`;
   ctx.drawImage(cropped, 0, 0);
   ctx.filter = 'none';
-  // Apply sharpness via convolution kernel (canvas pixel-level)
-  if (sharp > 0) applySharpness(out, sharp);
 
   out.toBlob(blob => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
