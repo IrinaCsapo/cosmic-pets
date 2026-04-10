@@ -1205,8 +1205,8 @@ function openCropModal(file) {
           const hasHuman = await checkForHuman(img);
           if (hasHuman) {
             warnings.unshift({
-              icon: '🧑',
-              text: "Looks like there might be a person in this photo — that's totally fine! For a pets-only portrait, try a photo of just your pet.",
+              icon: '🐾',
+              text: "This works best with pets! It looks like there might be a person in this photo — for the most magical results, try a photo of just your furry friend.",
               type: 'info'
             });
           }

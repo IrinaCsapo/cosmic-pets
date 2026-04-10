@@ -409,7 +409,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     with REMBG_LOCK:
         garland_cut_bytes = rembg_remove(buf_g.getvalue(), session=REMBG_SESSION)
     garland_cut = Image.open(io.BytesIO(garland_cut_bytes)).convert("RGBA")
-    garland_place_y = int(OUTPUT_H * 0.60)
+    garland_place_y = int(OUTPUT_H * 0.50)
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
     print(f"  ✅ Garland cutout placed at y={garland_place_y}")
@@ -636,8 +636,6 @@ class CosmicHandler(SimpleHTTPRequestHandler):
                         quality_warning = "We had trouble detecting your pet clearly — dark fur against a dark background is tricky! For best results, try a well-lit photo where your pet stands out from the background."
                     elif coverage < 0.15:
                         quality_warning = "Your pet looks a little small in this photo — moving closer or cropping in will give a more detailed portrait."
-                    elif coverage > 0.92:
-                        quality_warning = "Your pet fills the whole frame! The portrait works best when there's a little background visible around your pet — try zooming out slightly."
             except Exception as qe:
                 print(f"  ⚠️  Quality check failed: {qe}")
 
