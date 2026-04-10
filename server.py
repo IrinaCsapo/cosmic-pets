@@ -409,6 +409,17 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     with REMBG_LOCK:
         garland_cut_bytes = rembg_remove(buf_g.getvalue(), session=REMBG_SESSION)
     garland_cut = Image.open(io.BytesIO(garland_cut_bytes)).convert("RGBA")
+    # Fade the top 60px of the rembg cutout so any hard seam at the crop boundary
+    # blends away invisibly. The rest of the garland stays at full rembg quality.
+    gc_w, gc_h = garland_cut.size
+    fade_px = min(60, gc_h // 4)
+    r_ch, g_ch, b_ch, a_ch = garland_cut.split()
+    import numpy as np
+    a_arr = np.array(a_ch, dtype=np.float32)
+    ramp = np.linspace(0.0, 1.0, fade_px)
+    a_arr[:fade_px, :] *= ramp[:, np.newaxis]
+    a_ch = Image.fromarray(a_arr.clip(0, 255).astype(np.uint8))
+    garland_cut = Image.merge("RGBA", (r_ch, g_ch, b_ch, a_ch))
     garland_place_y = int(OUTPUT_H * 0.50)
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
