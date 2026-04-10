@@ -364,14 +364,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     _MaskDraw.Draw(oval_mask).ellipse(
         [cx - rx, cy - ry, cx + rx, cy + ry], fill=255
     )
-    # Soften the top/side edges so the pet blends into the background naturally
-    oval_mask = oval_mask.filter(ImageFilter.GaussianBlur(radius=6))
-    # From cy downward, stamp the mask fully opaque (255).
-    # The ellipse narrows toward its bottom, cutting into the cat's chest/flanks —
-    # exactly the transparency the user sees. The garland and fg_strip cover the
-    # lower portion, so the oval doesn't need to constrain it at all.
-    # Full opacity here = rembg alpha alone decides the shape below the midline.
-    oval_mask.paste(Image.new("L", (pw, ph - cy), 255), (0, cy))
+    # Gentle soften — just enough to avoid a pixel-hard cut at the edges
+    oval_mask = oval_mask.filter(ImageFilter.GaussianBlur(radius=3))
     # Multiply with rembg alpha so we keep the existing clean cutout shape
     existing_alpha = pet.split()[3]
     blended_alpha = _Chops.multiply(existing_alpha, oval_mask)
@@ -384,7 +378,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     # then work backwards so the oval-mask bottom (ph*0.88) lands exactly there.
     # This makes the cat always appear nestled right into the flowers
     # regardless of how tall/short the pet image is.
-    garland_center_y = int(OUTPUT_H * 0.72)
+    garland_center_y = int(OUTPUT_H * 0.74)
     px = (OUTPUT_W - pw) // 2
     py = max(0, garland_center_y - int(ph * 0.88))
 
@@ -437,8 +431,8 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
         # Restrict to a 120px window centred on garland_center_y so only the
         # "collar" of flowers sits on top of the pet, hiding the cut edge.
         local_cy = garland_center_y - g_top   # garland_center_y in strip coords
-        band_top = max(0, local_cy - 70)
-        band_bot = min(g_h, local_cy + 60)
+        band_top = max(0, local_cy - 80)
+        band_bot = min(g_h, local_cy + 40)
         band_mask = Image.new("L", (OUTPUT_W, g_h), 0)
         _ArchDraw.Draw(band_mask).rectangle([0, band_top, OUTPUT_W, band_bot], fill=255)
         band_mask = band_mask.filter(ImageFilter.GaussianBlur(radius=22))
