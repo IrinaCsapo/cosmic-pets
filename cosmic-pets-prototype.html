@@ -361,17 +361,19 @@
     .cropper-center::before,
     .cropper-center::after { background-color: rgba(255,255,255,0.85) !important; }
 
-    /* ── Adjust panel boost label ── */
-    .adjust-boost-label {
-      font-size: 0.78rem; color: var(--muted); text-align: center;
-      letter-spacing: 0.02em; padding-bottom: 2px;
+    /* ── Adjust panel header row (label + rotate button side by side) ── */
+    .adjust-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
-    /* ── Rotate row inside adjust panel ── */
+    .adjust-boost-label {
+      font-size: 0.78rem; color: var(--muted); letter-spacing: 0.02em; margin: 0;
+    }
+    /* ── Rotate button ── */
     .btn-rotate {
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
-      border-radius: 8px; color: var(--fg); padding: 7px 14px;
+      border-radius: 8px; color: var(--fg); padding: 5px 11px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      gap: 7px; font-size: 0.82rem; transition: background 0.15s; width: 100%;
+      gap: 6px; font-size: 0.78rem; transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
     }
     .btn-rotate:hover { background: rgba(255,255,255,0.13); }
     .btn-rotate .rotate-icon { font-size: 1rem; display: inline-block; transition: transform 0.25s; }
@@ -679,13 +681,18 @@
       <img id="crop-image" alt="Crop your pet photo">
     </div>
     <div class="adjust-controls">
-      <p class="adjust-boost-label">✦ Give your photo a little boost</p>
+      <div class="adjust-header">
+        <p class="adjust-boost-label">✦ Give your photo a little boost</p>
+        <button class="btn-rotate" id="crop-rotate-btn" title="Rotate 90°">
+          <span class="rotate-icon">↻</span> Rotate
+        </button>
+      </div>
       <div class="adjust-row">
         <div class="adjust-label">
           <span><span class="adjust-icon">☀️</span>Brightness</span>
           <span class="adjust-val" id="brightness-val">0</span>
         </div>
-        <input type="range" class="adjust-slider" id="brightness-slider" min="-50" max="80" value="0" step="1">
+        <input type="range" class="adjust-slider" id="brightness-slider" min="-50" max="50" value="0" step="1">
       </div>
       <div class="adjust-row">
         <div class="adjust-label">
@@ -700,11 +707,6 @@
           <span class="adjust-val" id="saturation-val">0</span>
         </div>
         <input type="range" class="adjust-slider" id="saturation-slider" min="-50" max="50" value="0" step="1">
-      </div>
-      <div class="adjust-row">
-        <button class="btn-rotate" id="crop-rotate-btn" title="Rotate 90°">
-          <span class="rotate-icon">↻</span> Rotate photo
-        </button>
       </div>
     </div>
     <div class="crop-actions">
@@ -1290,6 +1292,41 @@ function applyLiveAdjust() {
   });
 });
 
+// ── Pixel-level adjustment bake — works on iOS Safari (ctx.filter not supported) ──
+// brightness: -50…+50 offset → factor = (100+b)/100
+// contrast:   -50…+50 offset → standard formula
+// saturation: -50…+50 offset → per-pixel desaturation toward luminance
+function bakeAdjustments(canvas, b, c, s) {
+  if (b === 0 && c === 0 && s === 0) return; // nothing to do
+  const ctx = canvas.getContext('2d');
+  const id  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const px  = id.data;
+  const bFactor = (100 + b) / 100;
+  // Contrast factor: maps -50…+50 → reasonable photographic range
+  const cFactor = c >= 0
+    ? 1 + c / 50        // 1.0 → 2.0
+    : 1 + c / 100;      // 0.5 → 1.0 (softer reduction)
+  const sFactor = (100 + s) / 100;
+  for (let i = 0; i < px.length; i += 4) {
+    let r = px[i], g = px[i+1], bl = px[i+2];
+    // Brightness
+    r = r * bFactor; g = g * bFactor; bl = bl * bFactor;
+    // Contrast (pivot at 128)
+    r = cFactor * (r - 128) + 128;
+    g = cFactor * (g - 128) + 128;
+    bl = cFactor * (bl - 128) + 128;
+    // Saturation (blend toward luminance)
+    const lum = 0.299 * r + 0.587 * g + 0.114 * bl;
+    r  = lum + sFactor * (r  - lum);
+    g  = lum + sFactor * (g  - lum);
+    bl = lum + sFactor * (bl - lum);
+    px[i]   = Math.max(0, Math.min(255, r));
+    px[i+1] = Math.max(0, Math.min(255, g));
+    px[i+2] = Math.max(0, Math.min(255, bl));
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
 // ── Confirm — bake all adjustments into the exported JPEG ────────────────────
 document.getElementById('crop-confirm-btn').addEventListener('click', () => {
   if (!cropperInstance) return;
@@ -1301,9 +1338,9 @@ document.getElementById('crop-confirm-btn').addEventListener('click', () => {
   const out = document.createElement('canvas');
   out.width = cropped.width; out.height = cropped.height;
   const ctx = out.getContext('2d');
-  ctx.filter = `brightness(${100 + b}%) contrast(${100 + c}%) saturate(${100 + s}%)`;
   ctx.drawImage(cropped, 0, 0);
-  ctx.filter = 'none';
+  // Pixel-level bake — cross-browser including iOS Safari
+  bakeAdjustments(out, b, c, s);
 
   out.toBlob(blob => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
