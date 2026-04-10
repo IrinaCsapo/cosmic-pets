@@ -364,8 +364,13 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     _MaskDraw.Draw(oval_mask).ellipse(
         [cx - rx, cy - ry, cx + rx, cy + ry], fill=255
     )
-    # Very slight soften on the edge — just enough to avoid a pixel-hard cut
-    oval_mask = oval_mask.filter(ImageFilter.GaussianBlur(radius=3))
+    # Save the hard unblurred oval before softening
+    oval_hard = oval_mask.copy()
+    # Soften the full oval so the top and side edges blend into the background
+    oval_mask = oval_mask.filter(ImageFilter.GaussianBlur(radius=6))
+    # Harden the bottom half back: below cy paste the original unblurred oval so
+    # the bottom edge is crisp — the garland covers it, so no fade needed there.
+    oval_mask.paste(oval_hard.crop((0, cy, pw, ph)), (0, cy))
     # Multiply with rembg alpha so we keep the existing clean cutout shape
     existing_alpha = pet.split()[3]
     blended_alpha = _Chops.multiply(existing_alpha, oval_mask)
@@ -431,7 +436,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
         # Restrict to a 120px window centred on garland_center_y so only the
         # "collar" of flowers sits on top of the pet, hiding the cut edge.
         local_cy = garland_center_y - g_top   # garland_center_y in strip coords
-        band_top = max(0, local_cy - 110)
+        band_top = max(0, local_cy - 70)
         band_bot = min(g_h, local_cy + 60)
         band_mask = Image.new("L", (OUTPUT_W, g_h), 0)
         _ArchDraw.Draw(band_mask).rectangle([0, band_top, OUTPUT_W, band_bot], fill=255)
