@@ -45,9 +45,14 @@ cosmic elements receding and floating into the background. No single focal plane
 A lush crescent arrangement of thematic foreground elements at the lower base of the central glowing circle,
 wrapping around the bottom — richly layered and cascading in front of the lower portion, dense and dimensional.
 The foreground elements are defined by the vibe — see vibe-specific prompt below.
-The central glowing circle is a cosmic portal window — richly textured inside with the curved surface
-of a planet showing continents and atmosphere, or ancient lunar craters up close, or deep swirling nebula clouds —
-creating depth and world-building within the portal. The inner circle is never empty or plain white.
+The central glowing circle is a cosmic portal window filled with a close-up view of a richly coloured mineral moon surface —
+vivid false-colour geological mapping in electric blue, burnt orange, rust red, deep purple, and amber gold,
+revealing ancient crater formations, ray systems, and mineral deposit regions across the curved lunar surface.
+Like a NASA false-colour mineralogical survey of the moon brought to vivid photographic life —
+deep cobalt basaltic plains, orange and rust titanium-rich highlands, purple olivine patches, gold-tinged ejecta rays.
+Craters visible at multiple scales, from wide shallow basins to sharp-rimmed impact rings.
+Richly textured, photographic grain, deeply dimensional — as if seen through a telescope at breathtaking proximity.
+The inner circle is never empty or plain white.
 A warm luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
 
 VIBE_PROMPTS = {
