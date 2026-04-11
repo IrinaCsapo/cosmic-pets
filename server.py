@@ -109,9 +109,12 @@ VIBE_PROMPTS = {
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
         "Stripes and geometric patterned circles. "
-        "The lower crescent foreground layers oversized graphic flowers with bold geometric patterned centres — "
-        "pop-art blooms, graphic petals with striped and faceted detail — alongside stacked prismatic crystal-like shards "
-        "and spectral colour fragments. Vivid, bold, graphic, and floral at once. "
+        "The lower crescent foreground is dominated by large dramatic crystal formations — stacked amethyst geode towers, "
+        "prismatic quartz clusters, multi-faceted gem structures in electric violet, cyan, and gold, "
+        "and crystal shards catching spectral rainbow light. "
+        "A small number of oversized graphic pop-art flowers with bold geometric patterned centres are scattered sparingly among the crystals — "
+        "approximately 80% crystals and mineral formations, 20% graphic floral accents. "
+        "Vivid, prismatic, and bold. "
         "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no architecture, no mermaids, no vehicles, no rockets."
     ),
 }
@@ -456,22 +459,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     pet_layer.paste(pet, (px, py), alpha)
     result = Image.alpha_composite(result, pet_layer)
 
-    # ── Foreground strip — bottom 30% of bg composited ON TOP of the pet ─────
-    strip_h = int(OUTPUT_H * 0.30)
-    fg_strip = bg.crop((0, OUTPUT_H - strip_h, OUTPUT_W, OUTPUT_H))
-    from PIL import ImageDraw as _FgDraw
-    grad_mask = Image.new("L", (OUTPUT_W, strip_h), 0)
-    draw_grad = _FgDraw.Draw(grad_mask)
-    for row in range(strip_h):
-        opacity = int((row / strip_h) ** 2.0 * 160)
-        draw_grad.line([(0, row), (OUTPUT_W, row)], fill=opacity)
-    fg_strip_rgba = fg_strip.convert("RGBA")
-    fg_strip_rgba.putalpha(grad_mask)
-    fg_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-    fg_layer.paste(fg_strip_rgba, (0, OUTPUT_H - strip_h))
-    result = Image.alpha_composite(result, fg_layer)
-
-    result = Image.alpha_composite(result, garland_layer)   # garland over pet
+    result = Image.alpha_composite(result, garland_layer)   # garland over pet (single layer — fg_layer removed to prevent double-garland)
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
