@@ -40,11 +40,11 @@ No illustration, no painting, no cartoon, no flat AI smoothness.
 No temples or religious symbols or religious buildings.
 Photographic grain and texture throughout.
 Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
-Elements layered at multiple depths, some botanical forms overlapping in the foreground,
+Elements layered at multiple depths, some organic forms overlapping in the foreground,
 cosmic elements receding and floating into the background. No single focal plane.
-A lush crescent garland of botanical flowers and leaves arranged at the lower base of the central glowing circle,
-wrapping around the bottom like a floral nest — flowers cascading and overlapping
-in front of the lower portion, dense and richly layered.
+A lush crescent arrangement of thematic foreground elements at the lower base of the central glowing circle,
+wrapping around the bottom — richly layered and cascading in front of the lower portion, dense and dimensional.
+The foreground elements are defined by the vibe — see vibe-specific prompt below.
 The central glowing circle is a cosmic portal window — richly textured inside with the curved surface
 of a planet showing continents and atmosphere, or ancient lunar craters up close, or deep swirling nebula clouds —
 creating depth and world-building within the portal. The inner circle is never empty or plain white.
@@ -57,13 +57,19 @@ VIBE_PROMPTS = {
         "luminous silver-white ring of light surrounding a pitch black void opening to another dimension. "
         "Exactly one single silver full moon only — no other moons, no second moon, no partial moons anywhere in the image. "
         "One ringed planet visible in the background. "
-        "Black flowers and red botanicals. Mysterious low light. Silver and indigo accents. "
+        "Mysterious low light. Silver and indigo accents. "
+        "The lower crescent foreground holds dark moonstones, obsidian crystals, iridescent black feathers, "
+        "large moth wings with eye-spot patterns, and fractured silver mirror shards — "
+        "otherworldly and mysterious, no earth flowers, no roses, no botanicals. "
         "No ruins, no architecture, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "celestial": (
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
         "Warm nebula clouds. Regal and timeless atmosphere. Old architecture ruins. "
         "Gold leaf tones. Birds of paradise flying in the distance. "
+        "The lower crescent foreground holds golden olive branches, dried wheat sheaves, "
+        "ancient terracotta fragments, sun-dried laurel leaves, and scattered antique gold coins — "
+        "earthy and timeless, no modern flowers, no formal bouquets. "
         "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "garden": (
@@ -71,25 +77,36 @@ VIBE_PROMPTS = {
         "Ancient ringed planets. Cherry blossom petals scattered. "
         "Butterflies and hummingbirds. Dreamy pastel cosmic light. "
         "Soft pink moons in the background. One peacock flying in the distance. "
+        "The lower crescent foreground is a joyful cascade of wild meadow growth — "
+        "loose wildflowers, clover, soft ferns, scattered moss, tumbling vines, and drifting cherry blossom petals — "
+        "alive and spontaneous, like a meadow in full bloom, not a formal arrangement. "
         "No ruins, no architecture, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "electric": (
         "Neon cyan and violet palette. Atmospheric energy. High contrast, vivid oversaturated cosmic light. "
-        "Crystals and quartz. Ancient ringed colour saturated moons and planets. "
+        "Ancient ringed colour saturated moons and planets. "
         "A small rocket ship taking off in the distance. "
+        "The lower crescent foreground is packed with large amethyst geode formations, raw quartz clusters, "
+        "electric blue and violet crystal shards catching the light, and glowing prismatic gem fragments — "
+        "no flowers, no organic botanical forms, only mineral and crystal structures. "
         "No ruins, no architecture, no mermaids, no people."
     ),
     "ocean": (
-        "Deep teal and midnight blue. Bioluminescent jellyfish. "
-        "Coral forms. Tropical fish. "
+        "Deep teal and midnight blue. Bioluminescent jellyfish drifting in the upper scene. "
         "Underwater and cosmic depth combined. "
         "A whale floating gently in the upper sky. "
         "A large glowing moon and a ringed planet visible in the upper portion of the sky above the water. "
+        "The lower crescent foreground is a dense reef of coral formations in deep reds, oranges and purples, "
+        "sea anemones with waving tentacles, tropical fish swimming through, bioluminescent algae flowering, "
+        "and soft underwater plant life — no earth flowers, no land botanicals, only ocean life. "
         "No mermaids, no ruins, no architecture, no vehicles, no rockets, no technology, no people."
     ),
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
         "Stripes and geometric patterned circles. "
+        "The lower crescent foreground is composed of stacked geometric light shards, "
+        "prismatic crystal-like faceted forms catching spectral colour, "
+        "and overlapping graphic pattern fragments — vivid, bold, no organic shapes, no flowers. "
         "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no architecture, no mermaids, no vehicles, no rockets."
     ),
 }
