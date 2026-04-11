@@ -109,13 +109,15 @@ VIBE_PROMPTS = {
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
         "Stripes and geometric patterned circles. "
-        "The lower crescent foreground is dominated by large dramatic crystal formations — stacked amethyst geode towers, "
-        "prismatic quartz clusters, multi-faceted gem structures in electric violet, cyan, and gold, "
-        "and crystal shards catching spectral rainbow light. "
+        "The lower crescent foreground is dominated by large dramatic polished crystal formations — stacked amethyst geode towers, "
+        "prismatic quartz clusters, multi-faceted luminous gem structures in electric violet, cyan, and gold, "
+        "and glowing crystal shards catching spectral rainbow light. "
+        "All crystals are polished, faceted, and jewel-like — no rough rock, no pebbles, no unpolished stone, no geological matrix, no dirt or earth. "
         "A small number of oversized graphic pop-art flowers with bold geometric patterned centres are scattered sparingly among the crystals — "
-        "approximately 80% crystals and mineral formations, 20% graphic floral accents. "
+        "approximately 80% polished crystals, 20% graphic floral accents. "
         "Vivid, prismatic, and bold. "
-        "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no architecture, no mermaids, no vehicles, no rockets."
+        "Absolutely no ruins, no ancient temples, no architecture, no buildings, no columns, no arches, no stone structures of any kind. "
+        "No people, no human figures, no faces, no bodies, no hands, no arms, no mermaids, no vehicles, no rockets."
     ),
 }
 
@@ -445,10 +447,14 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     a_arr[:fade_px, :] *= ramp[:, np.newaxis]
     a_ch = Image.fromarray(a_arr.clip(0, 255).astype(np.uint8))
     garland_cut = Image.merge("RGBA", (r_ch, g_ch, b_ch, a_ch))
-    garland_place_y = int(OUTPUT_H * 0.50)
+    # Mirror the rembg cutout horizontally — the FLUX bg already has the garland
+    # in its original orientation at the bottom; by flipping the rembg layer we
+    # get a complementary second tier rather than a visible duplicate.
+    garland_cut = garland_cut.transpose(Image.FLIP_LEFT_RIGHT)
+    garland_place_y = int(OUTPUT_H * 0.53)
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
-    print(f"  ✅ Garland cutout placed at y={garland_place_y}")
+    print(f"  ✅ Garland cutout placed at y={garland_place_y} (horizontally flipped)")
     # ─────────────────────────────────────────────────────────────────────────
 
     # Composite: bg → bloom → pet → fg strip → garland (rembg cutout over pet)
