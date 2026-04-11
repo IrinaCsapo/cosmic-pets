@@ -1633,7 +1633,7 @@ async function startProcessing() {
     const compResult = await fetch('/api/composite', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({pet_png: bgResult.pet_png, bg_url: genResult.bg_url})
+      body: JSON.stringify({pet_png: bgResult.pet_png, bg_url: genResult.bg_url, vibe: selectedVibe})
     }).then(r => r.json());
 
     if (compResult.error) throw new Error(compResult.error);

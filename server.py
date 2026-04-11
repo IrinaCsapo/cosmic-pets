@@ -317,7 +317,7 @@ def enhance_with_realesrgan(img_b64: str) -> Image.Image:
     raise TimeoutError("Real-ESRGAN timed out")
 
 
-def composite_images(pet_b64: str, bg_url: str) -> str:
+def composite_images(pet_b64: str, bg_url: str, vibe: str = "") -> str:
     """
     Composite the pet (transparent PNG) onto the cosmic background.
     Returns base64-encoded final PNG.
@@ -422,42 +422,43 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     bloom_layer.paste(bloom, (px, py), bloom_alpha)
     # ─────────────────────────────────────────────────────────────────────────
 
-    # ── Rembg garland — rembg cutout of flowers, composited OVER pet ─────────
-    # Crop bottom 35% of FLUX bg (y ≥ 65% height) — safely below the white
-    # halo zone (y < ~1000px) where only glows live.  rembg isolates botanical
-    # elements with clean alpha edges; no blurs or fades added.
-    # The cutout is placed so its TOP edge sits at 60% from canvas top
-    # (= 40% from bottom), overlaid on top of the pet.
-    garland_src_top = int(OUTPUT_H * 0.65)
-    garland_src = bg.crop((0, garland_src_top, OUTPUT_W, OUTPUT_H)).convert("RGB")
-    print(f"  🌸 Running rembg on garland source (y={garland_src_top}–{OUTPUT_H})…")
-    buf_g = io.BytesIO()
-    garland_src.save(buf_g, format="PNG")
-    with REMBG_LOCK:
-        garland_cut_bytes = rembg_remove(buf_g.getvalue(), session=REMBG_SESSION)
-    garland_cut = Image.open(io.BytesIO(garland_cut_bytes)).convert("RGBA")
-    # Fade the top 60px of the rembg cutout so any hard seam at the crop boundary
-    # blends away invisibly. The rest of the garland stays at full rembg quality.
-    gc_w, gc_h = garland_cut.size
-    fade_px = min(60, gc_h // 4)
-    r_ch, g_ch, b_ch, a_ch = garland_cut.split()
-    import numpy as np
-    a_arr = np.array(a_ch, dtype=np.float32)
-    ramp = np.linspace(0.0, 1.0, fade_px)
-    a_arr[:fade_px, :] *= ramp[:, np.newaxis]
-    a_ch = Image.fromarray(a_arr.clip(0, 255).astype(np.uint8))
-    garland_cut = Image.merge("RGBA", (r_ch, g_ch, b_ch, a_ch))
-    # Mirror the rembg cutout horizontally — the FLUX bg already has the garland
-    # in its original orientation at the bottom; by flipping the rembg layer we
-    # get a complementary second tier rather than a visible duplicate.
-    garland_cut = garland_cut.transpose(Image.FLIP_LEFT_RIGHT)
-    garland_place_y = int(OUTPUT_H * 0.53)
+    # ── Rembg garland — rembg cutout composited OVER pet ─────────────────────
+    # Skipped for vibes where FLUX generates complex scenes at the bottom
+    # (e.g. abstract) that rembg would extract as landscape/terrain rather
+    # than a clean garland.  Those vibes rely solely on the FLUX foreground.
+    REMBG_GARLAND_VIBES = {"midnight", "celestial", "garden", "electric", "ocean"}
+    use_rembg_garland = vibe in REMBG_GARLAND_VIBES
+
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
-    garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
-    print(f"  ✅ Garland cutout placed at y={garland_place_y} (horizontally flipped)")
+    if use_rembg_garland:
+        garland_src_top = int(OUTPUT_H * 0.65)
+        garland_src = bg.crop((0, garland_src_top, OUTPUT_W, OUTPUT_H)).convert("RGB")
+        print(f"  🌸 Running rembg on garland source (y={garland_src_top}–{OUTPUT_H})…")
+        buf_g = io.BytesIO()
+        garland_src.save(buf_g, format="PNG")
+        with REMBG_LOCK:
+            garland_cut_bytes = rembg_remove(buf_g.getvalue(), session=REMBG_SESSION)
+        garland_cut = Image.open(io.BytesIO(garland_cut_bytes)).convert("RGBA")
+        # Fade the top 60px to kill any hard seam at the crop boundary
+        gc_w, gc_h = garland_cut.size
+        fade_px = min(60, gc_h // 4)
+        r_ch, g_ch, b_ch, a_ch = garland_cut.split()
+        import numpy as np
+        a_arr = np.array(a_ch, dtype=np.float32)
+        ramp = np.linspace(0.0, 1.0, fade_px)
+        a_arr[:fade_px, :] *= ramp[:, np.newaxis]
+        a_ch = Image.fromarray(a_arr.clip(0, 255).astype(np.uint8))
+        garland_cut = Image.merge("RGBA", (r_ch, g_ch, b_ch, a_ch))
+        # Mirror horizontally so rembg layer is complementary to the FLUX bg garland
+        garland_cut = garland_cut.transpose(Image.FLIP_LEFT_RIGHT)
+        garland_place_y = int(OUTPUT_H * 0.53)
+        garland_layer.paste(garland_cut, (0, garland_place_y), garland_cut.split()[3])
+        print(f"  ✅ Garland cutout placed at y={garland_place_y} (flipped)")
+    else:
+        print(f"  ⏭️  Rembg garland skipped for vibe='{vibe}' — using FLUX foreground only")
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Composite: bg → bloom → pet → fg strip → garland (rembg cutout over pet)
+    # Composite: bg → bloom → pet → garland (rembg cutout over pet, if applicable)
     result = bg.copy()
     result = Image.alpha_composite(result, bloom_layer)
 
@@ -465,7 +466,7 @@ def composite_images(pet_b64: str, bg_url: str) -> str:
     pet_layer.paste(pet, (px, py), alpha)
     result = Image.alpha_composite(result, pet_layer)
 
-    result = Image.alpha_composite(result, garland_layer)   # garland over pet (single layer — fg_layer removed to prevent double-garland)
+    result = Image.alpha_composite(result, garland_layer)   # no-op for vibes that skip rembg
     # ─────────────────────────────────────────────────────────────────────────
 
     # Watermark — logo image
@@ -717,8 +718,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             if not pet_b64 or not bg_url:
                 return self._error("Missing pet_png or bg_url", 400)
 
-            print("  🎨 Compositing…")
-            result_b64 = composite_images(pet_b64, bg_url)
+            vibe = body.get("vibe", "")
+            print(f"  🎨 Compositing (vibe={vibe})…")
+            result_b64 = composite_images(pet_b64, bg_url, vibe=vibe)
             print("  ✅ Composite complete")
 
             # Save to gallery (keep last GALLERY_MAX portraits)
