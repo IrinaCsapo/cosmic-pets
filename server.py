@@ -426,8 +426,9 @@ def composite_images(pet_b64: str, bg_url: str, vibe: str = "") -> str:
     # Skipped for vibes where FLUX generates complex scenes at the bottom
     # (e.g. abstract) that rembg would extract as landscape/terrain rather
     # than a clean garland.  Those vibes rely solely on the FLUX foreground.
-    REMBG_GARLAND_VIBES = {"midnight", "celestial", "garden", "electric", "ocean"}
-    use_rembg_garland = vibe in REMBG_GARLAND_VIBES
+    # Rembg garland disabled for all vibes — FLUX generates the foreground
+    # directly and rembg extraction was causing misfires across all vibes.
+    use_rembg_garland = False
 
     garland_layer = Image.new("RGBA", (OUTPUT_W, OUTPUT_H), (0, 0, 0, 0))
     if use_rembg_garland:
