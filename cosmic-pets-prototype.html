@@ -296,6 +296,15 @@
       border: 1px solid rgba(224,64,251,0.28); position: relative;
     }
     .portrait-frame canvas { width: 100%; display: block; }
+    .portrait-vibe-tag {
+      position: absolute; top: 12px; left: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.92);
+      letter-spacing: 0.03em; pointer-events: none;
+    }
     .brand-watermark {
       position: absolute; bottom: 12px; right: 12px;
       font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
@@ -839,6 +848,7 @@
     <div class="portrait-frame">
       <canvas id="result-canvas" style="display:none;"></canvas>
       <img id="result-img" style="width:100%;display:none;border-radius:20px;" alt="Your cosmic portrait">
+      <div class="portrait-vibe-tag" id="portrait-vibe-tag" style="display:none;"></div>
     </div>
     <div class="quality-hint" id="quality-hint" style="display:none;">
       <span class="qh-icon">📸</span>
@@ -1333,9 +1343,9 @@ fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(f
 
 let lastUploadedFile = null;
 
-function editPhoto() {
+window.editPhoto = function() {
   showScreen('upload');
-}
+};
 
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
@@ -1709,6 +1719,17 @@ async function startProcessing() {
 
   updateAttemptPips('result');
   showScreen('result');
+
+  // Show vibe tag badge on the portrait
+  const vibeTagEl = document.getElementById('portrait-vibe-tag');
+  if (vibeTagEl && selectedVibe) {
+    const vibeData = VIBES.find(v => v.id === selectedVibe);
+    if (vibeData) {
+      vibeTagEl.textContent = `${vibeData.emoji} ${vibeData.name}`;
+      vibeTagEl.style.display = 'inline-flex';
+    }
+  }
+
   if (attemptsLeft === 0) document.getElementById('upsell-card').style.display = 'block';
   refreshGallery(); // update the home screen gallery with the new portrait
 
