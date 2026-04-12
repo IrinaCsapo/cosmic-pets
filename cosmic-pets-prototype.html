@@ -206,6 +206,17 @@
       padding-left: 20px;
       padding-right: 20px;
       flex-shrink: 0;
+      /* True centering: grid forces logo into middle column regardless of side widths */
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      justify-items: start;
+    }
+    #screen-vibe > .header .logo {
+      justify-self: center;
+    }
+    #screen-vibe > .header > div:last-child {
+      justify-self: end;
     }
     .vibe-scroll-area {
       flex: 1;
@@ -766,7 +777,7 @@
 
   <div class="vibe-cta-wrap">
     <div class="vibe-cta-row">
-      <button class="btn-secondary" onclick="if(lastUploadedFile){ openCropModal(lastUploadedFile); } else { showScreen('upload'); }" style="flex:0 0 auto;padding:14px 20px;">← Edit photo</button>
+      <button class="btn-secondary" onclick="editPhoto()" style="flex:0 0 auto;padding:14px 20px;">← Edit photo</button>
       <button class="btn-primary" id="vibe-confirm-btn" disabled
         style="flex:1;opacity:0.4;cursor:not-allowed;">
         ✦ Create my portrait
@@ -1321,6 +1332,10 @@ uploadZone.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') file
 fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
 
 let lastUploadedFile = null;
+
+function editPhoto() {
+  showScreen('upload');
+}
 
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
