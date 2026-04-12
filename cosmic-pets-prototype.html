@@ -732,12 +732,11 @@
 <!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
-    <button class="back-btn" onclick="showScreen('upload')" aria-label="Back">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Back
-    </button>
+    <div style="display:flex;align-items:center;gap:10px;visibility:hidden;" aria-hidden="true">
+      <!-- spacer mirrors right side so logo stays centred -->
+      <div class="attempts-pill"><span>✦ ✦ ✦</span><span>3 free left</span></div>
+      <div style="width:34px;"></div>
+    </div>
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
@@ -767,7 +766,7 @@
 
   <div class="vibe-cta-wrap">
     <div class="vibe-cta-row">
-      <button class="btn-secondary" onclick="showScreen('upload')" style="flex:0 0 auto;padding:14px 20px;">← Edit photo</button>
+      <button class="btn-secondary" onclick="if(lastUploadedFile){ openCropModal(lastUploadedFile); } else { showScreen('upload'); }" style="flex:0 0 auto;padding:14px 20px;">← Edit photo</button>
       <button class="btn-primary" id="vibe-confirm-btn" disabled
         style="flex:1;opacity:0.4;cursor:not-allowed;">
         ✦ Create my portrait
@@ -1321,10 +1320,13 @@ uploadZone.addEventListener('drop', e => {
 uploadZone.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') fileInput.click(); });
 fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
 
+let lastUploadedFile = null;
+
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
   if(file.size > 5 * 1024 * 1024) { showToast('Photo is over 5MB — please upload a smaller image for best results'); return; }
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
+  lastUploadedFile = file;
   openCropModal(file);
 }
 
@@ -1886,7 +1888,7 @@ window.hideQualityHint = function() {
     </div>
     <div class="about-pillars">
       <div class="about-pillar">
-        <span class="pillar-icon">🐾</span>
+        <span class="pillar-icon" style="filter:brightness(0) invert(1);">🐾</span>
         <div>
           <h3>Always your real pet</h3>
           <p>We never replace your pet with an AI-generated version. Their unique face, markings, and character stay exactly as they are — we only change the world around them.</p>

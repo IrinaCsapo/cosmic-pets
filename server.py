@@ -30,7 +30,8 @@ print("  ✅ rembg model ready")
 # ── VIBE PROMPTS ─────────────────────────────────────────────────────────────
 BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation.
 Composed of real photographic cutouts layered together, alien planet with visible surface texture,
-ancient architecture, natural organic forms —
+ancient Persepolis ruins — towering stone columns, lamassu guardian statues with winged animal bodies,
+double-headed griffin column capitals, carved animal relief friezes — natural organic forms —
 composited against a deep cosmic background of nebulae and star fields.
 No animals, no pets, no cats, no dogs.
 Elements layered in front of and behind a soft luminous central void, leaving space for a subject.
@@ -38,7 +39,7 @@ Rich saturated colours with intentional colour grading. Multiple ethereal light 
 Deep blacks with vivid colour accents.
 Every element looks like a real photograph, space photography, cutout and placed by hand with multiply and screen blending modes.
 No illustration, no painting, no cartoon, no flat AI smoothness.
-No temples or religious symbols or religious buildings.
+No temples, no churches, no mosques, no religious buildings, no religious symbols.
 Photographic grain and texture throughout.
 Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
 Elements layered at multiple depths, some botanical forms overlapping in the foreground,
@@ -68,7 +69,8 @@ VIBE_PROMPTS = {
     ),
     "celestial": (
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
-        "Warm nebula clouds. Regal and timeless atmosphere. Old architecture ruins. "
+        "Warm nebula clouds. Regal and timeless atmosphere. "
+        "Ancient Persepolis ruins — teal-lit stone columns, lamassu winged guardian statues, carved animal friezes glowing in the dark. "
         "Gold leaf tones. Birds of paradise flying in the distance. "
         "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
