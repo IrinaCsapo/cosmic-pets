@@ -33,7 +33,7 @@ Composed of real photographic cutouts layered together, alien planet with visibl
 natural organic forms —
 composited against a deep cosmic background of nebulae and star fields.
 No animals, no pets, no cats, no dogs.
-Elements layered in front of and behind a soft luminous central void, leaving space for a subject.
+Elements layered in front of and behind a large circular portal window at the centre of the composition.
 Rich saturated colours with intentional colour grading. Multiple ethereal light sources, glows, and halos.
 Deep blacks with vivid colour accents.
 Every element looks like a real photograph, space photography, cutout and placed by hand with multiply and screen blending modes.
@@ -41,26 +41,24 @@ No illustration, no painting, no cartoon, no flat AI smoothness.
 No temples or religious symbols or religious buildings.
 Photographic grain and texture throughout.
 Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
-Elements layered at multiple depths, some elements overlapping in the foreground,
+Elements layered at multiple depths, some botanical forms overlapping in the foreground,
 cosmic elements receding and floating into the background. No single focal plane.
-A lush crescent garland of layered natural elements arranged at the lower base of the central void,
-wrapping around the bottom of the glowing circle like a nest — cascading and overlapping
-in front of the lower portion of the void, dense and richly layered.
-The central glowing circle is a cosmic portal window filled with a close-up view of a richly coloured mineral moon surface —
-vivid false-colour geological mapping in electric blue, burnt orange, rust red, deep purple, and amber gold,
+A lush crescent garland arranged at the lower base of the circular portal,
+wrapping around the bottom of the portal like a nest — elements cascading and overlapping
+in front of the lower portion of the circle, dense and richly layered.
+The central circle is a cosmic portal window filled completely with a close-up photographic view
+of a richly coloured mineral moon surface — NOT white, NOT empty, NOT a plain glow.
+Vivid false-colour geological mapping in electric blue, burnt orange, rust red, deep purple, and amber gold,
 revealing ancient crater formations, ray systems, and mineral deposit regions across the curved lunar surface.
 Like a NASA false-colour mineralogical survey of the moon brought to vivid photographic life —
 deep cobalt basaltic plains, orange and rust titanium-rich highlands, purple olivine patches, gold-tinged ejecta rays.
 Craters visible at multiple scales, from wide shallow basins to sharp-rimmed impact rings.
 Richly textured, photographic grain, deeply dimensional — as if seen through a telescope at breathtaking proximity.
-The inner circle is never empty or plain white.
 A warm luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
 
 VIBE_PROMPTS = {
     "midnight": (
         "Deep navy and black palette. Cosmic starry deep space. "
-        "A glowing cosmic portal at the centre — a radiant circular event horizon like a black hole gateway, "
-        "luminous silver-white ring of light surrounding a pitch black void opening to another dimension. "
         "Exactly one single silver full moon only — no other moons, no second moon, no partial moons anywhere in the image. "
         "One ringed planet visible in the background. "
         "Ancient Persepolis ruins emerging from darkness — moonlit stone columns, lamassu guardian statues with winged animal bodies, "
@@ -68,9 +66,9 @@ VIBE_PROMPTS = {
         "A distant supermassive black hole with a glowing crimson and deep violet accretion disk in the far background. "
         "A murder of crows — some perched on ruins, others in flight against the dark sky. "
         "Gothic ornamental motifs woven through the scene — wrought iron curls, thorn vines, dark roses, iron candelabras. "
-        "Garland of black roses, deep crimson peonies, dried black botanicals, and dark burgundy dahlias. "
+        "Garland of black roses, deep crimson peonies, dried black botanicals, and dark burgundy dahlias — no cherry blossoms, no pink flowers. "
         "Mysterious low light. Silver and indigo accents. "
-        "No mermaids, no vehicles, no rockets, no technology, no people."
+        "No mermaids, no vehicles, no rockets, no technology, no people, no cherry blossoms."
     ),
     "celestial": (
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
@@ -79,7 +77,8 @@ VIBE_PROMPTS = {
         "Gold leaf tones. Birds of paradise flowers and birds in flight. "
         "Peacocks with iridescent teal and gold tail feathers fully displayed in the scene. "
         "A distant black hole with a luminous golden and amber accretion disk glowing softly in the far background. "
-        "No mermaids, no vehicles, no rockets, no technology, no people."
+        "Garland of gold and amber tropical flowers, birds of paradise blooms, and lush gold-dusted leaves — no cherry blossoms. "
+        "No mermaids, no vehicles, no rockets, no technology, no people, no cherry blossoms."
     ),
     "garden": (
         "Soft pinks and mauves. Blue skies with white soft fluffy clouds. "
@@ -95,28 +94,29 @@ VIBE_PROMPTS = {
         "Neon cyan and violet palette. Atmospheric energy. High contrast, vivid oversaturated cosmic light. "
         "Ancient ringed colour saturated moons and planets. "
         "A small rocket ship taking off in the distance. "
-        "Garland of equal parts blooming flowers and crystals — white quartz points, split-open rainbow geodes, "
-        "amethyst clusters, tourmaline shards, and rose quartz chunks woven together with vivid neon flowers "
-        "in an exact 50/50 split, crystals and blooms alternating throughout the garland. "
+        "Garland of equal parts vivid neon flowers and crystals — white quartz points, split-open rainbow geodes, "
+        "amethyst clusters, tourmaline shards, and rose quartz chunks alternating with electric-coloured blooms "
+        "in an exact 50/50 split, crystals and blooms woven together throughout the garland. "
         "Large freestanding crystal formations and geode slices emerging from the scene edges. "
-        "No ruins, no mermaids, no people."
+        "No cherry blossoms, no ruins, no mermaids, no people."
     ),
     "ocean": (
         "Deep teal and midnight blue. Bioluminescent jellyfish. "
         "Underwater and cosmic depth combined. "
         "A whale floating gently in the upper sky. "
         "A large glowing moon and a ringed planet visible in the upper portion of the sky above the water. "
-        "Garland made entirely of ocean life — no flowers: instead brain coral, staghorn coral, sea fans, "
+        "Garland made entirely of ocean life — brain coral, staghorn coral, sea fans, "
         "giant clams, sea anemones with waving tentacles, kelp fronds, and vivid sea urchins. "
-        "Tropical reef fish — clownfish, angelfish, parrotfish, lion fish — swimming freely throughout the scene. "
-        "No flowers, no botanical plants, no mermaids, no ruins, no vehicles, no rockets, no technology, no people."
+        "Tropical reef fish — clownfish, angelfish, parrotfish, lionfish — swimming freely throughout the scene. "
+        "No flowers, no cherry blossoms, no botanical plants, no terrestrial vegetation, "
+        "no ruins, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
         "Stripes and geometric patterned circles. Kaleidoscopic portal rings. Stark black and white graphic contrast sections. "
         "Garland made entirely of bold geometric shapes — coloured circles, triangles, hexagons, diamonds, "
         "kaleidoscopic rings and portal arches, stark black and white graphic forms alternating with vivid multicolour shapes. "
-        "No flowers, no botanicals, no leaves in the garland — only pure geometric abstract forms. "
+        "No flowers, no botanicals, no cherry blossoms, no leaves, no coral in the garland — only pure geometric abstract forms. "
         "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no mermaids, no vehicles, no rockets."
     ),
 }
