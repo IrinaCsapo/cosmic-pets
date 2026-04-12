@@ -247,8 +247,9 @@
     .orbit-core {
       position: absolute; inset: 48px; border-radius: 50%;
       background: radial-gradient(circle, rgba(224,64,251,0.25), rgba(123,47,190,0.1));
-      display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+      display: flex; align-items: center; justify-content: center;
     }
+    .orbit-core img { width: 52px; height: 52px; object-fit: contain; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .steps-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -469,6 +470,13 @@
     /* ══════════════════════════════════════════════════
        BURGER MENU
     ══════════════════════════════════════════════════ */
+    .back-btn {
+      background: none; border: none; cursor: pointer; padding: 6px 8px;
+      display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+      color: var(--muted); font-size: 0.85rem; font-family: inherit;
+      transition: color 0.2s; z-index: 10;
+    }
+    .back-btn:hover { color: var(--text); }
     .burger-btn {
       background: none; border: none; cursor: pointer; padding: 6px;
       display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
@@ -720,6 +728,12 @@
 <!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
+    <button class="back-btn" onclick="showScreen('upload')" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </button>
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
@@ -764,7 +778,7 @@
       <div class="orbit-ring"></div>
       <div class="orbit-ring"></div>
       <div class="orbit-ring"></div>
-      <div class="orbit-core">🌌</div>
+      <div class="orbit-core"><img src="/logo/cosmic-pets-logo.svg" alt="Cosmic Pets"></div>
     </div>
     <h2 style="font-size:1.3rem;font-weight:700;text-align:center;">Creating your portrait…</h2>
     <ul class="steps-list">
