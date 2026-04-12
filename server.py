@@ -30,8 +30,7 @@ print("  ✅ rembg model ready")
 # ── VIBE PROMPTS ─────────────────────────────────────────────────────────────
 BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation.
 Composed of real photographic cutouts layered together, alien planet with visible surface texture,
-ancient Persepolis ruins — towering stone columns, lamassu guardian statues with winged animal bodies,
-double-headed griffin column capitals, carved animal relief friezes — natural organic forms —
+ancient architecture, natural organic forms —
 composited against a deep cosmic background of nebulae and star fields.
 No animals, no pets, no cats, no dogs.
 Elements layered in front of and behind a soft luminous central void, leaving space for a subject.
@@ -39,7 +38,7 @@ Rich saturated colours with intentional colour grading. Multiple ethereal light 
 Deep blacks with vivid colour accents.
 Every element looks like a real photograph, space photography, cutout and placed by hand with multiply and screen blending modes.
 No illustration, no painting, no cartoon, no flat AI smoothness.
-No temples, no churches, no mosques, no religious buildings, no religious symbols.
+No temples or religious symbols or religious buildings.
 Photographic grain and texture throughout.
 Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
 Elements layered at multiple depths, some botanical forms overlapping in the foreground,
@@ -64,8 +63,10 @@ VIBE_PROMPTS = {
         "luminous silver-white ring of light surrounding a pitch black void opening to another dimension. "
         "Exactly one single silver full moon only — no other moons, no second moon, no partial moons anywhere in the image. "
         "One ringed planet visible in the background. "
+        "Ancient Persepolis ruins emerging from darkness — moonlit stone columns, lamassu guardian statues with winged animal bodies, "
+        "carved griffin friezes half-swallowed by shadow and indigo light. "
         "Black flowers and red botanicals. Mysterious low light. Silver and indigo accents. "
-        "No ruins, no architecture, no mermaids, no vehicles, no rockets, no technology, no people."
+        "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "celestial": (
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
