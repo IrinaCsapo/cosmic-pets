@@ -224,6 +224,10 @@
       background: rgba(8,8,24,0.97);
       border-top: 1px solid rgba(255,255,255,0.07);
     }
+    .vibe-cta-row {
+      display: flex; gap: 12px; align-items: center;
+      max-width: 480px; margin: 0 auto;
+    }
 
     /* ── PROCESSING ── */
     .processing-wrap {
@@ -349,7 +353,7 @@
       overflow: hidden; border-radius: 14px; background: #111;
     }
     .crop-container img { display: block; max-width: 100%; }
-    .crop-actions { display: flex; gap: 12px; width: 100%; margin-top: 4px; }
+    .crop-actions { display: flex; gap: 12px; width: 100%; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
     .crop-actions .btn-secondary { flex: 1; }
     .crop-actions .btn-primary   { flex: 2; }
     /* Circular crop overlay — mirrors the oval mask applied to the pet */
@@ -670,7 +674,7 @@
   <div class="upload-zone" id="upload-zone">
     <span class="upload-icon">🐾</span>
     <h3>Drop your pet's photo here</h3>
-    <p>JPG or PNG · Clear photo, facing camera<br>works best</p>
+    <p>JPG or PNG · Max 5MB · Clear photo, facing camera<br>works best</p>
     <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose photo</button>
     <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg">
   </div>
@@ -762,10 +766,13 @@
   </div>
 
   <div class="vibe-cta-wrap">
-    <button class="btn-primary" id="vibe-confirm-btn" disabled
-      style="max-width:340px;margin:0 auto;opacity:0.4;cursor:not-allowed;">
-      ✦ Create my portrait
-    </button>
+    <div class="vibe-cta-row">
+      <button class="btn-secondary" onclick="showScreen('upload')" style="flex:0 0 auto;padding:14px 20px;">← Edit photo</button>
+      <button class="btn-primary" id="vibe-confirm-btn" disabled
+        style="flex:1;opacity:0.4;cursor:not-allowed;">
+        ✦ Create my portrait
+      </button>
+    </div>
   </div>
 </section>
 
@@ -1316,6 +1323,7 @@ fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(f
 
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
+  if(file.size > 5 * 1024 * 1024) { showToast('Photo is over 5MB — please upload a smaller image for best results'); return; }
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
   openCropModal(file);
 }
