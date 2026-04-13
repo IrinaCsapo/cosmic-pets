@@ -206,17 +206,12 @@
       padding-left: 20px;
       padding-right: 20px;
       flex-shrink: 0;
-      /* True centering: grid forces logo into middle column regardless of side widths */
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      justify-items: start;
+      position: relative;
     }
     #screen-vibe > .header .logo {
-      justify-self: center;
-    }
-    #screen-vibe > .header > div:last-child {
-      justify-self: end;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
     }
     .vibe-scroll-area {
       flex: 1;
@@ -576,7 +571,10 @@
       text-align: center; padding: 32px 0 40px;
     }
     .about-hero .about-emblem {
-      font-size: 4rem; margin-bottom: 20px; display: block; line-height: 1;
+      margin-bottom: 20px; display: block; line-height: 1;
+    }
+    .about-hero .about-emblem img {
+      height: 72px; width: auto;
     }
     .about-hero h2 {
       font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em;
@@ -1344,7 +1342,11 @@ fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(f
 let lastUploadedFile = null;
 
 window.editPhoto = function() {
-  showScreen('upload');
+  if (lastUploadedFile) {
+    openCropModal(lastUploadedFile);
+  } else {
+    showScreen('upload');
+  }
 };
 
 function handleFile(file) {
@@ -1918,7 +1920,7 @@ window.hideQualityHint = function() {
   </div>
   <div class="page-content">
     <div class="about-hero">
-      <span class="about-emblem">🌌</span>
+      <span class="about-emblem"><img src="/logo/cosmic-pets-logo.svg" alt="Cosmic Pets"></span>
       <h2>Your pet, set against<br>the infinite.</h2>
       <p>Your pet is one of a kind. Their eyes, their markings, their little quirks — there's genuinely nobody else in the universe quite like them. Cosmic Pets exists to honour exactly that.<br><br>We take your real photo — whiskers, wonky ears and all — and place your beloved companion in a world that matches their magnificent spirit. Ancient temples. Cosmic nebulae. Cherry blossom gardens. Oceans of starlight. Because every pet deserves to be seen as the cosmic wonder they truly are.</p>
     </div>
