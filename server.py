@@ -47,18 +47,17 @@ A lush crescent garland arranged at the lower base of the circular portal,
 wrapping around the bottom of the portal like a nest — elements cascading and overlapping
 in front of the lower portion of the circle, dense and richly layered.
 The central circle is a cosmic portal window filled completely with a close-up photographic view
-of a richly coloured mineral moon surface — NOT white, NOT empty, NOT a plain glow.
-Vivid false-colour geological mapping in electric blue, burnt orange, rust red, deep purple, and amber gold,
-revealing ancient crater formations, ray systems, and mineral deposit regions across the curved lunar surface.
-Like a NASA false-colour mineralogical survey of the moon brought to vivid photographic life —
-deep cobalt basaltic plains, orange and rust titanium-rich highlands, purple olivine patches, gold-tinged ejecta rays.
-Craters visible at multiple scales, from wide shallow basins to sharp-rimmed impact rings.
+of a mineral moon surface — NOT white, NOT empty, NOT a plain glow.
+False-colour geological mapping revealing ancient crater formations, ray systems, and mineral deposit regions
+across the curved lunar surface. Craters visible at multiple scales, from wide shallow basins to sharp-rimmed impact rings.
 Richly textured, photographic grain, deeply dimensional — as if seen through a telescope at breathtaking proximity.
-A warm luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
+A luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
 
 VIBE_PROMPTS = {
     "midnight": (
         "Deep navy and black palette. Cosmic starry deep space. "
+        "The portal moon surface is deep indigo, cold silver-grey, and near-black — "
+        "dark mineral mapping with silver crater rims, pitch-black shadow-filled basins, and icy indigo plains. Cold silver light only. "
         "Exactly one single silver full moon only — no other moons, no second moon, no partial moons anywhere in the image. "
         "One ringed planet visible in the background. "
         "Ancient Persepolis ruins emerging from darkness — moonlit stone columns, lamassu guardian statues with winged animal bodies, "
@@ -72,6 +71,8 @@ VIBE_PROMPTS = {
     ),
     "celestial": (
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
+        "The portal moon surface glows in warm amber gold, burnished copper, and soft sky blue — "
+        "golden highlands, luminous amber mineral plains, warm regal tones. "
         "Warm nebula clouds. Regal and timeless atmosphere. "
         "Ancient Persepolis ruins — teal-lit stone columns, lamassu winged guardian statues, carved animal friezes glowing in the dark. "
         "Gold leaf tones. Birds of paradise flowers and birds in flight. "
@@ -82,16 +83,20 @@ VIBE_PROMPTS = {
     ),
     "garden": (
         "Soft pinks and mauves. Blue skies with white soft fluffy clouds. "
+        "The portal moon surface is soft rose pink, blush lavender, and pale peach — "
+        "gentle dreamy pastel mineral mapping, like a moon made of flower petals and clouds. "
         "Ancient ringed planets. Cherry blossom petals scattered. "
         "Butterflies and hummingbirds. Dreamy pastel cosmic light. "
         "Soft pink moons in the background. "
         "Multiple peacocks with iridescent tail feathers fanned open. "
         "Birds of paradise — both the vivid orange and blue flowers and actual birds of paradise in mid-flight. "
         "Lush tropical greenery — giant monstera leaves, banana palms, bird-of-paradise plants, ferns cascading. "
-        "No ruins, no mermaids, no vehicles, no rockets, no technology, no people."
+        "No ruins, no stone columns, no temples, no classical architecture, no ancient buildings, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "electric": (
         "Neon cyan and violet palette. Atmospheric energy. High contrast, vivid oversaturated cosmic light. "
+        "The portal moon surface blazes in neon cyan, electric violet, acid yellow, and hot magenta — "
+        "hyper-saturated false-colour geological mapping, vivid oversaturated and electric. "
         "Ancient ringed colour saturated moons and planets. "
         "A small rocket ship taking off in the distance. "
         "Garland of equal parts vivid neon flowers and crystals — white quartz points, split-open rainbow geodes, "
@@ -102,6 +107,8 @@ VIBE_PROMPTS = {
     ),
     "ocean": (
         "Deep teal and midnight blue. Bioluminescent jellyfish. "
+        "The portal moon surface is deep ocean teal, midnight blue, and bioluminescent aquamarine — "
+        "like a water world seen from space, dark oceanic depths with glowing teal bioluminescent patches. "
         "Underwater and cosmic depth combined. "
         "A whale floating gently in the upper sky. "
         "A large glowing moon and a ringed planet visible in the upper portion of the sky above the water. "
@@ -113,6 +120,8 @@ VIBE_PROMPTS = {
     ),
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
+        "The portal moon surface is graphic black and white with vivid pop-colour sections — "
+        "high contrast geometric mineral mapping, bold and maximalist. "
         "Stripes and geometric patterned circles. Kaleidoscopic portal rings. Stark black and white graphic contrast sections. "
         "Garland made entirely of bold geometric shapes — coloured circles, triangles, hexagons, diamonds, "
         "kaleidoscopic rings and portal arches, stark black and white graphic forms alternating with vivid multicolour shapes. "
