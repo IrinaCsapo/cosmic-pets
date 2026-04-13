@@ -120,12 +120,9 @@ VIBE_PROMPTS = {
     ),
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
+        "Stripes and geometric patterned circles. "
         "The portal moon surface is graphic black and white with vivid pop-colour sections — "
         "high contrast geometric mineral mapping, bold and maximalist. "
-        "Stripes and geometric patterned circles. Kaleidoscopic portal rings. Stark black and white graphic contrast sections. "
-        "Garland made entirely of bold geometric shapes — coloured circles, triangles, hexagons, diamonds, "
-        "kaleidoscopic rings and portal arches, stark black and white graphic forms alternating with vivid multicolour shapes. "
-        "No flowers, no botanicals, no cherry blossoms, no leaves, no coral in the garland — only pure geometric abstract forms. "
         "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no mermaids, no vehicles, no rockets."
     ),
 }
