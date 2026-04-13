@@ -29,101 +29,87 @@ print("  ✅ rembg model ready")
 
 # ── VIBE PROMPTS ─────────────────────────────────────────────────────────────
 BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation.
-Composed of real photographic cutouts layered together, alien planet with visible surface texture,
-natural organic forms —
-composited against a deep cosmic background of nebulae and star fields.
+Composed of real photographic cutouts layered together, alien planets with visible surface texture,
+natural organic forms — composited against a deep cosmic background of nebulae and star fields.
 No animals, no pets, no cats, no dogs.
-Elements layered in front of and behind a large circular portal window at the centre of the composition.
-Rich saturated colours with intentional colour grading. Multiple ethereal light sources, glows, and halos.
-Deep blacks with vivid colour accents.
-Every element looks like a real photograph, space photography, cutout and placed by hand with multiply and screen blending modes.
-No illustration, no painting, no cartoon, no flat AI smoothness.
-No temples or religious symbols or religious buildings.
-Photographic grain and texture throughout.
-Otherworldly yet grounded entirely in the natural and cosmic world. Milky Way starry night.
-Elements layered at multiple depths, some botanical forms overlapping in the foreground,
-cosmic elements receding and floating into the background. No single focal plane.
-A lush crescent garland arranged at the lower base of the circular portal,
-wrapping around the bottom of the portal like a nest — elements cascading and overlapping
-in front of the lower portion of the circle, dense and richly layered.
-The central circle is a cosmic portal window filled completely with a close-up photographic view
-of a mineral moon surface — NOT white, NOT empty, NOT a plain glow.
-False-colour geological mapping revealing ancient crater formations, ray systems, and mineral deposit regions
-across the curved lunar surface. Craters visible at multiple scales, from wide shallow basins to sharp-rimmed impact rings.
-Richly textured, photographic grain, deeply dimensional — as if seen through a telescope at breathtaking proximity.
-A luminous glow ring frames the portal edge, softly radiating outward, not overexposed."""
+Elements layered in front of and behind a large circular portal window at the centre.
+Rich saturated colours. Every element looks like a real photograph, cutout and placed by hand.
+No illustration, no painting, no cartoon.
+No temples or religious symbols. No architecture.
+Photographic grain throughout. Milky Way starry night.
+A lush crescent garland surrounds the base of the portal in a semi-circle, wrapping around the bottom.
+The central circle is a cosmic portal window filled with a mineral light moon surface — NOT white, NOT empty.
+False-colour geological mapping, craters, richly textured.
+A luminous glow ring frames the portal edge."""
 
 VIBE_PROMPTS = {
     "midnight": (
-        "Deep navy and black palette. Cosmic starry deep space. "
         "The portal moon surface is deep indigo, cold silver-grey, and near-black — "
-        "dark mineral mapping with silver crater rims, pitch-black shadow-filled basins, and icy indigo plains. Cold silver light only. "
-        "Exactly one single silver full moon only — no other moons, no second moon, no partial moons anywhere in the image. "
-        "One ringed planet visible in the background. "
+        "dark mineral mapping with silver crater rims and icy indigo plains. "
+        "Deep navy and black palette. Cosmic starry deep space. "
+        "A ringed planet in the background. "
         "Ancient Persepolis ruins emerging from darkness — moonlit stone columns, lamassu guardian statues with winged animal bodies, "
         "carved griffin friezes half-swallowed by shadow and indigo light. "
-        "A distant supermassive black hole with a glowing crimson and deep violet accretion disk in the far background. "
+        "A distant black hole with a glowing crimson and deep violet accretion disk. "
         "A murder of crows — some perched on ruins, others in flight against the dark sky. "
-        "Gothic ornamental motifs woven through the scene — wrought iron curls, thorn vines, dark roses, iron candelabras. "
-        "Garland of black roses, deep crimson peonies, dried black botanicals, and dark burgundy dahlias — no cherry blossoms, no pink flowers. "
-        "Mysterious low light. Silver and indigo accents. "
-        "No mermaids, no vehicles, no rockets, no technology, no people, no cherry blossoms."
+        "Gothic ornamental motifs — wrought iron curls, thorn vines, iron candelabras. "
+        "Garland of black roses, deep crimson peonies, dried black botanicals, and dark burgundy dahlias. "
+        "Black flowers and red botanicals. Mysterious low light. Silver and indigo accents. "
+        "No cherry blossoms, no pink flowers, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "celestial": (
-        "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
         "The portal moon surface glows in warm amber gold, burnished copper, and soft sky blue — "
         "golden highlands, luminous amber mineral plains, warm regal tones. "
-        "Warm nebula clouds. Regal and timeless atmosphere. "
+        "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
+        "Warm nebula clouds. Regal and timeless atmosphere. Gold leaf tones. "
         "Ancient Persepolis ruins — teal-lit stone columns, lamassu winged guardian statues, carved animal friezes glowing in the dark. "
-        "Gold leaf tones. Birds of paradise flowers and birds in flight. "
         "Peacocks with iridescent teal and gold tail feathers fully displayed in the scene. "
-        "A distant black hole with a luminous golden and amber accretion disk glowing softly in the far background. "
-        "Garland of gold and amber tropical flowers, birds of paradise blooms, and lush gold-dusted leaves — no cherry blossoms. "
-        "No mermaids, no vehicles, no rockets, no technology, no people, no cherry blossoms."
+        "Birds of paradise flowers and birds in flight. "
+        "A distant black hole with a luminous golden and amber accretion disk. "
+        "Garland of gold and amber tropical flowers, birds of paradise blooms, and lush gold-dusted leaves. "
+        "No cherry blossoms, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "garden": (
-        "Soft pinks and mauves. Blue skies with white soft fluffy clouds. "
         "The portal moon surface is soft rose pink, blush lavender, and pale peach — "
-        "gentle dreamy pastel mineral mapping, like a moon made of flower petals and clouds. "
-        "Ancient ringed planets. Cherry blossom petals scattered. "
-        "Butterflies and hummingbirds. Dreamy pastel cosmic light. "
-        "Soft pink moons in the background. "
-        "Multiple peacocks with iridescent tail feathers fanned open. "
-        "Birds of paradise — both the vivid orange and blue flowers and actual birds of paradise in mid-flight. "
+        "gentle dreamy pastel mineral mapping. "
+        "Soft pinks and mauves. Blue skies with white soft fluffy clouds. "
+        "Ancient ringed planets. Cherry blossom petals scattered. Dreamy pastel cosmic light. "
+        "A soft pink moon in the background. "
+        "Butterflies and hummingbirds. "
+        "Peacocks with iridescent tail feathers fanned open. "
+        "Persepolis ruins with ancient animal carvings — lamassu statues and carved animal friezes. "
         "Lush tropical greenery — giant monstera leaves, banana palms, bird-of-paradise plants, ferns cascading. "
-        "No ruins, no stone columns, no temples, no classical architecture, no ancient buildings, no mermaids, no vehicles, no rockets, no technology, no people."
+        "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "electric": (
-        "Neon cyan and violet palette. Atmospheric energy. High contrast, vivid oversaturated cosmic light. "
         "The portal moon surface blazes in neon cyan, electric violet, acid yellow, and hot magenta — "
-        "hyper-saturated false-colour geological mapping, vivid oversaturated and electric. "
-        "Ancient ringed colour saturated moons and planets. "
+        "hyper-saturated false-colour geological mapping, vivid and electric. "
+        "Neon cyan and violet palette. Atmospheric energy. High contrast, vivid oversaturated cosmic light. "
+        "Crystals and quartz. Ancient ringed colour saturated moons and planets. "
         "A small rocket ship taking off in the distance. "
-        "Garland of equal parts vivid neon flowers and crystals — white quartz points, split-open rainbow geodes, "
-        "amethyst clusters, tourmaline shards, and rose quartz chunks alternating with electric-coloured blooms "
-        "in an exact 50/50 split, crystals and blooms woven together throughout the garland. "
+        "Garland of crystals and flowers — white quartz points, split-open rainbow geodes, amethyst clusters, "
+        "tourmaline shards woven with vivid electric-coloured blooms, 70% crystals 30% flowers. "
         "Large freestanding crystal formations and geode slices emerging from the scene edges. "
-        "No cherry blossoms, no ruins, no mermaids, no people."
+        "No ruins, no architecture of any kind, no mermaids, no people."
     ),
     "ocean": (
-        "Deep teal and midnight blue. Bioluminescent jellyfish. "
         "The portal moon surface is deep ocean teal, midnight blue, and bioluminescent aquamarine — "
-        "like a water world seen from space, dark oceanic depths with glowing teal bioluminescent patches. "
-        "Underwater and cosmic depth combined. "
-        "A whale floating gently in the upper sky. "
-        "A large glowing moon and a ringed planet visible in the upper portion of the sky above the water. "
+        "like a water world seen from space, dark oceanic depths with glowing teal patches. "
+        "Deep teal and midnight blue. One ringed moon in the sky. "
+        "Bioluminescent jellyfish. Coral forms. Tropical fish. Underwater and cosmic depth combined. "
+        "A whale floating gently in the distance. "
         "Garland made entirely of ocean life — brain coral, staghorn coral, sea fans, "
-        "giant clams, sea anemones with waving tentacles, kelp fronds, and vivid sea urchins. "
-        "Tropical reef fish — clownfish, angelfish, parrotfish, lionfish — swimming freely throughout the scene. "
+        "sea anemones, kelp fronds, and vivid sea urchins. No flowers. "
+        "Tropical reef fish — clownfish, angelfish, lionfish — swimming freely throughout the scene. "
         "No flowers, no cherry blossoms, no botanical plants, no terrestrial vegetation, "
         "no ruins, no mermaids, no vehicles, no rockets, no technology, no people."
     ),
     "abstract": (
         "Bold overlapping geometric forms, maximalist layered collage, high contrast vivid multicolour, graphic pop energy. "
         "Stripes and geometric patterned circles. "
-        "The portal moon surface is graphic black and white with vivid pop-colour sections — "
-        "high contrast geometric mineral mapping, bold and maximalist. "
-        "No people, no human figures, no faces, no bodies, no hands, no arms, no ruins, no mermaids, no vehicles, no rockets."
+        "Garland made of bold geometric shapes — coloured circles, triangles, hexagons, graphic forms. "
+        "Soft graphic moons in the sky. "
+        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets."
     ),
 }
 
