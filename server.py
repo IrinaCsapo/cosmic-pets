@@ -32,22 +32,22 @@ BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation. Com
 
 VIBE_PROMPTS = {
     "midnight": (
-        "deep indigo/silver-grey portal moon. A lush crescent garland of black roses, dark dahlias, black flowers and red botanicals surrounds the base portal in a semi-circle, wrapping around the bottom. Single silver moon. Persepolis ruins, no people carvings, just animal carvings. A black hole in the distance. No cherry blossoms. Deep navy and black palette, cosmic starry deep space, a ringed planet in the background, mysterious low light, silver and indigo accents"
+        "deep indigo/silver-grey portal moon. A lush crescent garland of black roses, dark dahlias, black flowers and red botanicals surrounds the base pet portrait portal in a semi-circle, at the bottom. Single silver moon. Persepolis ruins, no people carvings, just animal carvings. A black hole in the distance. No cherry blossoms.  Deep navy and black palette, cosmic starry deep space, a ringed planet in the background, mysterious low light, silver and indigo accents"
     ),
     "celestial": (
-        "Persepolis ruins, peacocks, birds of paradise, golden black hole accretion disk. A lush crescent garland of gold tropical flowers. Warm gold and sky blue palette, ancient ringed planet, a silver warm moon, warm nebula clouds, regal and timeless atmosphere, gold leaf tones."
+        "Persepolis ruins, peacocks, birds of paradise, golden black hole accretion disk. Warm gold and sky blue palette, ancient ringed planet, a silver warm moon, warm nebula clouds, regal and timeless atmosphere, gold leaf tones."
     ),
     "garden": (
-        "rose pink/lavender portal moon. A lush crescent garland of cherry blossoms, butterflies, hummingbirds, peacocks, tropical greenery. Persepolis ruins with ancient animal carvings. Soft pinks and mauves, blue skies, with white soft fluffy clouds, ancient ringed planets, cherry blossom petals scattered, dreamy pastel cosmic light, a soft pink moon in the background."
+        "rose pink/lavender portal moon. A lush garland of cherry blossoms, butterflies, hummingbirds, peacocks, tropical greenery. Persepolis ruins with ancient animal carvings. Soft pinks and mauves, blue skies, with white soft fluffy clouds, ancient ringed planets, cherry blossom petals scattered, dreamy pastel cosmic light, a soft pink moon in the background."
     ),
     "electric": (
-        "neon cyan/violet/acid yellow portal moon. A lush crescent garland of crystals, geodes, quartz + flowers garland (70/30). No ruins, no architecture of any kind. Neon cyan and violet palette, atmospheric energy, high contrast, vivid oversaturated cosmic light, crystals and quartz, ancient ringed colour saturated moons and planets, a small rocket ship taking off in the distance"
+        "neon cyan/violet/acid yellow portal moon. A garland of crystals, geodes, quartz + flowers, a garland (70/30) surrounds the bottom of the pet portrait. No ruins, no architecture of any kind. Neon cyan and violet palette, atmospheric energy, high contrast, vivid oversaturated cosmic light, crystals and quartz, ancient ringed colour saturated moons and planets, a small rocket ship taking off in the distance"
     ),
     "ocean": (
-        "deep teal/aquamarine portal moon. Whale, jellyfish, ringed planet. A lush crescent garland of coral/sea life only. No flowers. Deep teal and midnight blue, one ringed moon in the sky, bioluminescent jellyfish, coral forms, tropical fish, underwater and cosmic depth combined, a whale floating in the distance"
+        "deep teal/aquamarine portal moon. Whale, jellyfish, ringed planet. A lush crescent garland of coral and sea life. Deep teal and midnight blue, one ringed moon in the sky, bioluminescent jellyfish, coral forms, tropical fish, underwater and cosmic depth combined, a whale floating in the distance"
     ),
     "abstract": (
-        "Bold overlapping forms, maximalist layered collage, multicolour, graphic pop energy, stripes, geometric patterned circles, garland made of shapes and portals, soft graphic moons in the sky"
+        "Bold overlapping forms, maximalist layered collage, multicolour, graphic pop energy, stripes, geometric patterned circles, shapes and portals, soft graphic moons in the sky"
     ),
 }
 
