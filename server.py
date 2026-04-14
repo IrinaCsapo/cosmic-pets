@@ -28,65 +28,26 @@ REMBG_LOCK    = threading.Semaphore(1)   # only one rembg inference at a time
 print("  ✅ rembg model ready")
 
 # ── VIBE PROMPTS ─────────────────────────────────────────────────────────────
-BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation.
-Composed of real photographic cutouts layered together, alien planets with visible surface texture,
-natural organic forms — composited against a deep cosmic background of nebulae and star fields.
-No animals, no pets, no cats, no dogs.
-Elements layered in front of and behind a large circular portal window at the centre.
-Rich saturated colours. Every element looks like a real photograph, cut out and placed by hand.
-No illustration, no painting, no cartoon.
-No temples or religious symbols. No architecture.
-Photographic grain throughout. Milky Way starry night.
-A lush crescent garland surrounds the base portal in a semi-circle, wrapping around the bottom.
-The central circle is a cosmic portal window filled with a mineral light moon surface, NOT white, NOT empty.
-False-colour geological mapping, craters, richly textured.
-A luminous glow ring frames the portal edge."""
+BASE_PROMPT = """Surreal photographic collage artwork, portrait orientation. Composed of real photographic cutouts layered together, alien planets with visible surface texture, natural organic forms — composited against a deep cosmic background of nebulae and star fields. No animals, no pets, no cats, no dogs. Elements layered in front of and behind a large circular portal window at the centre. Rich saturated colours. Every element looks like a real photograph, cut out and placed by hand. No illustration, no painting, no cartoon. No temples or religious symbols. No architecture. Photographic grain throughout. Milky Way starry night. A lush crescent garland surrounds the base portal in a semi-circle, wrapping around the bottom. The central circle is a cosmic portal window filled with a mineral light moon surface, NOT white, NOT empty. False-colour geological mapping, craters, richly textured. A luminous glow ring frames the portal edge."""
 
 VIBE_PROMPTS = {
     "midnight": (
-        "Deep indigo and silver-grey portal moon. "
-        "A lush crescent garland of black roses, dark dahlias, black flowers and red botanicals surrounds the base portal in a semi-circle, wrapping around the bottom. "
-        "Single silver moon. "
-        "Persepolis ruins, no people carvings, just animal carvings. "
-        "A black hole in the distance. "
-        "No cherry blossoms. "
-        "Deep navy and black palette, cosmic starry deep space, a ringed planet in the background, mysterious low light, silver and indigo accents. "
-        "No people, no human figures, no mermaids, no vehicles, no rockets, no technology."
+        "deep indigo/silver-grey portal moon. A lush crescent garland of black roses, dark dahlias, black flowers and red botanicals surrounds the base portal in a semi-circle, wrapping around the bottom. Single silver moon. Persepolis ruins, no people carvings, just animal carvings. A black hole in the distance. No cherry blossoms. Deep navy and black palette, cosmic starry deep space, a ringed planet in the background, mysterious low light, silver and indigo accents"
     ),
     "celestial": (
-        "Persepolis ruins, peacocks, birds of paradise, golden black hole accretion disk. "
-        "A lush crescent garland of gold tropical flowers. "
-        "Warm gold and sky blue palette, ancient ringed planet, a silver warm moon, warm nebula clouds, regal and timeless atmosphere, gold leaf tones. "
-        "No cherry blossoms, no people, no human figures, no mermaids, no vehicles, no rockets, no technology."
+        "Persepolis ruins, peacocks, birds of paradise, golden black hole accretion disk. A lush crescent garland of gold tropical flowers. Warm gold and sky blue palette, ancient ringed planet, a silver warm moon, warm nebula clouds, regal and timeless atmosphere, gold leaf tones."
     ),
     "garden": (
-        "Rose pink and lavender portal moon. "
-        "A lush crescent garland of cherry blossoms, butterflies, hummingbirds, peacocks, tropical greenery. "
-        "Persepolis ruins with ancient animal carvings. "
-        "Soft pinks and mauves, blue skies with white soft fluffy clouds, ancient ringed planets, cherry blossom petals scattered, dreamy pastel cosmic light, a soft pink moon in the background. "
-        "No people, no human figures, no mermaids, no vehicles, no rockets, no technology."
+        "rose pink/lavender portal moon. A lush crescent garland of cherry blossoms, butterflies, hummingbirds, peacocks, tropical greenery. Persepolis ruins with ancient animal carvings. Soft pinks and mauves, blue skies, with white soft fluffy clouds, ancient ringed planets, cherry blossom petals scattered, dreamy pastel cosmic light, a soft pink moon in the background."
     ),
     "electric": (
-        "Neon cyan, violet and acid yellow portal moon. "
-        "A lush crescent garland of crystals, geodes, quartz and flowers — 70% crystals 30% flowers. "
-        "No ruins, no architecture of any kind. "
-        "Neon cyan and violet palette, atmospheric energy, high contrast, vivid oversaturated cosmic light, crystals and quartz, ancient ringed colour saturated moons and planets, a small rocket ship taking off in the distance. "
-        "No people, no human figures, no mermaids."
+        "neon cyan/violet/acid yellow portal moon. A lush crescent garland of crystals, geodes, quartz + flowers garland (70/30). No ruins, no architecture of any kind. Neon cyan and violet palette, atmospheric energy, high contrast, vivid oversaturated cosmic light, crystals and quartz, ancient ringed colour saturated moons and planets, a small rocket ship taking off in the distance"
     ),
     "ocean": (
-        "Deep teal and aquamarine portal moon. "
-        "Whale, jellyfish, ringed planet. "
-        "A lush crescent garland of coral and sea life only. No flowers. "
-        "Deep teal and midnight blue, one ringed moon in the sky, bioluminescent jellyfish, coral forms, tropical fish, underwater and cosmic depth combined, a whale floating in the distance. "
-        "No flowers, no cherry blossoms, no botanical plants, no terrestrial vegetation, "
-        "no ruins, no people, no human figures, no mermaids, no vehicles, no rockets, no technology."
+        "deep teal/aquamarine portal moon. Whale, jellyfish, ringed planet. A lush crescent garland of coral/sea life only. No flowers. Deep teal and midnight blue, one ringed moon in the sky, bioluminescent jellyfish, coral forms, tropical fish, underwater and cosmic depth combined, a whale floating in the distance"
     ),
     "abstract": (
-        "Bold overlapping forms, maximalist layered collage, multicolour, graphic pop energy. "
-        "Stripes, geometric patterned circles. "
-        "Garland made of shapes and portals. "
-        "Soft graphic moons in the sky. "
-        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets."
+        "Bold overlapping forms, maximalist layered collage, multicolour, graphic pop energy, stripes, geometric patterned circles, garland made of shapes and portals, soft graphic moons in the sky"
     ),
 }
 
