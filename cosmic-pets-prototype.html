@@ -206,12 +206,6 @@
       padding-left: 20px;
       padding-right: 20px;
       flex-shrink: 0;
-      position: relative;
-    }
-    #screen-vibe > .header .logo {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
     }
     .vibe-scroll-area {
       flex: 1;
@@ -750,11 +744,6 @@
 <!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
-    <div style="display:flex;align-items:center;gap:10px;visibility:hidden;" aria-hidden="true">
-      <!-- spacer mirrors right side so logo stays centred -->
-      <div class="attempts-pill"><span>✦ ✦ ✦</span><span>3 free left</span></div>
-      <div style="width:34px;"></div>
-    </div>
     <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
@@ -1340,6 +1329,9 @@ uploadZone.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') file
 fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
 
 let lastUploadedFile = null;
+let savedCropData = null;
+let savedCanvasData = null;
+let savedAdjustments = null;
 
 window.editPhoto = function() {
   if (lastUploadedFile) {
@@ -1354,6 +1346,7 @@ function handleFile(file) {
   if(file.size > 5 * 1024 * 1024) { showToast('Photo is over 5MB — please upload a smaller image for best results'); return; }
   if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
   lastUploadedFile = file;
+  savedCropData = null; savedCanvasData = null; savedAdjustments = null;
   openCropModal(file);
 }
 
@@ -1448,6 +1441,23 @@ function openCropModal(file) {
           // Revoke the object URL now that Cropper has loaded the image
           URL.revokeObjectURL(objectUrl);
           objectUrl = null;
+
+          // Restore previous crop position + adjustments if coming back from vibe screen
+          if (savedCropData) {
+            cropperInstance.setData(savedCropData);
+            cropperInstance.setCanvasData(savedCanvasData);
+            // Restore slider values and live preview
+            ['brightness', 'contrast', 'saturation'].forEach(name => {
+              const sl = document.getElementById(`${name}-slider`);
+              const valEl = document.getElementById(`${name}-val`);
+              if (sl && savedAdjustments) {
+                sl.value = savedAdjustments[name];
+                if (valEl) valEl.textContent = savedAdjustments[name];
+                updateSliderFill(sl);
+              }
+            });
+            applyLiveAdjust();
+          }
 
           // Run quality analysis + face detection and show any warnings
           const warnings = analyzePhotoQuality(img);
@@ -1570,6 +1580,10 @@ document.getElementById('crop-confirm-btn').addEventListener('click', () => {
 
   out.toBlob(blob => {
     uploadedFile = new File([blob], 'pet-cropped.jpg', { type: 'image/jpeg' });
+    // Save crop state so "Edit photo" can restore it exactly
+    savedCropData    = cropperInstance.getData();
+    savedCanvasData  = cropperInstance.getCanvasData();
+    savedAdjustments = { brightness: b, contrast: c, saturation: s };
     document.getElementById('crop-modal').classList.remove('open');
     cropperInstance.destroy(); cropperInstance = null;
     // Reset all sliders and clear live filter
