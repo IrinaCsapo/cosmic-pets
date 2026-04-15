@@ -7,7 +7,7 @@ Run:   python3 server.py
 Open:  http://localhost:8080
 """
 
-import base64, glob, io, json, os, pathlib, tempfile, time, threading, urllib.error, urllib.request
+import base64, glob, hashlib, hmac as hmaclib, io, json, os, pathlib, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
@@ -19,6 +19,82 @@ REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 por
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
 OUTPUT_W, OUTPUT_H = 1024, 1440
+
+# ── STRIPE / PAYMENTS ────────────────────────────────────────────────────────
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+TOKEN_SECRET      = os.environ.get("TOKEN_SECRET", "change-me-in-production")
+
+# Map pack size → Stripe Price ID (set these as Railway env vars)
+PACK_PRICES = {
+    "6":  os.environ.get("STRIPE_PRICE_6",  ""),
+    "12": os.environ.get("STRIPE_PRICE_12", ""),
+    "20": os.environ.get("STRIPE_PRICE_20", ""),
+}
+PACK_CREDITS = {"6": 6, "12": 12, "20": 20}
+
+DB_PATH = pathlib.Path(__file__).parent / "payments.db"
+
+def _init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                session_id       TEXT PRIMARY KEY,
+                credits_remaining INTEGER NOT NULL,
+                created_at       INTEGER NOT NULL
+            )
+        """)
+
+def _db_get_credits(session_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute(
+            "SELECT credits_remaining FROM sessions WHERE session_id=?", (session_id,)
+        ).fetchone()
+    return row[0] if row else None
+
+def _db_set_credits(session_id, credits):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO sessions (session_id, credits_remaining, created_at) VALUES (?,?,?)",
+            (session_id, credits, int(time.time()))
+        )
+
+def _db_decrement(session_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "UPDATE sessions SET credits_remaining = credits_remaining - 1 "
+            "WHERE session_id=? AND credits_remaining > 0",
+            (session_id,)
+        )
+        row = conn.execute(
+            "SELECT credits_remaining FROM sessions WHERE session_id=?", (session_id,)
+        ).fetchone()
+    return row[0] if row else 0
+
+def _make_token(session_id):
+    sig = hmaclib.new(TOKEN_SECRET.encode(), session_id.encode(), hashlib.sha256).hexdigest()
+    return f"{session_id}.{sig}"
+
+def _verify_token(token):
+    parts = token.rsplit(".", 1)
+    if len(parts) != 2:
+        return None
+    session_id, sig = parts
+    expected = hmaclib.new(TOKEN_SECRET.encode(), session_id.encode(), hashlib.sha256).hexdigest()
+    if not hmaclib.compare_digest(sig, expected):
+        return None
+    return session_id
+
+def _stripe_request(method, endpoint, data=None):
+    url = f"https://api.stripe.com/v1/{endpoint}"
+    body = urllib.parse.urlencode(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, method=method)
+    req.add_header("Authorization", f"Bearer {STRIPE_SECRET_KEY}")
+    if body:
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read())
+
+_init_db()
 
 # ── REMBG — pre-load once at startup, limit to one concurrent inference ──────
 # u2netp is ~30MB vs u2net's 176MB — much lighter, still great for pets
@@ -520,7 +596,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Credits-Token")
 
     def do_OPTIONS(self):
         self.send_response(200); self._cors(); self.end_headers()
@@ -528,6 +604,8 @@ class CosmicHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/gallery":
             self._gallery()
+        elif self.path.startswith("/api/verify-payment"):
+            self._verify_payment()
         elif self.path == "/" or self.path == "":
             self.path = "/cosmic-pets-prototype.html"
             super().do_GET()
@@ -545,9 +623,10 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         routes = {
-            "/api/remove-bg":   self._remove_bg,
-            "/api/generate-bg": self._generate_bg,
-            "/api/composite":   self._composite,
+            "/api/remove-bg":       self._remove_bg,
+            "/api/generate-bg":     self._generate_bg,
+            "/api/composite":       self._composite,
+            "/api/create-checkout": self._create_checkout,
         }
         handler = routes.get(self.path)
         if handler:
@@ -666,7 +745,67 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             self._error(str(e))
 
     # ── /api/generate-bg ──
+    def _create_checkout(self):
+        try:
+            body = self._read_json()
+            pack = str(body.get("pack", "12"))
+            price_id = PACK_PRICES.get(pack)
+            if not price_id:
+                self._json_response({"error": "Invalid pack or Stripe not configured"}, 400)
+                return
+            host   = self.headers.get("Host", "localhost")
+            scheme = "https" if ("railway.app" in host or "cosmicpets" in host) else "http"
+            base_url = f"{scheme}://{host}"
+            session = _stripe_request("POST", "checkout/sessions", {
+                "mode":                         "payment",
+                "line_items[0][price]":         price_id,
+                "line_items[0][quantity]":      "1",
+                "metadata[pack]":               pack,
+                "success_url":                  f"{base_url}/?session_id={{CHECKOUT_SESSION_ID}}",
+                "cancel_url":                   f"{base_url}/",
+            })
+            self._json_response({"url": session["url"]})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _verify_payment(self):
+        try:
+            qs         = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            session_id = qs.get("session_id", [None])[0]
+            if not session_id:
+                self._json_response({"error": "Missing session_id"}, 400)
+                return
+            # Idempotent — if already verified, just return current credits
+            existing = _db_get_credits(session_id)
+            if existing is not None:
+                self._json_response({"credits": existing, "token": _make_token(session_id)})
+                return
+            stripe_session = _stripe_request("GET", f"checkout/sessions/{session_id}")
+            if stripe_session.get("payment_status") != "paid":
+                self._json_response({"error": "Payment not completed"}, 402)
+                return
+            pack    = stripe_session.get("metadata", {}).get("pack", "12")
+            credits = PACK_CREDITS.get(str(pack), 12)
+            _db_set_credits(session_id, credits)
+            self._json_response({"credits": credits, "token": _make_token(session_id)})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
     def _generate_bg(self):
+        # ── Token / credit check ──────────────────────────────────────────────
+        token_header = self.headers.get("X-Credits-Token", "").strip()
+        session_id   = None
+        if token_header:
+            session_id = _verify_token(token_header)
+            if not session_id:
+                self._json_response({"error": "Invalid payment token"}, 401)
+                return
+            credits = _db_get_credits(session_id)
+            if credits is None or credits <= 0:
+                self._json_response({"error": "No credits remaining"}, 402)
+                return
+            _db_decrement(session_id)
+        # If no token present, free-tier request — server allows it (client enforces 3-try limit)
         try:
             body   = self._read_json()
             vibe   = body.get("vibe", "celestial")

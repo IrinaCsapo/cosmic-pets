@@ -858,16 +858,16 @@
       <h3>✦ Want more cosmic portraits?</h3>
       <p>You've used your 3 free portraits. Pick a pack to keep creating.</p>
       <div class="pricing-tiers">
-        <button class="tier-btn" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+        <button class="tier-btn" onclick="buyPack('6')">
           <span class="tier-price">£2.99</span>
           <span class="tier-portraits">6 portraits</span>
         </button>
-        <button class="tier-btn popular" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+        <button class="tier-btn popular" onclick="buyPack('12')">
           <span class="tier-badge">POPULAR</span>
           <span class="tier-price">£4.99</span>
           <span class="tier-portraits">12 portraits</span>
         </button>
-        <button class="tier-btn" onclick="showToast('Payment coming soon — stay tuned! 🚀')">
+        <button class="tier-btn" onclick="buyPack('20')">
           <span class="tier-price">£7.99</span>
           <span class="tier-portraits">20 portraits</span>
         </button>
@@ -1113,10 +1113,47 @@ function starsOnCanvas(ctx, w, h, n, colorPrefix) {
 }
 
 // ── STATE ──
-let attemptsLeft = 3;
-let uploadedFile = null;
-let selectedVibe = null;
-let bgModule = null;
+let attemptsLeft  = parseInt(localStorage.getItem('cp_free_left') ?? '3');
+let paidToken     = localStorage.getItem('cp_paid_token') || null;
+let paidCredits   = parseInt(localStorage.getItem('cp_paid_credits') ?? '0');
+let uploadedFile  = null;
+let selectedVibe  = null;
+let bgModule      = null;
+
+function canGenerate() {
+  return attemptsLeft > 0 || (paidCredits > 0 && paidToken);
+}
+
+function totalCreditsDisplay() {
+  if (paidCredits > 0) return `${paidCredits} left`;
+  if (attemptsLeft > 0) return `${attemptsLeft} free left`;
+  return 'No attempts left';
+}
+
+// ── STRIPE RETURN — verify payment if session_id in URL ──────────────────────
+(async function checkStripeReturn() {
+  const params    = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if (!sessionId) return;
+  // Clean URL immediately
+  window.history.replaceState({}, '', '/');
+  try {
+    const r    = await fetch(`/api/verify-payment?session_id=${sessionId}`);
+    const data = await r.json();
+    if (data.token && data.credits) {
+      paidToken   = data.token;
+      paidCredits = data.credits;
+      localStorage.setItem('cp_paid_token',   paidToken);
+      localStorage.setItem('cp_paid_credits', paidCredits);
+      updateAttemptPips('upload');
+      showToast(`✦ ${data.credits} portraits unlocked! Let's create something cosmic.`, 4000);
+    } else {
+      showToast('Payment could not be verified — please contact support.');
+    }
+  } catch(e) {
+    showToast('Could not verify payment. Please try again.');
+  }
+})();
 
 // ── STARS BG ──
 const sc = document.getElementById('stars-canvas');
@@ -1352,7 +1389,7 @@ window.editPhoto = function() {
 function handleFile(file) {
   if(!file.type.startsWith('image/')) { showToast('Please upload a JPG or PNG image'); return; }
   if(file.size > 5 * 1024 * 1024) { showToast('Photo is over 5MB — please upload a smaller image for best results'); return; }
-  if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
+  if(!canGenerate()) { showPaywall(); return; }
   lastUploadedFile = file;
   savedCropData = null; savedCanvasData = null; savedAdjustments = null;
   openCropModal(file);
@@ -1661,7 +1698,19 @@ async function canvasFallback(vibe) {
 // ── Main pipeline ─────────────────────────────────────────────────────────────
 async function startProcessing() {
   const vibe = VIBES.find(v => v.id === selectedVibe);
-  attemptsLeft--;
+  // Decrement the right counter
+  if (attemptsLeft > 0) {
+    attemptsLeft--;
+    localStorage.setItem('cp_free_left', attemptsLeft);
+  } else if (paidCredits > 0 && paidToken) {
+    paidCredits--;
+    localStorage.setItem('cp_paid_credits', paidCredits);
+    if (paidCredits <= 0) {
+      localStorage.removeItem('cp_paid_token');
+      localStorage.removeItem('cp_paid_credits');
+      paidToken = null;
+    }
+  }
   updateAttemptPips('processing');
   showScreen('processing');
   document.getElementById('selected-vibe-badge').textContent = `${vibe.emoji} ${vibe.name} vibe`;
@@ -1687,7 +1736,7 @@ async function startProcessing() {
       }).then(r => r.json()),
       fetch('/api/generate-bg', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', ...(paidToken ? {'X-Credits-Token': paidToken} : {})},
         body: JSON.stringify({vibe: selectedVibe})
       }).then(r => r.json()),
     ]);
@@ -1754,7 +1803,7 @@ async function startProcessing() {
     }
   }
 
-  if (attemptsLeft === 0) document.getElementById('upsell-card').style.display = 'block';
+  if (!canGenerate()) document.getElementById('upsell-card').style.display = 'block';
   refreshGallery(); // update the home screen gallery with the new portrait
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -1820,12 +1869,43 @@ function updateAttemptPips(screen) {
     result: ['res-pip-1','res-pip-2','res-pip-3','res-attempts-text'],
   };
   const ids = maps[screen] || maps.upload;
+  // Show paid credits if available, otherwise free attempts
+  const displayCount = paidCredits > 0 ? paidCredits : attemptsLeft;
   ids.slice(0,3).forEach((id,i) => {
     const el = document.getElementById(id);
-    if(el) el.className = 'attempts-pip'+(i >= attemptsLeft ? ' used' : '');
+    if(el) el.className = 'attempts-pip'+(i >= displayCount ? ' used' : '');
   });
   const txt = document.getElementById(ids[3]);
-  if(txt) txt.textContent = attemptsLeft > 0 ? `${attemptsLeft} free left` : 'No attempts left';
+  if(txt) txt.textContent = totalCreditsDisplay();
+}
+
+// ── PAYMENTS ──
+window.buyPack = async function(pack) {
+  try {
+    showToast('Redirecting to checkout…');
+    const r    = await fetch('/api/create-checkout', {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({pack})
+    });
+    const data = await r.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      showToast(data.error || 'Something went wrong. Please try again.');
+    }
+  } catch(e) {
+    showToast('Could not start checkout. Please try again.');
+  }
+};
+
+function showPaywall() {
+  // Scroll to upsell card on result screen, or show it on current screen
+  const card = document.getElementById('upsell-card');
+  if (card) {
+    card.style.display = 'block';
+    card.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
 }
 
 // ── NAVIGATION ──
@@ -1877,7 +1957,7 @@ window.toggleFaq = function(btn) {
 };
 
 document.getElementById('again-btn').addEventListener('click', () => {
-  if(attemptsLeft <= 0) { showToast('No free portraits left — unlock more below!'); return; }
+  if(!canGenerate()) { showPaywall(); return; }
   hideQualityHint();
   uploadedFile = null; selectedVibe = null;
   fileInput.value = '';
