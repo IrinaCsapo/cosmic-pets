@@ -327,6 +327,28 @@
     }
     .upsell-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
     .upsell-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+
+    /* ── Paywall modal ── */
+    #paywall-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    #paywall-modal.open { display: flex; }
+    .paywall-box {
+      background: linear-gradient(160deg, #1a0a2e, #0d0d1a);
+      border: 1px solid rgba(224,64,251,0.35); border-radius: 20px;
+      padding: 32px 24px; max-width: 420px; width: 100%; text-align: center;
+      box-shadow: 0 0 60px rgba(123,47,190,0.4);
+    }
+    .paywall-box h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .paywall-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; line-height: 1.5; }
+    .paywall-dismiss {
+      margin-top: 14px; background: none; border: none;
+      color: rgba(255,255,255,0.35); font-size: 0.8rem; cursor: pointer;
+    }
+    .paywall-dismiss:hover { color: rgba(255,255,255,0.6); }
     .pricing-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
     .tier-btn {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
@@ -1127,7 +1149,7 @@ function canGenerate() {
 function totalCreditsDisplay() {
   if (paidCredits > 0) return `${paidCredits} left`;
   if (attemptsLeft > 0) return `${attemptsLeft} free left`;
-  return 'No attempts left';
+  return '0 free left';
 }
 
 // ── STRIPE RETURN — verify payment if session_id in URL ──────────────────────
@@ -1900,12 +1922,7 @@ window.buyPack = async function(pack) {
 };
 
 function showPaywall() {
-  // Scroll to upsell card on result screen, or show it on current screen
-  const card = document.getElementById('upsell-card');
-  if (card) {
-    card.style.display = 'block';
-    card.scrollIntoView({behavior: 'smooth', block: 'center'});
-  }
+  document.getElementById('paywall-modal').classList.add('open');
 }
 
 // ── NAVIGATION ──
@@ -2241,5 +2258,30 @@ window.hideQualityHint = function() {
     </div>
   </div>
 </section>
+
+<!-- ── Paywall modal ── -->
+<div id="paywall-modal">
+  <div class="paywall-box">
+    <h2>✦ You've used your 3 free portraits</h2>
+    <p>Pick a pack to keep creating — your pet deserves more than one cosmic world.</p>
+    <div class="pricing-tiers">
+      <button class="tier-btn" onclick="buyPack('6')">
+        <span class="tier-price">£2.99</span>
+        <span class="tier-portraits">6 portraits</span>
+      </button>
+      <button class="tier-btn popular" onclick="buyPack('12')">
+        <span class="tier-badge">POPULAR</span>
+        <span class="tier-price">£4.99</span>
+        <span class="tier-portraits">12 portraits</span>
+      </button>
+      <button class="tier-btn" onclick="buyPack('20')">
+        <span class="tier-price">£7.99</span>
+        <span class="tier-portraits">20 portraits</span>
+      </button>
+    </div>
+    <button class="paywall-dismiss" onclick="document.getElementById('paywall-modal').classList.remove('open')">Maybe later</button>
+  </div>
+</div>
+
 </body>
 </html>
