@@ -638,7 +638,7 @@
     .guide-item .gi-text strong { font-weight: 700; }
 
     /* FAQ */
-    .faq-list { display: flex; flex-direction: column; gap: 20px; }
+    .faq-list { display: flex; flex-direction: column; gap: 10px; }
     .faq-item {
       border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
       background: var(--card);
@@ -2231,6 +2231,15 @@ window.hideQualityHint = function() {
         </button>
         <div class="faq-a">
           Try generating again, each portrait is created fresh, so results vary each time. The single biggest improvement you can make is using a better photo: well-lit, face close-up (no cut ears) and in focus. Check our Photo Guide for a full breakdown of what works best. Still having trouble? Drop us an email with your results at <a href="mailto:hello@cosmicpets.co.uk" style="color:var(--accent)">hello@cosmicpets.co.uk</a> and tell us what's wrong.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          Does it work with people?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">
+          It sure does, but this tool was conceived and developed for pets only, so while you can go ahead and try a photo of your nan, your best results will probably be of your pet. But we're not going to stop you, as long as you have fun.
         </div>
       </div>
       <div class="faq-item">
