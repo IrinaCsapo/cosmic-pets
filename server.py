@@ -18,7 +18,7 @@ PORT         = int(os.environ.get("PORT", 8080))
 REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 portraits here
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
-OUTPUT_W, OUTPUT_H = 1024, 1440
+OUTPUT_W, OUTPUT_H = 1440, 2016
 
 # ── STRIPE / PAYMENTS ────────────────────────────────────────────────────────
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
@@ -583,7 +583,7 @@ def composite_images(pet_b64: str, bg_url: str, vibe: str = "") -> str:
 
     # Encode and return
     buf = io.BytesIO()
-    result.convert("RGB").save(buf, format="JPEG", quality=92)
+    result.convert("RGB").save(buf, format="JPEG", quality=97)
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
