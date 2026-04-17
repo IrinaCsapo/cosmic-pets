@@ -1167,7 +1167,7 @@ function totalCreditsDisplay() {
       paidCredits = data.credits;
       localStorage.setItem('cp_paid_token',   paidToken);
       localStorage.setItem('cp_paid_credits', paidCredits);
-      updateAttemptPips('upload');
+      ['upload','vibe','result'].forEach(s => updateAttemptPips(s));
       showToast(`✦ ${data.credits} portraits unlocked! Let's create something cosmic.`, 4000);
     } else {
       showToast('Payment could not be verified — please contact support.');

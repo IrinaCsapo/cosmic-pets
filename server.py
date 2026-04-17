@@ -606,7 +606,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             self._gallery()
         elif self.path.startswith("/api/verify-payment"):
             self._verify_payment()
-        elif self.path == "/" or self.path == "":
+        elif self.path == "/" or self.path == "" or self.path.startswith("/?"):
             self.path = "/cosmic-pets-prototype.html"
             super().do_GET()
         else:
