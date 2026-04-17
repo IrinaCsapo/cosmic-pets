@@ -34,6 +34,35 @@ PACK_CREDITS = {"6": 6, "12": 12, "20": 20}
 
 DB_PATH = pathlib.Path(__file__).parent / "payments.db"
 
+def check_nsfw(image_b64):
+    """
+    Run the uploaded image through Falconsai NSFW detection on Replicate.
+    Returns (is_nsfw: bool, label: str, score: float).
+    Fails open — if the check itself errors, returns (False, 'unknown', 0).
+    """
+    if not API_KEY:
+        return False, "unknown", 0
+    try:
+        pred = replicate_post(
+            "https://api.replicate.com/v1/models/falconsai/nsfw_image_detection/predictions",
+            {"input": {"image": image_b64}}
+        )
+        pred  = replicate_poll(pred["urls"]["get"], timeout=30)
+        output = pred.get("output", {})
+        if isinstance(output, dict):
+            label = output.get("label", "normal").lower()
+            score = float(output.get("score", 0))
+        elif isinstance(output, str):
+            label = output.lower()
+            score = 1.0
+        else:
+            return False, "unknown", 0
+        is_nsfw = label == "nsfw" and score > 0.80
+        return is_nsfw, label, score
+    except Exception as e:
+        print(f"  ⚠️  NSFW check error (allowing through): {e}")
+        return False, "unknown", 0
+
 def _init_db():
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("""
@@ -658,6 +687,18 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             image_b64 = body.get("image")  # base64 data URI
             if not image_b64:
                 return self._error("Missing image", 400)
+
+            # ── NSFW check ────────────────────────────────────────────────────
+            print("  🔍 Running content safety check…")
+            is_nsfw, nsfw_label, nsfw_score = check_nsfw(image_b64)
+            if is_nsfw:
+                print(f"  🚫 NSFW content detected (label={nsfw_label}, score={nsfw_score:.2f}) — rejecting")
+                return self._json_response({
+                    "error": "This image can't be used. Please upload a photo of your pet.",
+                    "nsfw": True
+                }, 400)
+            print(f"  ✅ Content check passed (label={nsfw_label}, score={nsfw_score:.2f})")
+            # ─────────────────────────────────────────────────────────────────
 
             print("  🐾 Removing background locally via rembg…")
             t0 = time.time()
