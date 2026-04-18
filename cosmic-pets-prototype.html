@@ -717,7 +717,7 @@
     <span class="upload-icon">🐾</span>
     <h3>Drop your pet's photo here</h3>
     <p>JPG or PNG · Max 10MB · Clear photo, facing camera<br>works best</p>
-    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose photo</button>
+    <button class="upload-btn" onclick="canGenerate() ? document.getElementById('file-input').click() : showPaywall()">Choose photo</button>
     <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg">
   </div>
 
@@ -1392,7 +1392,11 @@ uploadZone.addEventListener('drop', e => {
   e.preventDefault(); uploadZone.classList.remove('dragover');
   if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
-uploadZone.addEventListener('click', e => { if(e.target.tagName!=='BUTTON') fileInput.click(); });
+uploadZone.addEventListener('click', e => {
+  if(e.target.tagName==='BUTTON') return; // button has its own handler
+  if(!canGenerate()) { showPaywall(); return; }
+  fileInput.click();
+});
 fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
 
 let lastUploadedFile = null;
@@ -2028,6 +2032,11 @@ window.hideQualityHint = function() {
   const hint = document.getElementById('quality-hint');
   if (hint) hint.style.display = 'none';
 };
+
+// ── INIT: update pips on page load so they reflect localStorage immediately ──
+updateAttemptPips('upload');
+updateAttemptPips('vibe');
+updateAttemptPips('result');
 
 </script>
 
