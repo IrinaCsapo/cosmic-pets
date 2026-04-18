@@ -305,6 +305,9 @@
     }
 
     .result-actions { display: flex; flex-direction: column; gap: 11px; width: 100%; }
+    .result-actions-row { display: flex; gap: 11px; width: 100%; }
+    .result-actions-row .btn-primary,
+    .result-actions-row .btn-secondary { flex: 1; }
     .btn-primary {
       display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg, var(--purple), var(--pink));
@@ -880,9 +883,11 @@
       <button class="qh-dismiss" onclick="document.getElementById('quality-hint').style.display='none'" title="Dismiss">✕</button>
     </div>
     <div class="result-actions">
-      <button class="btn-primary" id="download-btn">⬇ Download portrait</button>
+      <div class="result-actions-row">
+        <button class="btn-primary" id="download-btn">⬇ Download</button>
+        <button class="btn-secondary" id="again-btn">✦ Create another</button>
+      </div>
       <button class="btn-share" id="share-btn">✦ Share portrait</button>
-      <button class="btn-secondary" id="again-btn">✦ Create another portrait</button>
     </div>
     <div class="upsell-card" id="upsell-card" style="display:none;">
       <h3>✦ Want more cosmic portraits?</h3>
@@ -1140,6 +1145,14 @@ function starsOnCanvas(ctx, w, h, n, colorPrefix) {
     ctx.beginPath(); ctx.arc(Math.random()*w,Math.random()*h,Math.random()*1.4+0.2,0,Math.PI*2);
     ctx.fillStyle=colorPrefix+(Math.random()*0.7+0.3)+')'; ctx.fill();
   }
+}
+
+// ── DEV RESET — visit ?reset to wipe tries (for testing) ──
+if (new URLSearchParams(window.location.search).has('reset')) {
+  localStorage.removeItem('cp_free_left');
+  localStorage.removeItem('cp_paid_token');
+  localStorage.removeItem('cp_paid_credits');
+  window.history.replaceState({}, '', '/');
 }
 
 // ── STATE ──
