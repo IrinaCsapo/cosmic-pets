@@ -648,6 +648,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         elif self.path == "/" or self.path == "" or self.path.startswith("/?"):
             self.path = "/cosmic-pets-prototype.html"
             super().do_GET()
+        elif self.path == "/reset":
+            self.path = "/cosmic-pets-prototype.html"
+            super().do_GET()
         else:
             super().do_GET()
 
