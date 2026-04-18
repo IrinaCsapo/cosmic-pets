@@ -159,8 +159,8 @@ VIBE_PROMPTS = {
         "The portal moon surface is deep indigo, cold silver-grey, and near-black — dark mineral mapping with silver crater rims and icy indigo plains. "
         "Deep navy and black palette. Cosmic starry deep space. "
         "A ringed planet in the background. A distant black hole with a glowing crimson and deep violet accretion disk. "
-        "Ancient Persepolis ruins emerging from darkness — moonlit stone columns, lamassu guardian statues with winged animal and feline bodies, carved gryphon friezes half-swallowed by shadow and indigo light. "
-        "A murder of crows — some perched on ruins, others in flight against the dark sky. "
+        "Ancient Persepolis ruins emerging from the corners of the image, in the darkness — moonlit stone columns, lamassu guardian statues with winged animal and feline bodies, carved gryphon friezes half-swallowed by shadow and indigo light. "
+        "A murder of crows — some perched on the circular portal, others in flight against the dark sky. "
         "Gothic ornamental motifs — wrought iron curls, thorn vines, iron candelabras. "
         "Garland of black roses, red poppy flowers, deep crimson peonies, dried black botanicals, and dark burgundy dahlias. "
         "Black flowers and red botanicals. Mysterious low light. Silver and indigo accents. "
@@ -194,7 +194,8 @@ VIBE_PROMPTS = {
         "A small rocket ship taking off in the distance. "
         "Garland of crystals and flowers — white quartz points, split-open rainbow geodes, amethyst clusters, tourmaline shards woven with vivid electric-coloured blooms, 80% crystals 20% flowers. Buzzing with electricity. "
         "Large freestanding crystal formations and geode slices emerging from the scene edges. "
-        "Ancient white-purple dreamy crystal columns emerging from the bottom."
+        "Ancient white-purple dreamy crystal columns emerging from the bottom. "
+        "Fine geometric grid lines radiating outward from light sources across the background — thin precise ruled diagonals and horizontals crossing at glowing dot intersections, like cosmic blueprints or technical drawings of the universe. Futurist avant-garde line work in electric gold and white, overlaid on the scene with sacred geometry precision."
     ),
     "ocean": (
         "The portal moon surface is deep ocean teal, midnight blue, and bioluminescent aquamarine, like a water world seen from space, dark oceanic depths with glowing teal patches. "
@@ -206,7 +207,8 @@ VIBE_PROMPTS = {
     "abstract": (
         "Bold overlapping portals containing multiple worlds, maximalist layered collage, high contrast vivid multicolour, and graphic energy. Geometric shapes are layered in a multi-verse graphic background around the main middle portal. "
         "Stripes and geometric patterned circles, surrounded by multi-universes and portals, soft graphic moons in the sky. Ringed planets. Alien plants, graphic comets in the distance. "
-        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets."
+        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets. "
+        "Background overlaid with fine geometric grid lines radiating from multiple light sources — thin ruled diagonals and horizontals at exact angles, glowing coloured dot intersections in deep teal and gold. Blueprint-like sacred geometry, avant-garde futurist line work mapping the cosmos like a technical diagram of infinite space."
     ),
 }
 
