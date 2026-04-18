@@ -151,32 +151,34 @@
     .example-item canvas { width: 100%; height: 100%; display: block; }
 
     .slow-art-card {
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      margin-top: 32px; padding: 8px 24px 28px; width: 100%; max-width: 400px;
+      display: flex; flex-direction: row; align-items: center; gap: 16px;
+      margin-top: 32px; width: 100%; max-width: 480px;
       text-decoration: none; color: var(--text);
     }
     .slow-art-card:hover .slow-art-link { opacity: 0.75; }
+    .slow-art-img {
+      width: 100px; flex-shrink: 0; border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3); display: block;
+    }
+    .slow-art-text {
+      display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+    }
     .slow-art-badge {
-      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px;
       color: var(--gold); background: rgba(255,213,79,0.1);
       border: 1px solid rgba(255,213,79,0.25); border-radius: 20px;
-      padding: 4px 12px; margin-bottom: 14px;
+      padding: 3px 10px; margin-bottom: 8px;
     }
     .slow-art-headline {
-      font-size: 1.15rem; font-weight: 700; color: var(--text);
-      margin-bottom: 10px; line-height: 1.3;
+      font-size: 1rem; font-weight: 700; color: var(--text);
+      margin-bottom: 6px; line-height: 1.3;
     }
     .slow-art-body {
-      font-size: 0.85rem; color: var(--muted); line-height: 1.6;
-      margin-bottom: 18px; max-width: 300px;
-    }
-    .slow-art-img {
-      width: 100%; max-width: 280px; border-radius: 16px;
-      margin-bottom: 18px; display: block;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+      margin-bottom: 10px;
     }
     .slow-art-link {
-      font-size: 0.85rem; font-weight: 600; color: var(--pink);
+      font-size: 0.8rem; font-weight: 600; color: var(--pink);
     }
 
     /* ══════════════════════════════════
@@ -803,11 +805,13 @@
   </div>
 
   <a class="slow-art-card" href="https://cosmicpets.co.uk" target="_blank">
-    <span class="slow-art-badge">✦ Made by humans</span>
-    <p class="slow-art-headline">Prefer it made by hand?</p>
     <img class="slow-art-img" src="/slow-art-preview.avif" alt="Handmade cosmic pet portrait collage" loading="lazy">
-    <p class="slow-art-body">Some things are worth the wait. Our resident artist creates magical bespoke cosmic portraits, one pet at a time.</p>
-    <span class="slow-art-link">See handmade portraits →</span>
+    <div class="slow-art-text">
+      <span class="slow-art-badge">✦ Made by humans</span>
+      <p class="slow-art-headline">Prefer it made by hand?</p>
+      <p class="slow-art-body">Some things are worth the wait. Our resident artist creates magical bespoke cosmic portraits, one pet at a time.</p>
+      <span class="slow-art-link">See handmade portraits →</span>
+    </div>
   </a>
 </section>
 
