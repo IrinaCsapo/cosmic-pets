@@ -152,13 +152,10 @@
 
     .slow-art-card {
       display: flex; flex-direction: column; align-items: center; text-align: center;
-      margin-top: 32px; padding: 28px 24px; width: 100%; max-width: 400px;
-      background: linear-gradient(135deg, rgba(123,47,190,0.12), rgba(224,64,251,0.07));
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+      margin-top: 32px; padding: 8px 24px 28px; width: 100%; max-width: 400px;
       text-decoration: none; color: var(--text);
-      transition: border-color 0.2s, background 0.2s;
     }
-    .slow-art-card:hover { border-color: rgba(255,255,255,0.22); background: linear-gradient(135deg, rgba(123,47,190,0.18), rgba(224,64,251,0.1)); }
+    .slow-art-card:hover .slow-art-link { opacity: 0.75; }
     .slow-art-badge {
       font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;
       color: var(--gold); background: rgba(255,213,79,0.1);
@@ -172,6 +169,11 @@
     .slow-art-body {
       font-size: 0.85rem; color: var(--muted); line-height: 1.6;
       margin-bottom: 18px; max-width: 300px;
+    }
+    .slow-art-img {
+      width: 100%; max-width: 280px; border-radius: 16px;
+      margin-bottom: 18px; display: block;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
     }
     .slow-art-link {
       font-size: 0.85rem; font-weight: 600; color: var(--pink);
@@ -803,6 +805,7 @@
   <a class="slow-art-card" href="https://cosmicpets.co.uk" target="_blank">
     <span class="slow-art-badge">✦ Made by humans</span>
     <p class="slow-art-headline">Prefer it made by hand?</p>
+    <img class="slow-art-img" src="/slow-art-preview.avif" alt="Handmade cosmic pet portrait collage" loading="lazy">
     <p class="slow-art-body">Some things are worth the wait. Our resident artist creates magical bespoke cosmic portraits, one pet at a time.</p>
     <span class="slow-art-link">See handmade portraits →</span>
   </a>
