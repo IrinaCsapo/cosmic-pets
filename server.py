@@ -207,8 +207,7 @@ VIBE_PROMPTS = {
     "abstract": (
         "Bold overlapping portals containing multiple worlds, maximalist layered collage, high contrast vivid multicolour, and graphic energy. Geometric shapes are layered in a multi-verse graphic background around the main middle portal. "
         "Stripes and geometric patterned circles, surrounded by multi-universes and portals, soft graphic moons in the sky. Ringed planets. Alien plants, graphic comets in the distance. "
-        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets. "
-        "Long-exposure star trail lines radiate outward from light sources across the background — thin glowing light streaks crossing at luminous coloured dot intersections in deep teal and gold, like astrophotography constellation maps overlaid on the scene. Cosmic sacred geometry etched in light."
+        "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets."
     ),
 }
 
