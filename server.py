@@ -170,7 +170,7 @@ VIBE_PROMPTS = {
         "The portal moon surface glows in warm amber gold, and soft sky blue with golden highlands, luminous amber mineral plains, and warm regal tones. "
         "Warm gold and sky blue palette. Ancient ringed planet. A silver warm moon. "
         "Warm nebula clouds. Regal and timeless atmosphere. "
-        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged guardian statues, carved feline animals friezes glowing in the dark. No human bodies, just carved animals. "
+        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged guardian statues, carved feline animals friezes glowing in the dark. No human bodies, just carved animals. No people, no human figures. "
         "Birds of paradise with iridescent teal and gold tail feathers fully displayed in the scene. "
         "Birds of paradise flowers and birds in flight. "
         "A distant black hole with a luminous golden and amber accretion disk. "
@@ -181,8 +181,8 @@ VIBE_PROMPTS = {
         "The portal moon surface is soft rose pink, blush lavender, and pale peach — gentle dreamy pastel mineral mapping. "
         "Soft pinks and mauves in the sky. Starry soft background overlayed on blue skies with white soft fluffy clouds. Ancient ringed planets. Cherry blossom petals scattered. Dreamy pastel cosmic light. "
         "A soft pink moon in the background. Butterflies and hummingbirds. "
-        "Peacocks with iridescent tail feathers fanned open. "
-        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged guardian statues, carved feline animal friezes glowing in the dark. No human bodies, just carved animals. "
+        "Peacocks with iridescent tail feathers fanned open, emerging from the bottom. "
+        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged guardian statues, carved feline animal friezes glowing in the dark. No human bodies, just carved animals. No people, no human figures. "
         "Lush tropical greenery — giant monstera leaves, banana palms, bird-of-paradise plants, ferns cascading. "
         "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
@@ -194,14 +194,14 @@ VIBE_PROMPTS = {
         "A small rocket ship taking off in the distance. "
         "Garland of crystals and flowers — white quartz points, split-open rainbow geodes, amethyst clusters, tourmaline shards woven with vivid electric-coloured blooms, 80% crystals 20% flowers. Buzzing with electricity. "
         "Large freestanding crystal formations and geode slices emerging from the scene edges. "
-        "Ancient white-purple dreamy crystal palace emerging from the bottom."
+        "Ancient white-purple dreamy crystal columns emerging from the bottom."
     ),
     "ocean": (
         "The portal moon surface is deep ocean teal, midnight blue, and bioluminescent aquamarine, like a water world seen from space, dark oceanic depths with glowing teal patches. "
         "Deep teal and midnight blue. One ringed moon in the sky. Bioluminescent jellyfish. Coral forms. Tropical fish. Underwater and cosmic depth combined. "
         "A space whale floating gently in the distance, with tropical-coloured jellyfish. "
         "Garland is made entirely of ocean life — colourful corals, staghorn coral, sea fans, sea anemones, kelp fronds, and vivid sea urchins. No flowers. Tropical reef fish — clownfish, angelfish, lionfish — swimming freely throughout the scene. "
-        "No flowers, no cherry blossoms, no botanical plants, no terrestrial vegetation, no mermaids, no vehicles, no rockets, no technology, no people. Some ancient carved animal ruins in the bottom, deep teal and blue coloured."
+        "No flowers, no cherry blossoms, no botanical plants, no terrestrial vegetation, no mermaids, no vehicles, no rockets, no technology, no people. Some ancient carved animal ruins in the bottom, deep teal and blue coloured. No people, no human figures."
     ),
     "abstract": (
         "Bold overlapping portals containing multiple worlds, maximalist layered collage, high contrast vivid multicolour, and graphic energy. Geometric shapes are layered in a multi-verse graphic background around the main middle portal. "
