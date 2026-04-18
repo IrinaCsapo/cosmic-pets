@@ -319,6 +319,13 @@
       cursor: pointer; transition: all 0.2s;
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); }
+    .btn-share {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(255,255,255,0.07); color: var(--gold); font-weight: 700; font-size: 1rem;
+      padding: 15px; border-radius: 14px; border: 1px solid rgba(255,213,79,0.35);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-share:hover { background: rgba(255,213,79,0.1); border-color: rgba(255,213,79,0.6); }
 
     .upsell-card {
       width: 100%;
@@ -717,7 +724,7 @@
     <span class="upload-icon">🐾</span>
     <h3>Drop your pet's photo here</h3>
     <p>JPG or PNG · Max 10MB · Clear photo, facing camera<br>works best</p>
-    <button class="upload-btn" onclick="canGenerate() ? document.getElementById('file-input').click() : showPaywall()">Choose photo</button>
+    <button class="upload-btn" id="choose-photo-btn">Choose photo</button>
     <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg">
   </div>
 
@@ -874,6 +881,7 @@
     </div>
     <div class="result-actions">
       <button class="btn-primary" id="download-btn">⬇ Download portrait</button>
+      <button class="btn-share" id="share-btn">✦ Share portrait</button>
       <button class="btn-secondary" id="again-btn">✦ Create another portrait</button>
     </div>
     <div class="upsell-card" id="upsell-card" style="display:none;">
@@ -1392,8 +1400,13 @@ uploadZone.addEventListener('drop', e => {
   e.preventDefault(); uploadZone.classList.remove('dragover');
   if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
+document.getElementById('choose-photo-btn').addEventListener('click', e => {
+  e.stopPropagation(); // don't bubble to zone
+  if(!canGenerate()) { showPaywall(); return; }
+  fileInput.click();
+});
 uploadZone.addEventListener('click', e => {
-  if(e.target.tagName==='BUTTON') return; // button has its own handler
+  if(e.target.closest('#choose-photo-btn')) return; // button has its own handler
   if(!canGenerate()) { showPaywall(); return; }
   fileInput.click();
 });
@@ -1867,6 +1880,44 @@ async function startProcessing() {
       showToast(`Your ${vibe.name} portrait downloaded! ✦`);
     };
   }
+
+  // ── SHARE BUTTON ──
+  const shareBtn = document.getElementById('share-btn');
+  shareBtn.onclick = async () => {
+    try {
+      const response = await fetch(blobUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `cosmic-pet-${vibe.id}.jpg`, { type: 'image/jpeg' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Mobile native share sheet — picks up WhatsApp, Instagram, iMessage, etc.
+        await navigator.share({
+          title: 'My Cosmic Pet Portrait ✦',
+          text: 'I made this cosmic portrait of my pet at cosmicpets.love',
+          files: [file]
+        });
+      } else if (navigator.share) {
+        // Share API exists but can't share files — share the URL instead
+        await navigator.share({
+          title: 'My Cosmic Pet Portrait ✦',
+          text: 'I made this cosmic portrait of my pet at cosmicpets.love ✦',
+          url: 'https://www.cosmicpets.love'
+        });
+      } else {
+        // Desktop fallback — copy image to clipboard
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/jpeg': blob })
+          ]);
+          showToast('Portrait copied to clipboard — paste it anywhere! ✦', 4000);
+        } catch {
+          showToast('Right-click the portrait and choose "Save image" to share it ✦', 4000);
+        }
+      }
+    } catch(e) {
+      if (e.name !== 'AbortError') showToast('Could not share — try downloading instead ✦', 3000);
+    }
+  };
 }
 
 function addPortraitDetails(ctx, W, H, vibe) {
