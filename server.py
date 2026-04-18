@@ -181,8 +181,8 @@ VIBE_PROMPTS = {
         "The portal moon surface is soft rose pink, blush lavender, and pale peach — gentle dreamy pastel mineral mapping. "
         "Soft pinks and mauves in the sky. Starry soft background overlayed on blue skies with white soft fluffy clouds. Ancient ringed planets. Cherry blossom petals scattered. Dreamy pastel cosmic light. "
         "A soft pink moon in the background. Butterflies and hummingbirds. "
-        "Peacocks with iridescent tail feathers fanned open, emerging from the bottom. "
-        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged guardian statues, carved feline animal friezes glowing in the dark. No human bodies, just carved animals. No people, no human figures. No human bodies, no torsos, no limbs, no figures of any kind — only carved animal heads and paws on columns. "
+        "Peacocks with iridescent tail feathers fanned open, emerging from the corners of the image. "
+        "Ancient Persepolis ruins growing from the bottom — teal-lit stone columns, lamassu winged animal statues, carved feline animal friezes glowing in the dark. No human bodies, just carved animals. No people, no human figures. No human bodies, no torsos, no limbs, no figures of any kind — only carved animal heads and paws on columns. "
         "Lush tropical greenery — giant monstera leaves, banana palms, bird-of-paradise plants, ferns cascading. "
         "No mermaids, no vehicles, no rockets, no technology, no people."
     ),
