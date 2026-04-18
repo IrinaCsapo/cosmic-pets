@@ -884,8 +884,8 @@
     </div>
     <div class="result-actions">
       <div class="result-actions-row">
-        <button class="btn-primary" id="download-btn">⬇ Download</button>
-        <button class="btn-secondary" id="again-btn">✦ Create another</button>
+        <button class="btn-secondary" id="download-btn">✦ Save portrait</button>
+        <button class="btn-primary" id="again-btn">✦ Create another</button>
       </div>
       <button class="btn-share" id="share-btn">✦ Share portrait</button>
     </div>
@@ -1878,13 +1878,13 @@ async function startProcessing() {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const dlBtn = document.getElementById('download-btn');
   if (isIOS) {
-    dlBtn.textContent = '📸 Save to Camera Roll';
+    dlBtn.textContent = '✦ Save portrait';
     dlBtn.onclick = () => {
       window.open(blobUrl, '_blank');
       showToast('Long-press the image and tap "Save to Photos" ✦', 5000);
     };
   } else {
-    dlBtn.textContent = '⬇ Download portrait';
+    dlBtn.textContent = '✦ Save portrait';
     dlBtn.onclick = () => {
       const link = document.createElement('a');
       link.download = `cosmic-pets-${vibe.id}.jpg`;
@@ -1906,14 +1906,14 @@ async function startProcessing() {
         // Mobile native share sheet — picks up WhatsApp, Instagram, iMessage, etc.
         await navigator.share({
           title: 'My Cosmic Pet Portrait ✦',
-          text: 'I made this cosmic portrait of my pet at cosmicpets.love',
+          text: 'I made this cosmic portrait of my pet at https://www.cosmicpets.love',
           files: [file]
         });
       } else if (navigator.share) {
         // Share API exists but can't share files — share the URL instead
         await navigator.share({
           title: 'My Cosmic Pet Portrait ✦',
-          text: 'I made this cosmic portrait of my pet at cosmicpets.love ✦',
+          text: 'I made this cosmic portrait of my pet at https://www.cosmicpets.love ✦',
           url: 'https://www.cosmicpets.love'
         });
       } else {
