@@ -120,8 +120,18 @@ def _stripe_request(method, endpoint, data=None):
     req.add_header("Authorization", f"Bearer {STRIPE_SECRET_KEY}")
     if body:
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", errors="replace")
+        try:
+            err_body = json.loads(raw)
+            stripe_msg = err_body.get("error", {}).get("message", raw)
+        except Exception:
+            stripe_msg = raw
+        print(f"  ❌ Stripe {method} {endpoint} → HTTP {e.code}: {stripe_msg}")
+        raise RuntimeError(f"Stripe error ({e.code}): {stripe_msg}") from None
 
 _init_db()
 
@@ -791,6 +801,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             body = self._read_json()
             pack = str(body.get("pack", "12"))
             price_id = PACK_PRICES.get(pack)
+            print(f"  💳 Checkout requested: pack={pack} price_id={price_id!r} key_prefix={STRIPE_SECRET_KEY[:8] if STRIPE_SECRET_KEY else 'MISSING'}...")
             if not price_id:
                 self._json_response({"error": "Invalid pack or Stripe not configured"}, 400)
                 return
