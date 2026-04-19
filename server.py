@@ -646,6 +646,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         elif self.path == "/reset":
             self.path = "/cosmic-pets-prototype.html"
             super().do_GET()
+        elif self.path == "/cookies":
+            self.path = "/cookies.html"
+            super().do_GET()
         else:
             super().do_GET()
 
