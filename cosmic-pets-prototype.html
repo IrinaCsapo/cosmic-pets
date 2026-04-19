@@ -122,20 +122,63 @@
     .tip-item.bad .tip-label { color: #ff7f7f; }
     .tip-item p { color: var(--muted); margin: 0; }
 
-    /* Photo tips — inline hero chips */
-    .hero-tips {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 8px; margin-top: 14px;
+    /* Photo tips link */
+    .photo-tips-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; font-size: 0.82rem; color: var(--muted);
+      background: none; border: none; cursor: pointer;
+      text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2);
+      text-underline-offset: 3px; transition: color 0.2s;
+      font-family: inherit;
     }
-    .hero-tip {
-      display: flex; align-items: center; gap: 5px;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 20px; padding: 5px 12px;
-      font-size: 0.76rem; color: var(--muted); white-space: nowrap;
+    .photo-tips-link:hover { color: var(--text); }
+
+    /* Photo guide modal */
+    #photo-guide-modal {
+      position: fixed; inset: 0; z-index: 950;
+      background: rgba(8,8,24,0.92); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 24px;
     }
-    .hero-tip .tip-emoji { font-size: 0.9rem; }
-    .hero-tip.good { border-color: rgba(127,255,154,0.20); color: rgba(200,255,210,0.85); }
-    .hero-tip.bad  { border-color: rgba(255,127,127,0.18); color: rgba(255,200,200,0.75); }
+    #photo-guide-modal.open { opacity: 1; pointer-events: all; }
+    .pgm-box {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 24px; padding: 28px 24px 24px;
+      max-width: 480px; width: 100%; position: relative;
+    }
+    .pgm-close {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.1rem; cursor: pointer; line-height: 1;
+      transition: color 0.15s;
+    }
+    .pgm-close:hover { color: var(--text); }
+    .pgm-title {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--text);
+    }
+    .pgm-subtitle {
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5;
+    }
+    .pgm-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pgm-img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+      border-radius: 14px; display: block;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .pgm-footer {
+      margin-top: 18px; text-align: center;
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .pgm-footer button {
+      background: none; border: none; color: var(--blue);
+      font-size: 0.75rem; cursor: pointer; font-family: inherit;
+      text-decoration: underline; text-underline-offset: 2px;
+    }
 
     .examples-label {
       margin-top: 36px; margin-bottom: 14px;
@@ -745,13 +788,9 @@
   <div class="hero">
     <h1>Turn your pet into<br>a cosmic masterpiece</h1>
     <p>Upload a clear photo — facing the camera, well-lit.<br>We'll handle the rest.</p>
-    <div class="hero-tips">
-      <span class="hero-tip good"><span class="tip-emoji">☀️</span> Good lighting</span>
-      <span class="hero-tip good"><span class="tip-emoji">🐾</span> Pet fills the frame</span>
-      <span class="hero-tip good"><span class="tip-emoji">🎯</span> Facing forward</span>
-      <span class="hero-tip bad"><span class="tip-emoji">🌑</span> No dark/dim photos</span>
-      <span class="hero-tip bad"><span class="tip-emoji">🌿</span> No busy backgrounds</span>
-    </div>
+    <button class="photo-tips-link" onclick="openPhotoGuide()">
+      📸 How to position your pet for best results
+    </button>
   </div>
   <div class="upload-zone" id="upload-zone">
     <span class="upload-icon">🐾</span>
@@ -2182,6 +2221,22 @@ function showScreen(name) {
   window.scrollTo(0,0);
 }
 
+// ── Photo guide modal ──
+window.openPhotoGuide = function() {
+  document.getElementById('photo-guide-modal').classList.add('open');
+};
+window.closePhotoGuide = function() {
+  document.getElementById('photo-guide-modal').classList.remove('open');
+};
+// Close on backdrop click
+document.getElementById('photo-guide-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePhotoGuide();
+});
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closePhotoGuide(); closeMenu(); }
+});
+
 // ── Burger menu ──
 window.openMenu = function() {
   document.getElementById('nav-overlay').classList.add('open');
@@ -2266,6 +2321,24 @@ updateAttemptPips('result');
 
 <!-- Cropper.js — must load before the module executes (modules are deferred) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<!-- ═══════ PHOTO GUIDE MODAL ═══════ -->
+<div id="photo-guide-modal" onclick="e => { if(e.target===this) closePhotoGuide(); }">
+  <div class="pgm-box">
+    <button class="pgm-close" onclick="closePhotoGuide()">✕</button>
+    <p class="pgm-title">✦ Position your pet like this</p>
+    <p class="pgm-subtitle">Face centred in the circle, eyes visible, good light. Head and chest is ideal — not too far, not too close.</p>
+    <div class="pgm-grid">
+      <img class="pgm-img" src="/photo-guide/guide-dog.png"   alt="Dog example">
+      <img class="pgm-img" src="/photo-guide/guide-cat.png"   alt="Cat example">
+      <img class="pgm-img" src="/photo-guide/guide-puppy.png" alt="Puppy example">
+      <img class="pgm-img" src="/photo-guide/guide-bird.png"  alt="Bird example">
+    </div>
+    <p class="pgm-footer">
+      Want more tips? <button onclick="closePhotoGuide(); navTo('photo-guide')">See the full photo guide →</button>
+    </p>
+  </div>
+</div>
 
 <!-- ═══════ BURGER MENU OVERLAY ═══════ -->
 <div id="nav-overlay">
