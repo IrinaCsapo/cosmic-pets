@@ -1247,6 +1247,30 @@ window.addEventListener('touchmove', e => {
   targetMY = (t.clientY / window.innerHeight - 0.5) * 2;
 }, { passive: true });
 
+// Device orientation — makes the background respond to phone tilt
+let orientationBase = null;
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma === null) return;
+  // Calibrate on first reading so the initial hold position = neutral
+  if (!orientationBase) orientationBase = { beta: e.beta, gamma: e.gamma };
+  const dx = (e.gamma - orientationBase.gamma) / 30; // left-right tilt
+  const dy = (e.beta  - orientationBase.beta)  / 30; // front-back tilt
+  targetMX = Math.max(-1, Math.min(1, dx));
+  targetMY = Math.max(-1, Math.min(1, dy));
+}, { passive: true });
+
+// iOS 13+ requires permission for DeviceOrientationEvent
+// Request it on first touch so it just works without a visible prompt
+let orientationPermissionRequested = false;
+window.addEventListener('touchstart', () => {
+  if (orientationPermissionRequested) return;
+  orientationPermissionRequested = true;
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().catch(() => {});
+  }
+}, { once: true, passive: true });
+
 // ── STARS BG ──
 const sc = document.getElementById('stars-canvas');
 const sCtx = sc.getContext('2d');
@@ -1344,9 +1368,9 @@ function spawnShootingStar() {
     color: ['255,255,255','255,220,255','200,220,255'][Math.floor(Math.random()*3)]
   });
 }
-// Fire one immediately, then every 15s
+// Fire one immediately, then every 7s
 spawnShootingStar();
-setInterval(spawnShootingStar, 15000);
+setInterval(spawnShootingStar, 7000);
 
 // ── NAV MENU STARS ──
 const navSc = document.getElementById('nav-stars-canvas');
