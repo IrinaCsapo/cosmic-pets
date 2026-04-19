@@ -569,7 +569,10 @@
     /* Menu overlay */
     #nav-overlay {
       position: fixed; inset: 0; z-index: 900;
-      background: rgba(8,8,24,0.97);
+      background: radial-gradient(ellipse at 20% 30%, rgba(123,47,190,0.25) 0%, transparent 55%),
+                  radial-gradient(ellipse at 80% 70%, rgba(224,64,251,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 60% 15%, rgba(0,188,212,0.10) 0%, transparent 45%),
+                  rgba(8,8,24,0.97);
       backdrop-filter: blur(16px);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       opacity: 0; pointer-events: none;
@@ -726,7 +729,7 @@
 <!-- ═══════ SCREEN 1: UPLOAD ═══════ -->
 <section class="screen" id="screen-upload">
   <div class="header">
-    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <a href="/" class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
         <span class="attempts-pip" id="pip-1">✦</span>
@@ -814,7 +817,7 @@
 <!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
-    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <a href="/" class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
         <span class="attempts-pip" id="vibe-pip-1">✦</span>
@@ -888,7 +891,7 @@
 <!-- ═══════ SCREEN 4: RESULT ═══════ -->
 <section class="screen" id="screen-result" hidden>
   <div class="header">
-    <div class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></div>
+    <a href="/" class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="attempts-pill">
         <span class="attempts-pip" id="res-pip-1">✦</span>
@@ -1231,6 +1234,19 @@ function totalCreditsDisplay() {
   }
 })();
 
+// ── PARALLAX ──
+let mouseX = 0, mouseY = 0, targetMX = 0, targetMY = 0;
+window.addEventListener('mousemove', e => {
+  targetMX = (e.clientX / window.innerWidth  - 0.5) * 2;  // -1 → +1
+  targetMY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+// Touch support
+window.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  targetMX = (t.clientX / window.innerWidth  - 0.5) * 2;
+  targetMY = (t.clientY / window.innerHeight - 0.5) * 2;
+}, { passive: true });
+
 // ── STARS BG ──
 const sc = document.getElementById('stars-canvas');
 const sCtx = sc.getContext('2d');
@@ -1309,48 +1325,135 @@ function resizeStars(){
 resizeStars();
 window.addEventListener('resize', resizeStars);
 
+// ── SHOOTING STARS ──
+const shootingStars = [];
+function spawnShootingStar() {
+  // Random angle between -60° and +60° from horizontal (so they always travel across the sky)
+  const angle = (Math.random() * 120 - 60) * Math.PI / 180;
+  const speed = Math.random() * 8 + 10;
+  const startX = Math.random() * sc.width;
+  const startY = Math.random() * sc.height * 0.6; // top 60% of screen
+  shootingStars.push({
+    x: startX, y: startY,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    len: Math.random() * 120 + 80,
+    alpha: 1,
+    fade: Math.random() * 0.012 + 0.008,
+    width: Math.random() * 1.2 + 0.6,
+    color: ['255,255,255','255,220,255','200,220,255'][Math.floor(Math.random()*3)]
+  });
+}
+// Fire one immediately, then every 15s
+spawnShootingStar();
+setInterval(spawnShootingStar, 15000);
+
+// ── NAV MENU STARS ──
+const navSc = document.getElementById('nav-stars-canvas');
+const navCtx = navSc.getContext('2d');
+let navStars = [];
+function buildNavStars() {
+  navSc.width = window.innerWidth; navSc.height = window.innerHeight;
+  navStars = [];
+  for (let i = 0; i < 120; i++) {
+    navStars.push({
+      x: Math.random() * navSc.width,
+      y: Math.random() * navSc.height,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      rgb: ['255,255,255','200,190,255','190,210,255','255,200,230'][Math.floor(Math.random()*4)]
+    });
+  }
+}
+buildNavStars();
+window.addEventListener('resize', buildNavStars);
+function drawNavStars() {
+  navCtx.clearRect(0, 0, navSc.width, navSc.height);
+  navStars.forEach(s => {
+    navCtx.beginPath(); navCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    navCtx.fillStyle = `rgba(${s.rgb},${s.a})`; navCtx.fill();
+  });
+}
+drawNavStars();
+
 (function anim(){
+  // Smooth parallax lerp
+  mouseX += (targetMX - mouseX) * 0.05;
+  mouseY += (targetMY - mouseY) * 0.05;
+
   sCtx.clearRect(0,0,sc.width,sc.height);
-  // Nebula layer (static, pre-rendered)
-  sCtx.drawImage(nebCanvas,0,0);
+
+  // Nebula layer — slightly shifted for depth
+  sCtx.save();
+  sCtx.translate(mouseX * 8, mouseY * 8);
+  sCtx.drawImage(nebCanvas, -8, -8, sc.width + 16, sc.height + 16);
+  sCtx.restore();
 
   stars.forEach(s=>{
+    // Parallax offset by layer depth
+    const depth = s.layer === 0 ? 4 : s.layer === 1 ? 10 : 18;
+    const px = s.x + mouseX * depth;
+    const py = s.y + mouseY * depth;
+
     // Slow drift
     s.x+=s.dx; s.y+=s.dy;
     if(s.x<-4) s.x=sc.width+4; else if(s.x>sc.width+4) s.x=-4;
     if(s.y<-4) s.y=sc.height+4; else if(s.y>sc.height+4) s.y=-4;
     s.a+=s.sp;
-    const alpha=(Math.sin(s.a)*0.55+0.45)*0.95+0.05;  // wider swing: ~0.05 dim → ~1.0 bright
+    const alpha=(Math.sin(s.a)*0.55+0.45)*0.95+0.05;
 
     if(s.layer===2){
-      // Glow halo
-      const halo=sCtx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*4);
+      const halo=sCtx.createRadialGradient(px,py,0,px,py,s.r*4);
       halo.addColorStop(0,`rgba(${s.rgb},${alpha*0.5})`);
       halo.addColorStop(1,'rgba(0,0,0,0)');
       sCtx.fillStyle=halo;
-      sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r*4,0,Math.PI*2); sCtx.fill();
-      // Cross glint lines
+      sCtx.beginPath(); sCtx.arc(px,py,s.r*4,0,Math.PI*2); sCtx.fill();
       const gl=s.r*6;
       for(let ang=0;ang<Math.PI;ang+=Math.PI/2){
         const a2=ang+s.glintAngle;
         const grd=sCtx.createLinearGradient(
-          s.x-Math.cos(a2)*gl, s.y-Math.sin(a2)*gl,
-          s.x+Math.cos(a2)*gl, s.y+Math.sin(a2)*gl
+          px-Math.cos(a2)*gl, py-Math.sin(a2)*gl,
+          px+Math.cos(a2)*gl, py+Math.sin(a2)*gl
         );
         grd.addColorStop(0,'rgba(255,255,255,0)');
         grd.addColorStop(0.5,`rgba(255,255,255,${alpha*0.55})`);
         grd.addColorStop(1,'rgba(255,255,255,0)');
         sCtx.strokeStyle=grd; sCtx.lineWidth=0.7;
         sCtx.beginPath();
-        sCtx.moveTo(s.x-Math.cos(a2)*gl,s.y-Math.sin(a2)*gl);
-        sCtx.lineTo(s.x+Math.cos(a2)*gl,s.y+Math.sin(a2)*gl);
+        sCtx.moveTo(px-Math.cos(a2)*gl,py-Math.sin(a2)*gl);
+        sCtx.lineTo(px+Math.cos(a2)*gl,py+Math.sin(a2)*gl);
         sCtx.stroke();
       }
     }
-    // Star dot (all layers)
-    sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sCtx.beginPath(); sCtx.arc(px,py,s.r,0,Math.PI*2);
     sCtx.fillStyle=`rgba(${s.rgb},${alpha})`; sCtx.fill();
   });
+
+  // Shooting stars
+  for (let i = shootingStars.length - 1; i >= 0; i--) {
+    const s = shootingStars[i];
+    const tailX = s.x - s.vx * (s.len / 12);
+    const tailY = s.y - s.vy * (s.len / 12);
+    const grad = sCtx.createLinearGradient(tailX, tailY, s.x, s.y);
+    grad.addColorStop(0, `rgba(${s.color},0)`);
+    grad.addColorStop(1, `rgba(${s.color},${s.alpha})`);
+    sCtx.beginPath();
+    sCtx.moveTo(tailX, tailY);
+    sCtx.lineTo(s.x, s.y);
+    sCtx.strokeStyle = grad;
+    sCtx.lineWidth = s.width;
+    sCtx.stroke();
+    // Tiny glow at head
+    const glow = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 3);
+    glow.addColorStop(0, `rgba(${s.color},${s.alpha * 0.8})`);
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    sCtx.fillStyle = glow;
+    sCtx.beginPath(); sCtx.arc(s.x, s.y, 3, 0, Math.PI * 2); sCtx.fill();
+    // Move and fade
+    s.x += s.vx; s.y += s.vy; s.alpha -= s.fade;
+    if (s.alpha <= 0) shootingStars.splice(i, 1);
+  }
+
   requestAnimationFrame(anim);
 })();
 
@@ -2142,6 +2245,7 @@ updateAttemptPips('result');
 
 <!-- ═══════ BURGER MENU OVERLAY ═══════ -->
 <div id="nav-overlay">
+  <canvas id="nav-stars-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <button class="nav-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
   <nav class="nav-links">
     <button class="nav-link" onclick="navTo('about')">About</button>
@@ -2149,7 +2253,9 @@ updateAttemptPips('result');
     <button class="nav-link" onclick="navTo('faq')">FAQs</button>
     <button class="nav-link" onclick="navTo('contact')">Contact</button>
   </nav>
-  <p class="nav-footer">✦ Cosmic Pets · Every pet deserves their moment</p>
+  <p class="nav-footer">✦ Cosmic Pets · Every pet deserves their moment<br>
+    <span style="margin-top:6px;display:inline-block;">Made with <span style="color:#E040FB;">♥</span> by <a href="https://irinacsapo.co.uk/" target="_blank" style="color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15);">Irina Csapo</a></span>
+  </p>
 </div>
 
 <!-- ═══════ SCREEN: ABOUT ═══════ -->
