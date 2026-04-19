@@ -463,6 +463,18 @@ def composite_images(pet_b64: str, bg_url: str, vibe: str = "") -> str:
                 pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
                 print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
 
+    # ── Pre-upscale small pets before compositing ───────────────────────────────
+    # If the shortest side is under 700px, upscale with LANCZOS first so the
+    # final scale-up to portal size has more pixels to work with — noticeably
+    # sharper result for low-res uploads without any extra API cost.
+    MIN_PET_PX = 700
+    short_side = min(pet.width, pet.height)
+    if short_side < MIN_PET_PX:
+        up = MIN_PET_PX / short_side
+        pre_w, pre_h = int(pet.width * up), int(pet.height * up)
+        pet = pet.resize((pre_w, pre_h), Image.LANCZOS)
+        print(f"  📐 Pre-upscale (×{up:.2f}): {pre_w}×{pre_h} — low-res input boosted")
+
     # Scale pet — max 90% of width, max 82% of height, aspect ratio strictly preserved
     scale = min((OUTPUT_W * 0.90) / pet.width, (OUTPUT_H * 0.82) / pet.height)
     pw, ph = int(pet.width * scale), int(pet.height * scale)
