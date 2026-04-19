@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Cookie Policy — Cosmic Pets</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --space: #080818;
+      --purple: #7B2FBE;
+      --pink: #E040FB;
+      --blue: #00BCD4;
+      --gold: #FFD54F;
+      --text: #E8E8F5;
+      --muted: #8888aa;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--space);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Stars */
+    #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    .page {
+      position: relative; z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 56px;
+    }
+    .logo img { height: 44px; width: auto; display: block; }
+    .back-link {
+      font-size: 0.85rem; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* Title */
+    .title-block { margin-bottom: 48px; }
+    .title-block h1 {
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-weight: 800; line-height: 1.2; margin-bottom: 12px;
+      background: linear-gradient(160deg, #fff 30%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .title-block p {
+      color: var(--muted); font-size: 0.95rem; line-height: 1.6;
+    }
+    .last-updated {
+      display: inline-block; margin-top: 12px;
+      font-size: 0.8rem; color: var(--muted);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 40px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .section h2 {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section h2 .icon {
+      font-size: 1.1rem;
+    }
+    .section p, .section li {
+      color: var(--muted); font-size: 0.92rem; line-height: 1.75;
+    }
+    .section ul {
+      margin: 10px 0 0 4px;
+      list-style: none;
+    }
+    .section ul li {
+      padding: 6px 0;
+      padding-left: 18px;
+      position: relative;
+    }
+    .section ul li::before {
+      content: '✦';
+      position: absolute; left: 0;
+      font-size: 0.55rem; color: var(--pink);
+      top: 10px;
+    }
+
+    /* Cookie table */
+    .cookie-table {
+      width: 100%; border-collapse: collapse; margin-top: 16px;
+      font-size: 0.88rem;
+    }
+    .cookie-table th {
+      text-align: left; padding: 10px 14px;
+      color: var(--text); font-weight: 600; font-size: 0.82rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .cookie-table td {
+      padding: 12px 14px; vertical-align: top;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .cookie-table tr:last-child td { border-bottom: none; }
+    .tag {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .tag-necessary { background: rgba(0,188,212,0.15); color: var(--blue); border: 1px solid rgba(0,188,212,0.3); }
+    .tag-none      { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+    /* Contact */
+    .contact-link {
+      color: var(--pink); text-decoration: none;
+    }
+    .contact-link:hover { text-decoration: underline; }
+
+    /* Footer */
+    .footer {
+      margin-top: 60px; text-align: center;
+      font-size: 0.8rem; color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+    }
+    .footer a { color: var(--muted); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<div class="page">
+
+  <div class="header">
+    <a href="/" class="logo">
+      <img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets">
+    </a>
+    <a href="/" class="back-link">← Back to Cosmic Pets</a>
+  </div>
+
+  <div class="title-block">
+    <h1>Cookie Policy</h1>
+    <p>We want to be clear about what data we collect and why. The short version: we keep it minimal and we respect your privacy.</p>
+    <span class="last-updated">Last updated: April 2026</span>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">🌐</span> What are cookies?</h2>
+    <p>Cookies are small text files placed on your device when you visit a website. They help websites remember information about your visit. Some services use alternative tracking methods (like browser fingerprinting or local storage) that achieve similar results without traditional cookies.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">✦</span> What we use and why</h2>
+    <table class="cookie-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>Type</th>
+          <th>Cookie-free?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--text)">Cosmic Pets</strong><br><span style="font-size:0.8rem">Local storage</span></td>
+          <td>Remembers how many free portrait attempts you've used, so we don't reset your count between visits.</td>
+          <td><span class="tag tag-necessary">Necessary</span></td>
+          <td>Yes — stored locally in your browser, never sent to us.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Umami Analytics</strong><br><span style="font-size:0.8rem">cloud.umami.is</span></td>
+          <td>Tells us how many people visit the site and which pages they view, so we can improve the experience.</td>
+          <td><span class="tag tag-none">Analytics</span></td>
+          <td>Yes — Umami is cookieless and privacy-friendly. No personal data or IP addresses are stored.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Stripe</strong><br><span style="font-size:0.8rem">stripe.com</span></td>
+          <td>Processes payments securely. Stripe uses cookies and browser data to detect fraud and verify your identity during checkout.</td>
+          <td><span class="tag tag-necessary">Necessary</span></td>
+          <td>No — Stripe sets cookies during the checkout process for security purposes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">🔒</span> What we don't do</h2>
+    <ul>
+      <li>We do not use advertising or tracking cookies.</li>
+      <li>We do not sell or share your data with third parties for marketing.</li>
+      <li>We do not build profiles of individual users.</li>
+      <li>We do not use Google Analytics or any other invasive analytics platform.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">⚙️</span> Your choices</h2>
+    <p>Because we only use strictly necessary cookies and a cookieless analytics tool, there is no consent banner on this site — we don't need one. However, you can always:</p>
+    <ul>
+      <li>Clear your browser's local storage to reset your free portrait count.</li>
+      <li>Use your browser settings to block or delete cookies from Stripe (note: this may prevent checkout from working).</li>
+      <li>Use a browser extension like uBlock Origin to block third-party scripts.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">📋</span> Your rights (UK & EU)</h2>
+    <p>Under UK GDPR and EU GDPR, you have the right to access, correct, or request deletion of any personal data we hold. Since we collect very little identifying information, there is likely little to nothing to request — but you're welcome to get in touch:</p>
+    <p style="margin-top: 14px;">
+      <a href="mailto:irina.csapo@gmail.com" class="contact-link">irina.csapo@gmail.com</a>
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="icon">🔄</span> Changes to this policy</h2>
+    <p>If we ever add new services or change how we handle data, we'll update this page. The "last updated" date at the top will always reflect the most recent version.</p>
+  </div>
+
+  <div class="footer">
+    <p>Made with ♥ by <a href="https://irinacsapo.co.uk" target="_blank">Irina Csapo</a> &nbsp;·&nbsp; <a href="/">Cosmic Pets</a> &nbsp;·&nbsp; <a href="https://cosmicpets.co.uk" target="_blank">Bespoke Commissions</a></p>
+  </div>
+
+</div>
+
+<script>
+  // Stars background
+  (function() {
+    const canvas = document.getElementById('stars-canvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initStars() {
+      stars = [];
+      const count = Math.floor((canvas.width * canvas.height) / 6000);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.2 + 0.2,
+          o: Math.random() * 0.6 + 0.2,
+          sp: Math.random() * 0.008 + 0.002,
+          ph: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function draw(t) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        const opacity = s.o * (0.6 + 0.4 * Math.sin(t * s.sp + s.ph));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(232,232,245,${opacity})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    initStars();
+    window.addEventListener('resize', () => { resize(); initStars(); });
+    requestAnimationFrame(draw);
+  })();
+</script>
+
+</body>
+</html>
