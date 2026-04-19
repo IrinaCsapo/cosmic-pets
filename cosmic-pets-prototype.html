@@ -713,9 +713,9 @@
     }
     .guide-badge.good { background: rgba(72,199,116,0.15); color: #48c774; border: 1px solid rgba(72,199,116,0.3); }
     .guide-badge.bad  { background: rgba(255,82,82,0.15);  color: #ff5252; border: 1px solid rgba(255,82,82,0.3); }
-    .guide-items { display: flex; flex-direction: column; gap: 10px; }
+    .guide-items { display: flex; flex-direction: column; gap: 12px; }
     .guide-item {
-      display: flex; gap: 14px; align-items: flex-start;
+      display: flex; gap: 14px; align-items: center;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; padding: 14px 16px;
     }
@@ -726,8 +726,15 @@
     }
     .guide-item.good .gi-icon { background: rgba(72,199,116,0.2); color: #48c774; }
     .guide-item.bad  .gi-icon { background: rgba(255,82,82,0.2);  color: #ff5252; }
-    .guide-item .gi-text { font-size: 0.88rem; line-height: 1.55; color: var(--text); }
+    .guide-item .gi-text { font-size: 0.88rem; line-height: 1.55; color: var(--text); flex: 1; }
     .guide-item .gi-text strong { font-weight: 700; }
+    .guide-item .gi-photo {
+      width: 72px; height: 72px; flex-shrink: 0;
+      border-radius: 12px; object-fit: cover;
+      border: 2px solid rgba(255,255,255,0.08);
+    }
+    .guide-item.good .gi-photo { border-color: rgba(72,199,116,0.3); }
+    .guide-item.bad  .gi-photo { border-color: rgba(255,82,82,0.25); }
 
     /* FAQ */
     .faq-list { display: flex; flex-direction: column; gap: 10px; }
@@ -2424,28 +2431,24 @@ updateAttemptPips('result');
       </div>
       <div class="guide-items">
         <div class="guide-item good">
+          <img class="gi-photo" src="/photo-guide/yes-1.webp" alt="Good example — well-lit cat" loading="lazy">
           <div class="gi-icon">✓</div>
-          <div class="gi-text">Photo taken at <strong>eye level</strong> with your pet — crouch down to their world.</div>
+          <div class="gi-text"><strong>Well lit</strong> — natural daylight is best. Sit your pet near a window, or use a lamp behind you. Dark-coloured pets especially need good light.</div>
         </div>
         <div class="guide-item good">
+          <img class="gi-photo" src="/photo-guide/yes-2.webp" alt="Good example — facing camera" loading="lazy">
           <div class="gi-icon">✓</div>
-          <div class="gi-text"><strong>Well lit</strong> — natural daylight is best. <strong>Pro tip:</strong> sit your pet in front of a window. Use a chair if you need to get them up to the light.</div>
+          <div class="gi-text"><strong>Facing the camera</strong> — eyes visible, expression clear. This is where all the character lives.</div>
         </div>
         <div class="guide-item good">
+          <img class="gi-photo" src="/photo-guide/yes-3.webp" alt="Good example — close-up portrait" loading="lazy">
           <div class="gi-icon">✓</div>
-          <div class="gi-text"><strong>Close-up portrait</strong> with all features visible — head and chest is ideal. Not too far away, but not so close you lose the ears.</div>
+          <div class="gi-text"><strong>Close-up portrait</strong> — head and chest is the sweet spot. Not so far that they're tiny, not so close you lose the ears.</div>
         </div>
         <div class="guide-item good">
+          <img class="gi-photo" src="/photo-guide/yes-4.webp" alt="Good example — eye level, sharp" loading="lazy">
           <div class="gi-icon">✓</div>
-          <div class="gi-text"><strong>Sharp and in focus</strong> — you should be able to see individual hairs and whiskers clearly.</div>
-        </div>
-        <div class="guide-item good">
-          <div class="gi-icon">✓</div>
-          <div class="gi-text">An <strong>original photo</strong>, not a screenshot of another photo or a scan.</div>
-        </div>
-        <div class="guide-item good">
-          <div class="gi-icon">✓</div>
-          <div class="gi-text">A <strong>headshot</strong> — full body isn't necessary and actually gives less detail in the final portrait.</div>
+          <div class="gi-text"><strong>Eye level and sharp</strong> — crouch down to their world. You should be able to see individual hairs and whiskers clearly.</div>
         </div>
       </div>
     </div>
@@ -2456,32 +2459,24 @@ updateAttemptPips('result');
       </div>
       <div class="guide-items">
         <div class="guide-item bad">
+          <img class="gi-photo" src="/photo-guide/no-1.webp" alt="Bad example — too dark" loading="lazy">
           <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Taken from too far away</strong> — your pet should fill a good portion of the frame, not be a tiny figure in the corner.</div>
+          <div class="gi-text"><strong>Too dark</strong> — low light is the most common cause of poor results, especially for black or dark-coloured pets.</div>
         </div>
         <div class="guide-item bad">
+          <img class="gi-photo" src="/photo-guide/no-2.webp" alt="Bad example — too close, ears cut off" loading="lazy">
           <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Face obstructed</strong> — a hand, lead, toy, or another animal in front of the face will confuse the background removal.</div>
+          <div class="gi-text"><strong>Too close and from above</strong> — ears are cut off and the angle distorts their features. Step back and get to their eye level.</div>
         </div>
         <div class="guide-item bad">
+          <img class="gi-photo" src="/photo-guide/no-3.webp" alt="Bad example — too far away" loading="lazy">
           <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Too dark</strong> — low light is the most common cause of poor results, especially with dark-coloured pets.</div>
+          <div class="gi-text"><strong>Too far away</strong> — your pet should fill the frame, not be a small figure in a big scene. Move closer!</div>
         </div>
         <div class="guide-item bad">
+          <img class="gi-photo" src="/photo-guide/no-4.webp" alt="Bad example — shot from above" loading="lazy">
           <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Blurry or out of focus</strong> — motion blur from a wriggly pet doesn't sharpen up well. Wait for a still moment!</div>
-        </div>
-        <div class="guide-item bad">
-          <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Very low resolution</strong> — small, pixelated photos will produce a soft, low-detail portrait.</div>
-        </div>
-        <div class="guide-item bad">
-          <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Wrong angle</strong> — photos taken from directly above or below are tricky for background removal and rarely look their best.</div>
-        </div>
-        <div class="guide-item bad">
-          <div class="gi-icon">✗</div>
-          <div class="gi-text"><strong>Eyes closed or unflattering close-up</strong> — your pet deserves their best angle! If they look sleepy, try again when they're alert.</div>
+          <div class="gi-text"><strong>Shot from above with obstruction</strong> — overhead angles rarely flatter, and hands or leads in frame confuse the background removal.</div>
         </div>
       </div>
     </div>
