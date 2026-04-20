@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headline Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; background: #080818;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .hero { text-align: center; padding: 40px 24px; }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 8vw, 5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      color: #fff;
+      margin-bottom: 16px;
+      -webkit-text-fill-color: #fff;
+      font-style: normal;
+    }
+
+    .hero h1 em {
+      display: block;
+      font-style: italic;
+      font-weight: 800;
+      font-size: 1.15em;
+      background: linear-gradient(120deg, #00BCD4 0%, #c084fc 50%, #E040FB 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: #8888aa; font-size: 1rem; line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Turn your pet into a<em>cosmic masterpiece</em></h1>
+    <p>AI-generated portraits, art-directed by a human who loves animals a bit too much.</p>
+  </div>
+</body>
+</html>

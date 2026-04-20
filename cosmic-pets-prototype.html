@@ -6,6 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Cosmic Pets — Your Pet's Cosmic Portrait</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;1,800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -60,9 +61,24 @@
     /* ── HERO ── */
     .hero { width: 100%; max-width: 560px; text-align: center; margin-bottom: 32px; }
     .hero h1 {
-      font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 800; line-height: 1.2; margin-bottom: 12px;
-      background: linear-gradient(160deg, #fff 30%, var(--blue) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.15rem, 4.3vw, 2.35rem);
+      font-weight: 800;
+      line-height: 0.95;
+      color: #fff;
+      margin-bottom: 12px;
+      -webkit-text-fill-color: #fff;
+    }
+    .hero h1 em {
+      display: block;
+      font-style: italic;
+      font-weight: 800;
+      font-size: 1.15em;
+      padding-bottom: 0.12em;
+      background: linear-gradient(120deg, #00BCD4 0%, #c084fc 50%, #E040FB 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; }
 
@@ -797,7 +813,7 @@
     </div>
   </div>
   <div class="hero">
-    <h1>Turn your pet into<br>a cosmic masterpiece</h1>
+    <h1>Turn your pet into a<em>cosmic masterpiece</em></h1>
     <p>Upload a clear photo — facing the camera, well-lit.<br>We'll handle the rest.</p>
     <button class="photo-tips-link" onclick="openPhotoGuide()">
       📸 How to position your pet for best results
