@@ -15,6 +15,7 @@ from rembg import remove as rembg_remove, new_session as rembg_new_session
 # ── CONFIG ──────────────────────────────────────────────────────────────────
 API_KEY      = os.environ.get("REPLICATE_API_TOKEN", "")
 PORT         = int(os.environ.get("PORT", 8080))
+BYPASS_CREDITS = os.environ.get("BYPASS_CREDITS", "false").lower() == "true"
 REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 portraits here
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
@@ -900,7 +901,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         # ── Token / credit check ──────────────────────────────────────────────
         token_header = self.headers.get("X-Credits-Token", "").strip()
         session_id   = None
-        if token_header:
+        if BYPASS_CREDITS:
+            print("  🔓 BYPASS_CREDITS enabled — skipping credit check (staging mode)")
+        elif token_header:
             session_id = _verify_token(token_header)
             if not session_id:
                 self._json_response({"error": "Invalid payment token"}, 401)
