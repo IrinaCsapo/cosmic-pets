@@ -220,6 +220,52 @@ def replicate_get_latest_version(owner, model):
         data = json.loads(r.read())
     return data["latest_version"]["id"]
 
+def esrgan_upscale(pet_rgba, scale=2):
+    """
+    Upscale a pet RGBA image using Real-ESRGAN on Replicate.
+    Splits alpha channel, upscales RGB and alpha separately, merges back.
+    Falls back to LANCZOS if API call fails.
+    """
+    if not API_KEY:
+        return None
+    try:
+        t0 = time.time()
+        # Split RGBA → RGB + alpha
+        rgb  = pet_rgba.convert("RGB")
+        alpha = pet_rgba.split()[3]  # alpha channel
+
+        # Encode RGB as PNG base64
+        buf = io.BytesIO()
+        rgb.save(buf, format="PNG")
+        img_b64 = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+
+        # Call Real-ESRGAN on Replicate
+        pred = replicate_post(
+            "https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions",
+            {"input": {"image": img_b64, "scale": scale, "face_enhance": False}}
+        )
+        pred = replicate_poll(pred["urls"]["get"], timeout=120)
+        out_url = pred.get("output")
+        if not out_url:
+            return None
+
+        # Download upscaled RGB
+        with urllib.request.urlopen(out_url, timeout=30) as r:
+            rgb_up = Image.open(io.BytesIO(r.read())).convert("RGB")
+
+        # Upscale alpha to match with LANCZOS
+        alpha_up = alpha.resize(rgb_up.size, Image.LANCZOS)
+
+        # Merge back to RGBA
+        result = rgb_up.copy()
+        result.putalpha(alpha_up)
+        print(f"  🔬 Real-ESRGAN ×{scale}: {pet_rgba.size} → {rgb_up.size} in {time.time()-t0:.1f}s")
+        return result
+
+    except Exception as e:
+        print(f"  ⚠️  Real-ESRGAN failed ({e}) — falling back to LANCZOS")
+        return None
+
 def replicate_post(endpoint, payload):
     data = json.dumps(payload).encode()
     req  = urllib.request.Request(
@@ -463,17 +509,23 @@ def composite_images(pet_b64: str, bg_url: str, vibe: str = "") -> str:
                 pet = pet.crop((x_offset, 0, x_offset + target_w, pet.height))
                 print(f"  📐 After portrait crop: {pet.width}×{pet.height}  ratio={pet.width/pet.height:.3f}")
 
-    # ── Pre-upscale small pets before compositing ───────────────────────────────
-    # If the shortest side is under 700px, upscale with LANCZOS first so the
-    # final scale-up to portal size has more pixels to work with — noticeably
-    # sharper result for low-res uploads without any extra API cost.
-    MIN_PET_PX = 700
+    # ── AI upscale small pets with Real-ESRGAN before compositing ──────────────
+    # For images under 900px on the short side, run Real-ESRGAN (×2) on Replicate
+    # to reconstruct real fur/eye detail before compositing — dramatically sharper
+    # than Lanczos interpolation. Falls back to Lanczos if the API call fails.
+    MIN_PET_PX = 900
     short_side = min(pet.width, pet.height)
     if short_side < MIN_PET_PX:
-        up = MIN_PET_PX / short_side
-        pre_w, pre_h = int(pet.width * up), int(pet.height * up)
-        pet = pet.resize((pre_w, pre_h), Image.LANCZOS)
-        print(f"  📐 Pre-upscale (×{up:.2f}): {pre_w}×{pre_h} — low-res input boosted")
+        print(f"  🔬 Short side {short_side}px < {MIN_PET_PX}px — attempting Real-ESRGAN upscale…")
+        upscaled = esrgan_upscale(pet, scale=2)
+        if upscaled:
+            pet = upscaled
+        else:
+            # Lanczos fallback
+            up = MIN_PET_PX / short_side
+            pre_w, pre_h = int(pet.width * up), int(pet.height * up)
+            pet = pet.resize((pre_w, pre_h), Image.LANCZOS)
+            print(f"  📐 Lanczos fallback (×{up:.2f}): {pre_w}×{pre_h}")
 
     # Scale pet — max 90% of width, max 82% of height, aspect ratio strictly preserved
     scale = min((OUTPUT_W * 0.90) / pet.width, (OUTPUT_H * 0.82) / pet.height)
