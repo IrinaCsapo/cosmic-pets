@@ -267,15 +267,29 @@ def esrgan_upscale(pet_rgba, scale=2):
         print(f"  ⚠️  Real-ESRGAN failed ({e}) — falling back to LANCZOS")
         return None
 
-def replicate_post(endpoint, payload):
-    data = json.dumps(payload).encode()
-    req  = urllib.request.Request(
-        endpoint, data=data,
-        headers={"Authorization": f"Token {API_KEY}", "Content-Type": "application/json"},
-        method="POST"
-    )
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read())
+def replicate_post(endpoint, payload, max_retries=3):
+    """POST to Replicate. Retries up to max_retries times on 429 with exponential backoff."""
+    data  = json.dumps(payload).encode()
+    delay = 5  # initial backoff in seconds
+    for attempt in range(max_retries + 1):
+        req = urllib.request.Request(
+            endpoint, data=data,
+            headers={"Authorization": f"Token {API_KEY}", "Content-Type": "application/json"},
+            method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_retries:
+                # Honour Retry-After header if present, otherwise use exponential backoff
+                retry_after = e.headers.get("Retry-After")
+                wait = max(int(retry_after), delay) if retry_after else delay
+                print(f"  ⏳ Replicate rate-limited (429) — waiting {wait}s before retry {attempt + 1}/{max_retries}…")
+                time.sleep(wait)
+                delay *= 2  # 5s → 10s → 20s
+            else:
+                raise
 
 def replicate_poll(url, timeout=180):
     deadline = time.time() + timeout
