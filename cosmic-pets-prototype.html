@@ -1112,7 +1112,7 @@
         <button class="btn-secondary" id="download-btn">✦ Save portrait</button>
         <button class="btn-primary" id="again-btn">✦ Create another</button>
       </div>
-      <button class="btn-share" id="share-btn">✦ Share portrait</button>
+      <button class="btn-share" id="share-btn">✦ Copy link</button>
     </div>
     <div class="upsell-card" id="upsell-card" style="display:none;">
       <h3>✦ Want more cosmic portraits?</h3>
@@ -2179,11 +2179,12 @@ async function startProcessing() {
     const compResult = await fetch('/api/composite', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({pet_png: bgResult.pet_png, bg_url: genResult.bg_url, vibe: selectedVibe})
+      body: JSON.stringify({pet_png: bgResult.pet_png, bg_url: genResult.bg_url, vibe: selectedVibe, pet_name: petName})
     }).then(r => r.json());
 
     if (compResult.error) throw new Error(compResult.error);
     finalResultB64 = compResult.result;
+    const shareId  = compResult.share_id || null;
     setStep(4,'done','✓ Portrait complete');
 
   } catch(err) {
@@ -2276,48 +2277,35 @@ async function startProcessing() {
     };
   }
 
-  // ── SHARE BUTTON ──
+  // ── SHARE BUTTON — copy link ──
   const shareBtn = document.getElementById('share-btn');
-  shareBtn.onclick = async () => {
-    try {
-      const response = await fetch(blobUrl);
-      const imgBlob  = await response.blob();
-      const file     = new File([imgBlob], `cosmic-pet-${vibe.id}.jpg`, { type: 'image/jpeg' });
-
-      // Build share text — include story if it's showing
-      const storyEl   = document.getElementById('story-text');
-      const storyBody = (storyEl && storyEl.style.display !== 'none' && storyEl.textContent.trim())
-        ? `\n\n${storyEl.textContent.trim()}`
-        : '';
-      const shareText = `✦ My cosmic pet portrait${storyBody}\n\nCreate yours at cosmicpets.love`;
-
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        // Mobile native share sheet — picks up WhatsApp, Instagram, iMessage, etc.
-        await navigator.share({
-          title: 'My Cosmic Pet Portrait ✦',
-          text:  shareText,
-          files: [file]
-        });
-      } else if (navigator.share) {
-        // Share API exists but can't share files — share URL + story
-        await navigator.share({
-          title: 'My Cosmic Pet Portrait ✦',
-          text:  shareText,
-          url:   'https://www.cosmicpets.love'
-        });
-      } else {
-        // Desktop fallback — copy story + link to clipboard
-        try {
-          await navigator.clipboard.writeText(shareText);
-          showToast('Story & link copied! Paste into WhatsApp, Instagram, anywhere ✦', 4000);
-        } catch {
-          showToast('Right-click the portrait to save, then share it anywhere ✦', 4000);
-        }
+  if (shareId) {
+    const shareUrl = `https://cosmicpets.love/p/${shareId}`;
+    shareBtn.style.display = 'block';
+    shareBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        shareBtn.textContent = '✓ Link copied!';
+        setTimeout(() => { shareBtn.textContent = '✦ Copy link'; }, 2500);
+      } catch {
+        showToast('Could not copy — here's the link: ' + shareUrl, 6000);
       }
-    } catch(e) {
-      if (e.name !== 'AbortError') showToast('Could not share — try downloading instead ✦', 3000);
+    };
+    // Save story to share page once it resolves
+    if (petName) {
+      storyPromise.then(result => {
+        if (result && result.story) {
+          fetch('/api/save-story', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({share_id: shareId, story: cleanStory(result.story)})
+          }).catch(() => {});
+        }
+      });
     }
-  };
+  } else {
+    shareBtn.style.display = 'none';
+  }
 }
 
 // Strip markdown formatting and em-dashes from AI-generated story text

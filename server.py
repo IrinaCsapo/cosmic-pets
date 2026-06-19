@@ -7,7 +7,7 @@ Run:   python3 server.py
 Open:  http://localhost:8080
 """
 
-import base64, glob, hashlib, hmac as hmaclib, io, json, os, pathlib, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
+import base64, glob, hashlib, hmac as hmaclib, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
@@ -37,6 +37,8 @@ def is_free_mode():
 REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 portraits here
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
+SHARES_FOLDER  = pathlib.Path(__file__).parent / "shares"        # shareable portrait pages
+SHARES_MAX     = 500                                              # keep last N shares
 OUTPUT_W, OUTPUT_H = 1440, 2016
 
 # ── STRIPE / PAYMENTS ────────────────────────────────────────────────────────
@@ -836,6 +838,23 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         elif self.path == "/cookies":
             self.path = "/cookies.html"
             super().do_GET()
+        elif self.path.startswith("/p/"):
+            self._share_page()
+        elif self.path.startswith("/shares/"):
+            # Serve the portrait image from the shares folder
+            fname = pathlib.Path(self.path.lstrip("/"))
+            fpath = pathlib.Path(__file__).parent / fname
+            if fpath.exists() and fpath.suffix == ".jpg":
+                data = fpath.read_bytes()
+                self.send_response(200)
+                self._cors()
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", len(data))
+                self.send_header("Cache-Control", "public, max-age=31536000")
+                self.end_headers()
+                self.wfile.write(data)
+            else:
+                self.send_error(404)
         else:
             super().do_GET()
 
@@ -848,6 +867,102 @@ class CosmicHandler(SimpleHTTPRequestHandler):
                 images.append(b64)
         self._json_response({"images": images})
 
+    def _share_page(self):
+        """Serve a beautiful shareable page for a portrait."""
+        share_id = self.path[3:].strip("/")  # strip /p/
+        if not share_id or not share_id.replace("-","").isalnum():
+            return self.send_error(404)
+        img_path  = SHARES_FOLDER / f"{share_id}.jpg"
+        meta_path = SHARES_FOLDER / f"{share_id}.json"
+        if not img_path.exists():
+            return self.send_error(404)
+        meta = {}
+        if meta_path.exists():
+            try: meta = json.loads(meta_path.read_text())
+            except: pass
+        pet_name = meta.get("pet_name", "")
+        story    = meta.get("story", "")
+        title    = f"✦ {pet_name}'s cosmic portrait" if pet_name else "✦ A cosmic pet portrait"
+        desc     = story[:120].rstrip() + "…" if len(story) > 120 else (story or "AI-generated cosmic pet portrait made at cosmicpets.love")
+        img_url  = f"https://cosmicpets.love/shares/{share_id}.jpg"
+        page_url = f"https://cosmicpets.love/p/{share_id}"
+        story_html = f'<p class="story">{story}</p>' if story else ""
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{title}</title>
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{desc}">
+  <meta property="og:image" content="{img_url}">
+  <meta property="og:url" content="{page_url}">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{img_url}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+    html,body{{min-height:100%;background:#080818;color:#E8E8F5;font-family:'Inter',sans-serif;overflow-x:hidden}}
+    #stars-canvas{{position:fixed;inset:0;z-index:0;pointer-events:none}}
+    .page{{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 60px}}
+    .logo-link img{{height:36px;margin-bottom:36px}}
+    .portrait{{width:100%;max-width:420px;border-radius:20px;display:block;box-shadow:0 8px 48px rgba(0,0,0,0.6)}}
+    h1{{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:clamp(1.4rem,4vw,2rem);margin:28px 0 16px;text-align:center;background:linear-gradient(120deg,#00BCD4,#c084fc,#E040FB);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}}
+    .story{{max-width:500px;color:#aaa;font-size:0.95rem;line-height:1.75;text-align:center;margin-bottom:32px}}
+    .cta{{display:inline-block;margin-top:8px;padding:14px 32px;border-radius:100px;background:linear-gradient(135deg,#7B2FBE,#E040FB);color:#fff;font-weight:600;font-size:0.95rem;text-decoration:none;letter-spacing:0.01em}}
+    .cta:hover{{opacity:0.9}}
+    .tagline{{margin-top:14px;font-size:0.8rem;color:#666}}
+  </style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="page">
+  <a href="https://cosmicpets.love" class="logo-link"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
+  <img class="portrait" src="/shares/{share_id}.jpg" alt="Cosmic pet portrait">
+  <h1>{title}</h1>
+  {story_html}
+  <a class="cta" href="https://cosmicpets.love">✦ Create your own</a>
+  <p class="tagline">cosmicpets.love</p>
+</div>
+<script>
+(function(){{
+  const c=document.getElementById('stars-canvas'),ctx=c.getContext('2d');let st=[];
+  function r(){{c.width=innerWidth;c.height=innerHeight;st=[];const n=Math.floor(c.width*c.height/8000);for(let i=0;i<n;i++)st.push({{x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.1+0.2,o:Math.random()*0.5+0.2,s:Math.random()*0.006+0.002,p:Math.random()*Math.PI*2}});}}
+  function d(t){{ctx.clearRect(0,0,c.width,c.height);st.forEach(s=>{{const a=s.o*(0.6+0.4*Math.sin(t*s.s+s.p));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(232,232,245,${{a}})`;ctx.fill();}});requestAnimationFrame(d);}}
+  r();window.addEventListener('resize',r);requestAnimationFrame(d);
+}})();
+</script>
+</body>
+</html>"""
+        body = html.encode()
+        self.send_response(200)
+        self._cors()
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", len(body))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _save_story(self):
+        """Attach story text to an existing share (called after story resolves on frontend)."""
+        try:
+            body      = self._read_json()
+            share_id  = body.get("share_id", "").strip()
+            story     = body.get("story", "").strip()
+            if not share_id:
+                return self._json_response({"ok": False})
+            meta_path = SHARES_FOLDER / f"{share_id}.json"
+            if meta_path.exists():
+                try:
+                    meta = json.loads(meta_path.read_text())
+                except: meta = {}
+                meta["story"] = story
+                meta_path.write_text(json.dumps(meta))
+            self._json_response({"ok": True})
+        except Exception as e:
+            self._error(str(e))
+
     def do_POST(self):
         routes = {
             "/api/remove-bg":       self._remove_bg,
@@ -855,6 +970,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             "/api/composite":       self._composite,
             "/api/create-checkout": self._create_checkout,
             "/api/generate-story":  self._generate_story,
+            "/api/save-story":      self._save_story,
         }
         handler = routes.get(self.path)
         if handler:
@@ -1106,25 +1222,48 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             if not pet_b64 or not bg_url:
                 return self._error("Missing pet_png or bg_url", 400)
 
-            vibe = body.get("vibe", "")
+            vibe     = body.get("vibe", "")
+            pet_name = body.get("pet_name", "").strip()
             print(f"  🎨 Compositing (vibe={vibe})…")
             result_b64 = composite_images(pet_b64, bg_url, vibe=vibe)
             print("  ✅ Composite complete")
+
+            img_data = base64.b64decode(result_b64.split(",")[1])
 
             # Save to gallery (keep last GALLERY_MAX portraits)
             try:
                 GALLERY_FOLDER.mkdir(exist_ok=True)
                 ts = int(time.time() * 1000)
-                img_data = base64.b64decode(result_b64.split(",")[1])
                 (GALLERY_FOLDER / f"portrait_{ts}.jpg").write_bytes(img_data)
-                # Prune oldest beyond GALLERY_MAX
                 saved = sorted(GALLERY_FOLDER.glob("portrait_*.jpg"))
                 for old in saved[:-GALLERY_MAX]:
                     old.unlink()
             except Exception as ge:
                 print(f"  ⚠️  Gallery save failed: {ge}")
 
-            self._json_response({"result": result_b64})
+            # Save to shares folder with unique ID for shareable link
+            share_id = None
+            try:
+                SHARES_FOLDER.mkdir(exist_ok=True)
+                share_id = secrets.token_hex(16)
+                (SHARES_FOLDER / f"{share_id}.jpg").write_bytes(img_data)
+                (SHARES_FOLDER / f"{share_id}.json").write_text(json.dumps({
+                    "pet_name": pet_name,
+                    "vibe":     vibe,
+                    "created":  int(time.time()),
+                    "story":    ""
+                }))
+                # Prune oldest beyond SHARES_MAX
+                saved = sorted(SHARES_FOLDER.glob("*.jpg"), key=lambda p: p.stat().st_mtime)
+                for old in saved[:-SHARES_MAX]:
+                    old.unlink()
+                    meta = old.with_suffix(".json")
+                    if meta.exists(): meta.unlink()
+                print(f"  🔗 Share saved: /p/{share_id}")
+            except Exception as se:
+                print(f"  ⚠️  Share save failed: {se}")
+
+            self._json_response({"result": result_b64, "share_id": share_id})
 
         except Exception as e:
             self._error(str(e))
