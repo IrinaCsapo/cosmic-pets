@@ -62,21 +62,25 @@
     .hero { width: 100%; max-width: 560px; text-align: center; margin-bottom: 32px; }
     .hero h1 {
       font-family: 'Fraunces', serif;
-      font-size: clamp(2.2rem, 9vw, 4.2rem);
+      font-size: clamp(1.9rem, 6.5vw, 2.8rem);
       font-style: italic;
-      font-weight: 800;
-      line-height: 1.0;
+      font-weight: 400;
+      line-height: 1.05;
       color: #fff;
       margin-bottom: 16px;
       -webkit-text-fill-color: #fff;
       letter-spacing: -0.01em;
+      font-feature-settings: 'ss01' on, 'ss02' on, 'ss03' on, 'liga' on;
+      font-variation-settings: 'SOFT' 50, 'opsz' 144;
     }
     .hero h1 em {
       display: block;
       font-style: italic;
-      font-weight: 800;
-      font-size: 1.1em;
+      font-weight: 400;
+      font-size: 1.15em;
       padding-bottom: 0.1em;
+      font-feature-settings: 'ss01' on, 'ss02' on, 'ss03' on, 'liga' on;
+      font-variation-settings: 'SOFT' 50, 'opsz' 144;
       background: linear-gradient(120deg, #00BCD4 0%, #c084fc 50%, #E040FB 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -722,30 +726,47 @@
     .about-pillar h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
     .about-pillar p  { font-size: 0.85rem; color: var(--muted); line-height: 1.55; }
 
-    /* ── Pet name input ── */
-    .pet-name-wrap {
-      width: 100%; max-width: 480px;
-      margin: 20px 0 4px;
-      text-align: left;
+    /* ── Name screen ── */
+    #screen-name {
+      justify-content: flex-start;
     }
-    .pet-name-label {
-      display: block; font-size: 0.72rem; font-weight: 600;
-      color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
-      margin-bottom: 8px;
+    .name-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      width: 100%; max-width: 480px; padding: 0 0 60px; gap: 0;
+      text-align: center;
+    }
+    .name-content h2 {
+      font-family: 'Fraunces', serif; font-style: italic; font-weight: 400;
+      font-size: clamp(1.9rem, 7vw, 2.8rem); line-height: 1.1;
+      font-feature-settings: 'ss01' on, 'ss02' on, 'ss03' on, 'liga' on;
+      font-variation-settings: 'SOFT' 50, 'opsz' 144;
+      color: #fff; margin-bottom: 10px;
+    }
+    .name-content p {
+      color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 28px;
     }
     .pet-name-input {
       width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px; padding: 13px 16px;
-      color: var(--text); font-family: 'Inter', sans-serif; font-size: 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px; padding: 15px 18px;
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: 1.05rem;
       outline: none; transition: border-color 0.2s, background 0.2s;
+      text-align: center; margin-bottom: 16px;
     }
     .pet-name-input::placeholder { color: rgba(255,255,255,0.2); }
     .pet-name-input:focus {
       border-color: rgba(123,47,190,0.65);
-      background: rgba(123,47,190,0.06);
+      background: rgba(123,47,190,0.07);
     }
+    .name-skip-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 0.8rem; cursor: pointer; margin-top: 6px;
+      text-decoration: underline; text-underline-offset: 3px;
+      transition: color 0.15s;
+    }
+    .name-skip-btn:hover { color: var(--text); }
 
     /* ── Story card ── */
     .story-card {
@@ -896,12 +917,6 @@
   </div>
 
 
-  <div class="pet-name-wrap">
-    <label class="pet-name-label" for="pet-name-input">✦ What's your pet's name?</label>
-    <input type="text" id="pet-name-input" class="pet-name-input"
-      placeholder="e.g. Luna, Mochi, Biscuit…" maxlength="40" autocomplete="off">
-  </div>
-
   <div class="photo-tips">
     <button class="photo-tips-toggle" id="tips-toggle" onclick="toggleTips()">
       <span>✦ Tips for the best portrait</span>
@@ -954,7 +969,33 @@
   </a>
 </section>
 
-<!-- ═══════ SCREEN 2: VIBE SELECTION ═══════ -->
+<!-- ═══════ SCREEN 2: PET NAME ═══════ -->
+<section class="screen" id="screen-name" hidden>
+  <div class="header">
+    <a href="/" class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="attempts-pill">
+        <span class="attempts-pip" id="name-pip-1">✦</span>
+        <span class="attempts-pip" id="name-pip-2">✦</span>
+        <span class="attempts-pip" id="name-pip-3">✦</span>
+        <span id="name-attempts-text">3 free left</span>
+      </div>
+      <button class="burger-btn" onclick="openMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <div class="name-content">
+    <h2>What's your pet's name?</h2>
+    <p>We'll weave it into a little cosmic adventure story<br>just for them — it takes 2 seconds.</p>
+    <input type="text" id="pet-name-input" class="pet-name-input"
+      placeholder="e.g. Luna, Mochi, Biscuit…" maxlength="40" autocomplete="off">
+    <button class="btn-primary" id="name-continue-btn" style="width:100%;">✦ Continue</button>
+    <button class="name-skip-btn" id="name-skip-btn">Skip, continue without a name</button>
+  </div>
+</section>
+
+<!-- ═══════ SCREEN 3: VIBE SELECTION ═══════ -->
 <section class="screen" id="screen-vibe" hidden>
   <div class="header">
     <a href="/" class="logo"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
@@ -1395,7 +1436,7 @@ function totalCreditsDisplay() {
       paidCredits = data.credits;
       localStorage.setItem('cp_paid_token',   paidToken);
       localStorage.setItem('cp_paid_credits', paidCredits);
-      ['upload','vibe','result'].forEach(s => updateAttemptPips(s));
+      ['upload','name','vibe','result'].forEach(s => updateAttemptPips(s));
       showToast(`✦ ${data.credits} portraits unlocked! Let's create something cosmic.`, 4000);
     } else {
       showToast('Payment could not be verified — please contact support.');
@@ -2018,9 +2059,26 @@ document.getElementById('crop-confirm-btn').addEventListener('click', () => {
     resetAdjustSliders();
     const container = document.querySelector('.cropper-container');
     if (container) container.style.filter = '';
-    updateAttemptPips('vibe');
-    showScreen('vibe');
+    updateAttemptPips('name');
+    showScreen('name');
+    // Focus the name input after a short delay so keyboard appears naturally
+    setTimeout(() => document.getElementById('pet-name-input').focus(), 300);
   }, 'image/jpeg', 0.92);
+});
+
+// ── Name screen — Continue & Skip ───────────────────────────────────────────
+function proceedToVibe() {
+  updateAttemptPips('vibe');
+  showScreen('vibe');
+}
+document.getElementById('name-continue-btn').addEventListener('click', proceedToVibe);
+document.getElementById('name-skip-btn').addEventListener('click', () => {
+  document.getElementById('pet-name-input').value = '';
+  proceedToVibe();
+});
+// Allow pressing Enter in the name field to continue
+document.getElementById('pet-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') proceedToVibe();
 });
 
 document.getElementById('crop-cancel-btn').addEventListener('click', () => {
@@ -2344,6 +2402,7 @@ function hexToRgb(hex) {
 function updateAttemptPips(screen) {
   const maps = {
     upload: ['pip-1','pip-2','pip-3','attempts-text'],
+    name:   ['name-pip-1','name-pip-2','name-pip-3','name-attempts-text'],
     vibe:   ['vibe-pip-1','vibe-pip-2','vibe-pip-3','vibe-attempts-text'],
     result: ['res-pip-1','res-pip-2','res-pip-3','res-attempts-text'],
   };
@@ -2451,7 +2510,8 @@ document.getElementById('again-btn').addEventListener('click', () => {
   hideQualityHint();
   uploadedFile = null; selectedVibe = null;
   fileInput.value = '';
-  // Reset story card for next generation
+  // Reset name input and story card for next generation
+  document.getElementById('pet-name-input').value = '';
   document.getElementById('story-card').style.display = 'none';
   document.getElementById('story-text').style.display = 'none';
   document.getElementById('story-text').textContent   = '';
@@ -2492,6 +2552,7 @@ window.hideQualityHint = function() {
 
 // ── INIT: update pips on page load so they reflect localStorage immediately ──
 updateAttemptPips('upload');
+updateAttemptPips('name');
 updateAttemptPips('vibe');
 updateAttemptPips('result');
 
