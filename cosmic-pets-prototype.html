@@ -2137,6 +2137,7 @@ async function startProcessing() {
   document.getElementById('selected-vibe-badge').textContent = `${vibe.emoji} ${vibe.name} vibe`;
 
   let finalResultB64 = null;
+  let shareId = null;
 
   try {
     const imageB64 = await fileToDataURI(uploadedFile);
@@ -2184,7 +2185,7 @@ async function startProcessing() {
 
     if (compResult.error) throw new Error(compResult.error);
     finalResultB64 = compResult.result;
-    const shareId  = compResult.share_id || null;
+    shareId = compResult.share_id || null;
     setStep(4,'done','✓ Portrait complete');
 
   } catch(err) {
