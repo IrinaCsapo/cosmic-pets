@@ -16,6 +16,23 @@ from rembg import remove as rembg_remove, new_session as rembg_new_session
 API_KEY      = os.environ.get("REPLICATE_API_TOKEN", "")
 PORT         = int(os.environ.get("PORT", 8080))
 BYPASS_CREDITS = os.environ.get("BYPASS_CREDITS", "false").lower() == "true"
+
+# FREE_UNTIL — set to an ISO datetime string on Railway to open the app for free until that date.
+# e.g.  FREE_UNTIL=2026-06-25T23:59:59
+# The app auto-reinstates the paywall when the timestamp passes — no manual action needed.
+import datetime as _dt
+_free_until_str = os.environ.get("FREE_UNTIL", "")
+FREE_UNTIL_TS   = 0.0
+if _free_until_str:
+    try:
+        FREE_UNTIL_TS = _dt.datetime.fromisoformat(_free_until_str).timestamp()
+        print(f"  🎉 Free/demo mode active until {_free_until_str}")
+    except Exception as _fe:
+        print(f"  ⚠️  FREE_UNTIL could not be parsed ({_fe}) — paywall active")
+
+def is_free_mode():
+    """Returns True when credits should be bypassed (staging flag or timed free window)."""
+    return BYPASS_CREDITS or (FREE_UNTIL_TS > 0 and time.time() < FREE_UNTIL_TS)
 REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 portraits here
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
@@ -703,7 +720,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         self.send_response(200); self._cors(); self.end_headers()
 
     def do_GET(self):
-        if self.path == "/api/gallery":
+        if self.path == "/api/config":
+            self._json_response({"freeMode": is_free_mode()})
+        elif self.path == "/api/gallery":
             self._gallery()
         elif self.path.startswith("/api/verify-payment"):
             self._verify_payment()
@@ -915,8 +934,8 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         # ── Token / credit check ──────────────────────────────────────────────
         token_header = self.headers.get("X-Credits-Token", "").strip()
         session_id   = None
-        if BYPASS_CREDITS:
-            print("  🔓 BYPASS_CREDITS enabled — skipping credit check (staging mode)")
+        if is_free_mode():
+            print("  🔓 Free mode active — skipping credit check")
         elif token_header:
             session_id = _verify_token(token_header)
             if not session_id:

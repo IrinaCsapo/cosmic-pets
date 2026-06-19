@@ -1264,8 +1264,28 @@ let paidCredits   = parseInt(localStorage.getItem('cp_paid_credits') ?? '0');
 let uploadedFile  = null;
 let selectedVibe  = null;
 let bgModule      = null;
+let demoMode      = false;  // set to true by /api/config when FREE_UNTIL is active
+
+// Check server config — activates demo/free mode when FREE_UNTIL env var is set on Railway
+(async function checkConfig() {
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    if (cfg.freeMode) {
+      demoMode = true;
+      // Swap the attempts pill on all screens to a demo indicator
+      document.querySelectorAll('.attempts-pill').forEach(el => {
+        el.innerHTML = '✦ Open Demo';
+        el.style.color = '#E040FB';
+        el.style.borderColor = 'rgba(224,64,251,0.5)';
+        el.style.background  = 'rgba(224,64,251,0.12)';
+      });
+      console.log('🎉 Demo mode active — paywall bypassed');
+    }
+  } catch (_) {}
+})();
 
 function canGenerate() {
+  if (demoMode) return true;
   return attemptsLeft > 0 || (paidCredits > 0 && paidToken);
 }
 
@@ -1976,17 +1996,19 @@ async function canvasFallback(vibe) {
 // ── Main pipeline ─────────────────────────────────────────────────────────────
 async function startProcessing() {
   const vibe = VIBES.find(v => v.id === selectedVibe);
-  // Decrement the right counter
-  if (attemptsLeft > 0) {
-    attemptsLeft--;
-    localStorage.setItem('cp_free_left', attemptsLeft);
-  } else if (paidCredits > 0 && paidToken) {
-    paidCredits--;
-    localStorage.setItem('cp_paid_credits', paidCredits);
-    if (paidCredits <= 0) {
-      localStorage.removeItem('cp_paid_token');
-      localStorage.removeItem('cp_paid_credits');
-      paidToken = null;
+  // Decrement the right counter (skipped in demo mode — unlimited free portraits)
+  if (!demoMode) {
+    if (attemptsLeft > 0) {
+      attemptsLeft--;
+      localStorage.setItem('cp_free_left', attemptsLeft);
+    } else if (paidCredits > 0 && paidToken) {
+      paidCredits--;
+      localStorage.setItem('cp_paid_credits', paidCredits);
+      if (paidCredits <= 0) {
+        localStorage.removeItem('cp_paid_token');
+        localStorage.removeItem('cp_paid_credits');
+        paidToken = null;
+      }
     }
   }
   updateAttemptPips('processing');
