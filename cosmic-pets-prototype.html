@@ -2288,7 +2288,7 @@ async function startProcessing() {
         shareBtn.textContent = '✓ Link copied!';
         setTimeout(() => { shareBtn.textContent = '✦ Copy link'; }, 2500);
       } catch {
-        showToast('Could not copy — here's the link: ' + shareUrl, 6000);
+        showToast(`Could not copy — here's the link: ${shareUrl}`, 6000);
       }
     };
     // Save story to share page once it resolves
