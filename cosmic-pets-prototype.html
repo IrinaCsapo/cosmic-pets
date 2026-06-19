@@ -2296,7 +2296,7 @@ async function startProcessing() {
     storyPromise.then(result => {
       if (result && result.story) {
         storyLoad.style.display = 'none';
-        storyText.textContent   = result.story;
+        storyText.textContent   = cleanStory(result.story);
         storyText.style.display = 'block';
       } else {
         storyCard.style.display = 'none'; // hide quietly if it failed
@@ -2329,38 +2329,54 @@ async function startProcessing() {
   shareBtn.onclick = async () => {
     try {
       const response = await fetch(blobUrl);
-      const blob = await response.blob();
-      const file = new File([blob], `cosmic-pet-${vibe.id}.jpg`, { type: 'image/jpeg' });
+      const imgBlob  = await response.blob();
+      const file     = new File([imgBlob], `cosmic-pet-${vibe.id}.jpg`, { type: 'image/jpeg' });
+
+      // Build share text — include story if it's showing
+      const storyEl   = document.getElementById('story-text');
+      const storyBody = (storyEl && storyEl.style.display !== 'none' && storyEl.textContent.trim())
+        ? `\n\n${storyEl.textContent.trim()}`
+        : '';
+      const shareText = `✦ My cosmic pet portrait${storyBody}\n\nCreate yours at cosmicpets.love`;
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         // Mobile native share sheet — picks up WhatsApp, Instagram, iMessage, etc.
         await navigator.share({
           title: 'My Cosmic Pet Portrait ✦',
-          text: 'I made this cosmic portrait of my pet at https://www.cosmicpets.love',
+          text:  shareText,
           files: [file]
         });
       } else if (navigator.share) {
-        // Share API exists but can't share files — share the URL instead
+        // Share API exists but can't share files — share URL + story
         await navigator.share({
           title: 'My Cosmic Pet Portrait ✦',
-          text: 'I made this cosmic portrait of my pet at https://www.cosmicpets.love ✦',
-          url: 'https://www.cosmicpets.love'
+          text:  shareText,
+          url:   'https://www.cosmicpets.love'
         });
       } else {
-        // Desktop fallback — copy image to clipboard
+        // Desktop fallback — copy story + link to clipboard
         try {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/jpeg': blob })
-          ]);
-          showToast('Portrait copied to clipboard — paste it anywhere! ✦', 4000);
+          await navigator.clipboard.writeText(shareText);
+          showToast('Story & link copied! Paste into WhatsApp, Instagram, anywhere ✦', 4000);
         } catch {
-          showToast('Right-click the portrait and choose "Save image" to share it ✦', 4000);
+          showToast('Right-click the portrait to save, then share it anywhere ✦', 4000);
         }
       }
     } catch(e) {
       if (e.name !== 'AbortError') showToast('Could not share — try downloading instead ✦', 3000);
     }
   };
+}
+
+// Strip markdown formatting and em-dashes from AI-generated story text
+function cleanStory(text) {
+  return text
+    .replace(/^#+\s*/gm, '')   // remove # headers
+    .replace(/ — /g, ', ')     // em-dash with spaces → comma
+    .replace(/—/g, ', ')       // bare em-dash → comma
+    .replace(/\*\*(.*?)\*\*/g, '$1')  // **bold** → plain
+    .replace(/\*(.*?)\*/g, '$1')      // *italic* → plain
+    .trim();
 }
 
 function addPortraitDetails(ctx, W, H, vibe) {

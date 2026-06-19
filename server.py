@@ -284,7 +284,9 @@ Rules:
 - Mention the cosmic world/vibe naturally, as part of the pet's adventure
 - Keep the warmth and gentle humour of the examples above
 - Never use hollow AI filler phrases like "delightful", "magnificent", "truly remarkable"
-- Always end exactly with: Welcome to the Cosmic Crew [name], [short phrase]! ❤️"""
+- Always end exactly with: Welcome to the Cosmic Crew [name], [short phrase]! ❤️
+- No markdown whatsoever — no #, **, _, or headers. Plain prose only.
+- No em-dashes (—). Use commas or short sentences instead."""
 
 def generate_pet_story(pet_name, vibe):
     """
@@ -298,7 +300,7 @@ def generate_pet_story(pet_name, vibe):
         f"Write a Cosmic Crew welcome story for a pet named {pet_name.strip()}. "
         f"Their portrait places them in {world}. "
         f"Weave the world into the story — what cosmic mischief are they getting up to there? "
-        f"Keep it warm, funny, and 120–180 words."
+        f"Keep it warm, funny, and 80–120 words. Plain prose only, no markdown, no em-dashes."
     )
     payload = {
         "model":      "claude-haiku-4-5-20251001",
