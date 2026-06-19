@@ -7,7 +7,7 @@ Run:   python3 server.py
 Open:  http://localhost:8080
 """
 
-import base64, glob, hashlib, hmac as hmaclib, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
+import base64, glob, hashlib, hmac as hmaclib, html as _html, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
@@ -882,24 +882,54 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             except: pass
         pet_name = meta.get("pet_name", "")
         story    = meta.get("story", "")
-        title    = f"✦ {pet_name}'s cosmic portrait" if pet_name else "✦ A cosmic pet portrait"
-        desc     = story[:120].rstrip() + "…" if len(story) > 120 else (story or "AI-generated cosmic pet portrait made at cosmicpets.love")
+
+        # Build display strings
+        title    = f"{pet_name}'s cosmic portrait" if pet_name else "A cosmic pet portrait"
+        og_title = f"✦ {title} — Cosmic Pets"
+        if story:
+            # First sentence of story as description, falling back to truncation
+            first_sent = story.split(".")[0].strip()
+            desc = (first_sent + ".") if len(first_sent) < 140 else (story[:137] + "…")
+        else:
+            desc = f"See {pet_name}'s AI-generated cosmic pet portrait, made at cosmicpets.love" if pet_name else "AI-generated cosmic pet portrait made at cosmicpets.love"
+
+        # HTML-escape everything going into attributes (handles apostrophes, quotes, etc.)
+        title_attr    = _html.escape(og_title, quote=True)
+        desc_attr     = _html.escape(desc, quote=True)
+        title_display = _html.escape(title)
+        story_display = _html.escape(story)
+
         img_url  = f"https://cosmicpets.love/shares/{share_id}.jpg"
         page_url = f"https://cosmicpets.love/p/{share_id}"
-        story_html = f'<p class="story">{story}</p>' if story else ""
-        html = f"""<!DOCTYPE html>
+        story_html = f'<p class="story">{story_display}</p>' if story else ""
+
+        page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{title}</title>
-  <meta property="og:title" content="{title}">
-  <meta property="og:description" content="{desc}">
-  <meta property="og:image" content="{img_url}">
-  <meta property="og:url" content="{page_url}">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="{img_url}">
+  <title>{title_attr}</title>
+  <meta name="description" content="{desc_attr}">
+
+  <!-- Open Graph — WhatsApp, LinkedIn, Facebook, iMessage -->
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="Cosmic Pets">
+  <meta property="og:url"         content="{page_url}">
+  <meta property="og:title"       content="{title_attr}">
+  <meta property="og:description" content="{desc_attr}">
+  <meta property="og:image"       content="{img_url}">
+  <meta property="og:image:type"  content="image/jpeg">
+  <meta property="og:image:width" content="{OUTPUT_W}">
+  <meta property="og:image:height" content="{OUTPUT_H}">
+  <meta property="og:image:alt"   content="{title_attr}">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="{title_attr}">
+  <meta name="twitter:description" content="{desc_attr}">
+  <meta name="twitter:image"       content="{img_url}">
+  <meta name="twitter:image:alt"   content="{title_attr}">
+
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -908,20 +938,20 @@ class CosmicHandler(SimpleHTTPRequestHandler):
     #stars-canvas{{position:fixed;inset:0;z-index:0;pointer-events:none}}
     .page{{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 60px}}
     .logo-link img{{height:36px;margin-bottom:36px}}
-    .portrait{{width:100%;max-width:420px;border-radius:20px;display:block;box-shadow:0 8px 48px rgba(0,0,0,0.6)}}
+    .portrait{{width:100%;max-width:400px;border-radius:20px;display:block;box-shadow:0 8px 48px rgba(0,0,0,0.6)}}
     h1{{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:clamp(1.4rem,4vw,2rem);margin:28px 0 16px;text-align:center;background:linear-gradient(120deg,#00BCD4,#c084fc,#E040FB);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}}
-    .story{{max-width:500px;color:#aaa;font-size:0.95rem;line-height:1.75;text-align:center;margin-bottom:32px}}
+    .story{{max-width:480px;color:#aaa;font-size:0.95rem;line-height:1.75;text-align:center;margin-bottom:32px}}
     .cta{{display:inline-block;margin-top:8px;padding:14px 32px;border-radius:100px;background:linear-gradient(135deg,#7B2FBE,#E040FB);color:#fff;font-weight:600;font-size:0.95rem;text-decoration:none;letter-spacing:0.01em}}
     .cta:hover{{opacity:0.9}}
-    .tagline{{margin-top:14px;font-size:0.8rem;color:#666}}
+    .tagline{{margin-top:14px;font-size:0.8rem;color:#555}}
   </style>
 </head>
 <body>
 <canvas id="stars-canvas"></canvas>
 <div class="page">
   <a href="https://cosmicpets.love" class="logo-link"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
-  <img class="portrait" src="/shares/{share_id}.jpg" alt="Cosmic pet portrait">
-  <h1>{title}</h1>
+  <img class="portrait" src="/shares/{share_id}.jpg" alt="{title_attr}" loading="eager">
+  <h1>{title_display}</h1>
   {story_html}
   <a class="cta" href="https://cosmicpets.love">✦ Create your own</a>
   <p class="tagline">cosmicpets.love</p>
@@ -936,7 +966,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 </script>
 </body>
 </html>"""
-        body = html.encode()
+        body = page.encode()
         self.send_response(200)
         self._cors()
         self.send_header("Content-Type", "text/html; charset=utf-8")
