@@ -6,7 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Cosmic Pets — Your Pet's Cosmic Portrait</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;1,800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;1,9..144,700;1,9..144,800&family=Epilogue:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,7 +23,7 @@
     }
 
     html, body {
-      min-height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100%; font-family: 'Epilogue', 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: var(--space); color: var(--text); overflow-x: hidden;
     }
 
@@ -61,7 +61,7 @@
     /* ── HERO ── */
     .hero { width: 100%; max-width: 560px; text-align: center; margin-bottom: 32px; }
     .hero h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Fraunces', serif;
       font-size: clamp(1.7rem, 5.5vw, 2.35rem);
       font-weight: 800;
       line-height: 0.95;
@@ -447,7 +447,7 @@
       padding: 32px 24px; max-width: 420px; width: 100%; text-align: center;
       box-shadow: 0 0 60px rgba(123,47,190,0.4);
     }
-    .paywall-box h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .paywall-box h2 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
     .paywall-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; line-height: 1.5; }
     .paywall-dismiss {
       margin-top: 14px; background: none; border: none;
@@ -484,7 +484,7 @@
     }
     #crop-modal.open { display: flex; }
     .crop-modal-inner { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .crop-modal-inner h2 { font-size: 1.15rem; font-weight: 700; text-align: center; }
+    .crop-modal-inner h2 { font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 700; text-align: center; }
     .crop-modal-inner p  { color: var(--muted); font-size: 0.82rem; text-align: center; line-height: 1.5; }
     .crop-container {
       width: 100%; aspect-ratio: 4/3; max-height: 55vh;
@@ -651,6 +651,7 @@
     .nav-close:hover { color: var(--text); }
     .nav-links { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .nav-link {
+      font-family: 'Fraunces', serif;
       font-size: 2rem; font-weight: 700; letter-spacing: -0.01em;
       color: var(--text); text-decoration: none; background: none; border: none;
       cursor: pointer; padding: 10px 20px; border-radius: 12px;
@@ -685,6 +686,7 @@
     .page-back:hover { color: var(--text); }
     .page-content { width: 100%; max-width: 600px; padding-bottom: 60px; }
     .page-title {
+      font-family: 'Fraunces', serif;
       font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;
       margin-bottom: 6px; line-height: 1.15;
     }
@@ -703,6 +705,7 @@
       height: 72px; width: auto;
     }
     .about-hero h2 {
+      font-family: 'Fraunces', serif;
       font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em;
     }
     .about-hero p {
@@ -720,6 +723,7 @@
     /* Photo Guide */
     .guide-section { margin-bottom: 36px; }
     .guide-section-title {
+      font-family: 'Fraunces', serif;
       font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;
       display: flex; align-items: center; gap: 10px;
     }
@@ -778,7 +782,7 @@
       border-radius: 20px; padding: 32px 28px; text-align: center;
     }
     .contact-card .contact-icon { font-size: 2.8rem; margin-bottom: 16px; display: block; }
-    .contact-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+    .contact-card h3 { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
     .contact-card p { font-size: 0.92rem; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
     .contact-email {
       display: inline-flex; align-items: center; gap: 8px;
