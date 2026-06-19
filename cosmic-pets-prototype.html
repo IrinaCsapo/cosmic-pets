@@ -6,7 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Cosmic Pets — Your Pet's Cosmic Portrait</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;1,9..144,700;1,9..144,800&family=Epilogue:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;1,9..144,700;1,9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,7 +23,7 @@
     }
 
     html, body {
-      min-height: 100%; font-family: 'Epilogue', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100%; font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: var(--space); color: var(--text); overflow-x: hidden;
     }
 
@@ -62,19 +62,21 @@
     .hero { width: 100%; max-width: 560px; text-align: center; margin-bottom: 32px; }
     .hero h1 {
       font-family: 'Fraunces', serif;
-      font-size: clamp(1.7rem, 5.5vw, 2.35rem);
+      font-size: clamp(2.2rem, 9vw, 4.2rem);
+      font-style: italic;
       font-weight: 800;
-      line-height: 0.95;
+      line-height: 1.0;
       color: #fff;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       -webkit-text-fill-color: #fff;
+      letter-spacing: -0.01em;
     }
     .hero h1 em {
       display: block;
       font-style: italic;
       font-weight: 800;
-      font-size: 1.15em;
-      padding-bottom: 0.12em;
+      font-size: 1.1em;
+      padding-bottom: 0.1em;
       background: linear-gradient(120deg, #00BCD4 0%, #c084fc 50%, #E040FB 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
