@@ -722,6 +722,68 @@
     .about-pillar h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
     .about-pillar p  { font-size: 0.85rem; color: var(--muted); line-height: 1.55; }
 
+    /* ── Pet name input ── */
+    .pet-name-wrap {
+      width: 100%; max-width: 480px;
+      margin: 20px 0 4px;
+      text-align: left;
+    }
+    .pet-name-label {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .pet-name-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; padding: 13px 16px;
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: 1rem;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .pet-name-input::placeholder { color: rgba(255,255,255,0.2); }
+    .pet-name-input:focus {
+      border-color: rgba(123,47,190,0.65);
+      background: rgba(123,47,190,0.06);
+    }
+
+    /* ── Story card ── */
+    .story-card {
+      width: 100%; max-width: 480px;
+      background: rgba(123,47,190,0.08);
+      border: 1px solid rgba(123,47,190,0.28);
+      border-radius: 16px; padding: 20px 22px; margin: 20px 0 4px;
+      text-align: left; position: relative; overflow: hidden;
+    }
+    .story-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(224,64,251,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .story-card-title {
+      font-family: 'Fraunces', serif; font-style: italic;
+      font-size: 1rem; font-weight: 700; color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .story-text {
+      font-size: 0.88rem; line-height: 1.75; color: rgba(232,232,245,0.88);
+    }
+    .story-loading {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--muted); font-size: 0.82rem;
+    }
+    .story-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--purple); flex-shrink: 0;
+      animation: sdot 1.2s ease-in-out infinite;
+    }
+    .story-dot:nth-child(2) { animation-delay: 0.2s; }
+    .story-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes sdot {
+      0%,100% { opacity: 0.25; transform: scale(0.7); }
+      50%      { opacity: 1;    transform: scale(1); }
+    }
+
     /* Photo Guide */
     .guide-section { margin-bottom: 36px; }
     .guide-section-title {
@@ -833,6 +895,12 @@
     <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg">
   </div>
 
+
+  <div class="pet-name-wrap">
+    <label class="pet-name-label" for="pet-name-input">✦ What's your pet's name?</label>
+    <input type="text" id="pet-name-input" class="pet-name-input"
+      placeholder="e.g. Luna, Mochi, Biscuit…" maxlength="40" autocomplete="off">
+  </div>
 
   <div class="photo-tips">
     <button class="photo-tips-toggle" id="tips-toggle" onclick="toggleTips()">
@@ -987,6 +1055,17 @@
       <span class="qh-text" id="quality-hint-text"></span>
       <button class="qh-dismiss" onclick="document.getElementById('quality-hint').style.display='none'" title="Dismiss">✕</button>
     </div>
+    <div class="story-card" id="story-card" style="display:none;">
+      <div class="story-card-title" id="story-card-title">✦ Cosmic tale</div>
+      <div id="story-loading" class="story-loading">
+        <span class="story-dot"></span>
+        <span class="story-dot"></span>
+        <span class="story-dot"></span>
+        <span>Writing your pet's cosmic adventure…</span>
+      </div>
+      <div id="story-text" class="story-text" style="display:none;"></div>
+    </div>
+
     <div class="result-actions">
       <div class="result-actions-row">
         <button class="btn-secondary" id="download-btn">✦ Save portrait</button>
@@ -2002,6 +2081,32 @@ async function canvasFallback(vibe) {
 // ── Main pipeline ─────────────────────────────────────────────────────────────
 async function startProcessing() {
   const vibe = VIBES.find(v => v.id === selectedVibe);
+  const petName = document.getElementById('pet-name-input').value.trim();
+
+  // Fire story generation immediately — Haiku takes ~2s, portrait takes 30-60s,
+  // so it'll be ready long before we need it. Runs fully in the background.
+  const storyPromise = petName
+    ? fetch('/api/generate-story', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({petName, vibe: selectedVibe})
+      }).then(r => r.json()).catch(() => null)
+    : Promise.resolve(null);
+
+  // Show story card loading state early so user knows something's coming
+  const storyCard  = document.getElementById('story-card');
+  const storyTitle = document.getElementById('story-card-title');
+  const storyLoad  = document.getElementById('story-loading');
+  const storyText  = document.getElementById('story-text');
+  if (petName) {
+    storyCard.style.display = 'block';
+    storyTitle.textContent  = `✦ ${petName}'s cosmic adventure`;
+    storyLoad.style.display = 'flex';
+    storyText.style.display = 'none';
+  } else {
+    storyCard.style.display = 'none';
+  }
+
   // Decrement the right counter (skipped in demo mode — unlimited free portraits)
   if (!demoMode) {
     if (attemptsLeft > 0) {
@@ -2127,6 +2232,19 @@ async function startProcessing() {
   }
 
   if (!canGenerate()) document.getElementById('upsell-card').style.display = 'block';
+
+  // Resolve story and display it (almost certainly already done by now)
+  if (petName) {
+    storyPromise.then(result => {
+      if (result && result.story) {
+        storyLoad.style.display = 'none';
+        storyText.textContent   = result.story;
+        storyText.style.display = 'block';
+      } else {
+        storyCard.style.display = 'none'; // hide quietly if it failed
+      }
+    });
+  }
   refreshGallery(); // update the home screen gallery with the new portrait
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -2333,6 +2451,11 @@ document.getElementById('again-btn').addEventListener('click', () => {
   hideQualityHint();
   uploadedFile = null; selectedVibe = null;
   fileInput.value = '';
+  // Reset story card for next generation
+  document.getElementById('story-card').style.display = 'none';
+  document.getElementById('story-text').style.display = 'none';
+  document.getElementById('story-text').textContent   = '';
+  document.getElementById('story-loading').style.display = 'flex';
   document.querySelectorAll('.vibe-card').forEach(c => c.classList.remove('selected'));
   const btn = document.getElementById('vibe-confirm-btn');
   btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed';

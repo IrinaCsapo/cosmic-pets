@@ -13,9 +13,10 @@ from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
-API_KEY      = os.environ.get("REPLICATE_API_TOKEN", "")
-PORT         = int(os.environ.get("PORT", 8080))
-BYPASS_CREDITS = os.environ.get("BYPASS_CREDITS", "false").lower() == "true"
+API_KEY           = os.environ.get("REPLICATE_API_TOKEN", "")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+PORT              = int(os.environ.get("PORT", 8080))
+BYPASS_CREDITS    = os.environ.get("BYPASS_CREDITS", "false").lower() == "true"
 
 # FREE_UNTIL — set to an ISO datetime string on Railway to open the app for free until that date.
 # e.g.  FREE_UNTIL=2026-06-25T23:59:59
@@ -228,6 +229,104 @@ VIBE_PROMPTS = {
         "No people, no human figures, no ruins, no mermaids, no vehicles, no rockets."
     ),
 }
+
+# ── PET STORY GENERATION ─────────────────────────────────────────────────────
+# Each vibe gets its own cosmic world description — woven into the story prompt
+# so every adventure feels tied to the portrait the pet is actually in.
+VIBE_STORY_WORLDS = {
+    "midnight": (
+        "a mysterious gothic cosmos of deep indigo and eternal shadow, where ancient "
+        "Persepolis ruins loom under a crimson-accretioned black hole, a murder of crows "
+        "circles overhead, and black roses bloom in the cold starlight"
+    ),
+    "celestial": (
+        "a warm golden celestial world of ancient starlit temples, where iridescent birds "
+        "of paradise dance in amber nebulae, lamassu guardian statues line the cosmic "
+        "avenues, and ringed planets glow like amber lanterns"
+    ),
+    "garden": (
+        "a dreamy pastel cosmos of soft pinks, cherry blossoms drifting through starlit "
+        "skies, peacocks fanning iridescent tails among giant monstera leaves, and "
+        "butterflies the size of small moons"
+    ),
+    "electric": (
+        "a neon-charged electric universe crackling with cyan lightning, towering crystal "
+        "geode formations, vivid geometric constellations, and a small rocket ship that "
+        "really shouldn't be unsupervised"
+    ),
+    "ocean": (
+        "a bioluminescent ocean cosmos where coral reefs float between galaxies, a gentle "
+        "space whale drifts past trailing jellyfish made of starlight, and clownfish dart "
+        "between nebulae like tiny jewels"
+    ),
+    "abstract": (
+        "a mind-bending multiverse of overlapping portals, bold graphic dimensions, and "
+        "ringed planets stacked like cosmic pancakes — where the laws of physics are "
+        "merely polite suggestions"
+    ),
+}
+
+# Style examples drawn from Irina's actual Cosmic Crew stories — used as few-shot
+# anchors so the model writes in her voice, not generic AI prose.
+_STORY_SYSTEM = """You are the warm, witty voice of Cosmic Pets — a storyteller who writes short whimsical welcome pieces for pets joining the "Cosmic Crew". You write exactly like the examples below: affectionate and genuinely funny, in third person, with cosmic adventure woven in naturally. Each story is 120–180 words and ends with: Welcome to the Cosmic Crew [name], [short warm phrase]! ❤️
+
+EXAMPLE 1 — Otis the bunny:
+The Cosmic Crew has added their first honorary bun-bun to the bunch! We're very excited to have Otis in the crew — a 2-year-old sweet bunny boy and a fussy vegetarian. As much as he hates Brussel sprouts, he is equally obsessed with bananas, carpets, and cuddles from his human mama. His big impressive bunny ears — secret spying weapon, shhh! — love to be scratched, and Otis is not the bun-bun to shy away from coming up to you and demanding this. He's a bunny that knows what he wants, when he wants it, and how! Uhmm, Captain alert, much?!! Welcome to the Cosmic Crew Otis, we're thrilled to have you here! ❤️
+
+EXAMPLE 2 — Mochi the cat:
+Mochi is a gentle old soul — majestic and sweet, fierce but dignified, handsome but silly. He's not really a chatty boy, but his rare meows are high-pitched, squeaky and sweet. He uses them as a weapon to ask for treats. It works 100% of the time and he knows this. His favourite things are creamy and crunchy snacks, head boops and head kisses, scratches in all the right places, and long naps in the most impressively weird positions. Don't tell him we said this, but he's totally a momma's boy. Welcome to the Cosmic Crew Mochi, we love to have you here! ❤️
+
+EXAMPLE 3 — BFG & Tango (pets who crossed the rainbow bridge):
+The Cosmic Crew is proud to welcome two incredibly special honorary members who have recently both crossed the rainbow bridge and are now off on a fantastic, cosmic and intergalactic adventure! BFG (Big Friendly Giant – 16yo) and Tango (23yo) have been friends almost their entire lives and have both lived their lives to the fullest. Their adventures with their parents across the mountains and shores of the UK turned them into excellent explorers, not to mention exceptionally dashing too. Welcome to the Cosmic Crew BFG & Tango, the adventure has only just begun! ❤️
+
+Rules:
+- Never make up specific facts (age, breed, quirks) — keep it general but vivid
+- Mention the cosmic world/vibe naturally, as part of the pet's adventure
+- Keep the warmth and gentle humour of the examples above
+- Never use hollow AI filler phrases like "delightful", "magnificent", "truly remarkable"
+- Always end exactly with: Welcome to the Cosmic Crew [name], [short phrase]! ❤️"""
+
+def generate_pet_story(pet_name, vibe):
+    """
+    Generate a whimsical Cosmic Crew welcome story using Claude Haiku.
+    Returns story string, or None if unavailable.
+    """
+    if not ANTHROPIC_API_KEY or not pet_name:
+        return None
+    world = VIBE_STORY_WORLDS.get(vibe, VIBE_STORY_WORLDS["celestial"])
+    prompt = (
+        f"Write a Cosmic Crew welcome story for a pet named {pet_name.strip()}. "
+        f"Their portrait places them in {world}. "
+        f"Weave the world into the story — what cosmic mischief are they getting up to there? "
+        f"Keep it warm, funny, and 120–180 words."
+    )
+    payload = {
+        "model":      "claude-haiku-4-5-20251001",
+        "max_tokens": 400,
+        "system":     _STORY_SYSTEM,
+        "messages":   [{"role": "user", "content": prompt}],
+    }
+    try:
+        t0   = time.time()
+        data = json.dumps(payload).encode()
+        req  = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=data,
+            headers={
+                "x-api-key":         ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type":      "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as r:
+            result = json.loads(r.read())
+        story = result["content"][0]["text"].strip()
+        print(f"  📖 Story for '{pet_name}' ({vibe}) in {time.time()-t0:.1f}s")
+        return story
+    except Exception as e:
+        print(f"  ⚠️  Story generation failed: {e}")
+        return None
 
 # ── HELPERS ──────────────────────────────────────────────────────────────────
 def replicate_get_latest_version(owner, model):
@@ -753,6 +852,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             "/api/generate-bg":     self._generate_bg,
             "/api/composite":       self._composite,
             "/api/create-checkout": self._create_checkout,
+            "/api/generate-story":  self._generate_story,
         }
         handler = routes.get(self.path)
         if handler:
@@ -979,6 +1079,19 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             print(f"  ✅ Background generated in {t:.1f}s → {output_url}")
             self._json_response({"bg_url": str(output_url), "time": t})
 
+        except Exception as e:
+            self._error(str(e))
+
+    # ── /api/generate-story ──
+    def _generate_story(self):
+        try:
+            body     = self._read_json()
+            pet_name = body.get("petName", "").strip()
+            vibe     = body.get("vibe", "celestial")
+            if not pet_name:
+                return self._json_response({"story": None})
+            story = generate_pet_story(pet_name, vibe)
+            self._json_response({"story": story})
         except Exception as e:
             self._error(str(e))
 
