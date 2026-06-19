@@ -8,6 +8,11 @@ Open:  http://localhost:8080
 """
 
 import base64, glob, hashlib, hmac as hmaclib, html as _html, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
+try:
+    import psycopg2, psycopg2.extras
+    _PG_AVAILABLE = True
+except ImportError:
+    _PG_AVAILABLE = False
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageFilter, ImageEnhance, ImageStat
 from rembg import remove as rembg_remove, new_session as rembg_new_session
@@ -37,7 +42,9 @@ def is_free_mode():
 REFS_FOLDER    = pathlib.Path(__file__).parent / "references"   # put your 8 portraits here
 GALLERY_FOLDER = pathlib.Path(__file__).parent / "gallery"       # auto-saved last portraits
 GALLERY_MAX    = 6                                                # keep last N portraits
-SHARES_FOLDER  = pathlib.Path(__file__).parent / "shares"        # shareable portrait pages
+# SHARES_FOLDER — point this at a Railway Volume mount path (e.g. /data/shares) via the
+# SHARES_DIR env var so portraits survive deploys. Falls back to local folder for dev.
+SHARES_FOLDER  = pathlib.Path(os.environ.get("SHARES_DIR", str(pathlib.Path(__file__).parent / "shares")))
 SHARES_MAX     = 500                                              # keep last N shares
 OUTPUT_W, OUTPUT_H = 1440, 2016
 
@@ -54,6 +61,89 @@ PACK_PRICES = {
 PACK_CREDITS = {"6": 6, "12": 12, "20": 20}
 
 DB_PATH = pathlib.Path(__file__).parent / "payments.db"
+
+# ── POSTGRES SHARES — persistent portrait storage across deploys ──────────────
+_PG_URL = os.environ.get("DATABASE_URL", "")
+
+def _pg_conn():
+    """Return a psycopg2 connection, or None if unavailable."""
+    if not _PG_AVAILABLE or not _PG_URL:
+        return None
+    try:
+        return psycopg2.connect(_PG_URL, connect_timeout=5)
+    except Exception as e:
+        print(f"  ⚠️  Postgres unavailable: {e}")
+        return None
+
+def _init_shares_table():
+    conn = _pg_conn()
+    if not conn: return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS shares (
+                    share_id   TEXT PRIMARY KEY,
+                    pet_name   TEXT    DEFAULT '',
+                    vibe       TEXT    DEFAULT '',
+                    story      TEXT    DEFAULT '',
+                    image_data BYTEA   NOT NULL,
+                    created_at INTEGER NOT NULL
+                )
+            """)
+        conn.commit()
+        print("  ✅ Shares table ready (Postgres)")
+    except Exception as e:
+        print(f"  ⚠️  Could not create shares table: {e}")
+    finally:
+        conn.close()
+
+def pg_save_share(share_id, image_bytes, pet_name="", vibe=""):
+    conn = _pg_conn()
+    if not conn: return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO shares (share_id,pet_name,vibe,image_data,created_at) "
+                "VALUES (%s,%s,%s,%s,%s) ON CONFLICT (share_id) DO NOTHING",
+                (share_id, pet_name, vibe, psycopg2.Binary(image_bytes), int(time.time()))
+            )
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"  ⚠️  pg_save_share: {e}")
+        return False
+    finally:
+        conn.close()
+
+def pg_update_story(share_id, story):
+    conn = _pg_conn()
+    if not conn: return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE shares SET story=%s WHERE share_id=%s", (story, share_id))
+        conn.commit()
+    except Exception as e:
+        print(f"  ⚠️  pg_update_story: {e}")
+    finally:
+        conn.close()
+
+def pg_get_share(share_id):
+    """Returns (image_bytes, pet_name, vibe, story) or None."""
+    conn = _pg_conn()
+    if not conn: return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT image_data, pet_name, vibe, story FROM shares WHERE share_id=%s",
+                (share_id,)
+            )
+            row = cur.fetchone()
+        return row  # (memoryview, str, str, str) or None
+    except Exception as e:
+        print(f"  ⚠️  pg_get_share: {e}")
+        return None
+    finally:
+        conn.close()
 
 def check_nsfw(image_b64):
     """
@@ -841,11 +931,17 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         elif self.path.startswith("/p/"):
             self._share_page()
         elif self.path.startswith("/shares/"):
-            # Serve the portrait image from the shares folder
-            fname = pathlib.Path(self.path.lstrip("/"))
-            fpath = pathlib.Path(__file__).parent / fname
-            if fpath.exists() and fpath.suffix == ".jpg":
-                data = fpath.read_bytes()
+            # Serve the portrait image — try Postgres first, fall back to filesystem
+            sid = self.path[8:].replace(".jpg","").strip("/")
+            data = None
+            row = pg_get_share(sid)
+            if row:
+                data = bytes(row[0])
+            else:
+                fpath = pathlib.Path(__file__).parent / "shares" / f"{sid}.jpg"
+                if fpath.exists():
+                    data = fpath.read_bytes()
+            if data:
                 self.send_response(200)
                 self._cors()
                 self.send_header("Content-Type", "image/jpeg")
@@ -872,16 +968,29 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         share_id = self.path[3:].strip("/")  # strip /p/
         if not share_id or not share_id.replace("-","").isalnum():
             return self.send_error(404)
-        img_path  = SHARES_FOLDER / f"{share_id}.jpg"
-        meta_path = SHARES_FOLDER / f"{share_id}.json"
-        if not img_path.exists():
+
+        # Try Postgres first, fall back to filesystem
+        pet_name = ""
+        story    = ""
+        exists   = False
+        row = pg_get_share(share_id)
+        if row:
+            exists   = True
+            pet_name = row[1] or ""
+            story    = row[3] or ""
+        else:
+            img_path  = SHARES_FOLDER / f"{share_id}.jpg"
+            meta_path = SHARES_FOLDER / f"{share_id}.json"
+            if img_path.exists():
+                exists = True
+                if meta_path.exists():
+                    try:
+                        meta     = json.loads(meta_path.read_text())
+                        pet_name = meta.get("pet_name", "")
+                        story    = meta.get("story", "")
+                    except: pass
+        if not exists:
             return self.send_error(404)
-        meta = {}
-        if meta_path.exists():
-            try: meta = json.loads(meta_path.read_text())
-            except: pass
-        pet_name = meta.get("pet_name", "")
-        story    = meta.get("story", "")
 
         # Build display strings
         title    = f"{pet_name}'s cosmic portrait" if pet_name else "A cosmic pet portrait"
@@ -977,11 +1086,13 @@ class CosmicHandler(SimpleHTTPRequestHandler):
     def _save_story(self):
         """Attach story text to an existing share (called after story resolves on frontend)."""
         try:
-            body      = self._read_json()
-            share_id  = body.get("share_id", "").strip()
-            story     = body.get("story", "").strip()
+            body     = self._read_json()
+            share_id = body.get("share_id", "").strip()
+            story    = body.get("story", "").strip()
             if not share_id:
                 return self._json_response({"ok": False})
+            # Try Postgres first, fall back to filesystem
+            pg_update_story(share_id, story)
             meta_path = SHARES_FOLDER / f"{share_id}.json"
             if meta_path.exists():
                 try:
@@ -1271,25 +1382,21 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             except Exception as ge:
                 print(f"  ⚠️  Gallery save failed: {ge}")
 
-            # Save to shares folder with unique ID for shareable link
+            # Save to Postgres for persistent shareable link (survives deploys)
             share_id = None
             try:
-                SHARES_FOLDER.mkdir(exist_ok=True)
                 share_id = secrets.token_hex(16)
-                (SHARES_FOLDER / f"{share_id}.jpg").write_bytes(img_data)
-                (SHARES_FOLDER / f"{share_id}.json").write_text(json.dumps({
-                    "pet_name": pet_name,
-                    "vibe":     vibe,
-                    "created":  int(time.time()),
-                    "story":    ""
-                }))
-                # Prune oldest beyond SHARES_MAX
-                saved = sorted(SHARES_FOLDER.glob("*.jpg"), key=lambda p: p.stat().st_mtime)
-                for old in saved[:-SHARES_MAX]:
-                    old.unlink()
-                    meta = old.with_suffix(".json")
-                    if meta.exists(): meta.unlink()
-                print(f"  🔗 Share saved: /p/{share_id}")
+                ok = pg_save_share(share_id, img_data, pet_name=pet_name, vibe=vibe)
+                if ok:
+                    print(f"  🔗 Share saved to Postgres: /p/{share_id}")
+                else:
+                    # Fallback: save to local filesystem
+                    SHARES_FOLDER.mkdir(exist_ok=True)
+                    (SHARES_FOLDER / f"{share_id}.jpg").write_bytes(img_data)
+                    (SHARES_FOLDER / f"{share_id}.json").write_text(json.dumps(
+                        {"pet_name": pet_name, "vibe": vibe, "created": int(time.time()), "story": ""}
+                    ))
+                    print(f"  🔗 Share saved to filesystem (fallback): /p/{share_id}")
             except Exception as se:
                 print(f"  ⚠️  Share save failed: {se}")
 
@@ -1302,6 +1409,8 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 # ── ENTRY POINT ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     os.chdir(pathlib.Path(__file__).parent)
+    _init_db()
+    _init_shares_table()
 
     print(f"""
   ╔══════════════════════════════════════════╗
