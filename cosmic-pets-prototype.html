@@ -1561,29 +1561,6 @@ function resizeStars(){
 resizeStars();
 window.addEventListener('resize', resizeStars);
 
-// ── SHOOTING STARS ──
-const shootingStars = [];
-function spawnShootingStar() {
-  // Random angle between -60° and +60° from horizontal (so they always travel across the sky)
-  const angle = (Math.random() * 120 - 60) * Math.PI / 180;
-  const speed = Math.random() * 8 + 10;
-  const startX = Math.random() * sc.width;
-  const startY = Math.random() * sc.height * 0.6; // top 60% of screen
-  shootingStars.push({
-    x: startX, y: startY,
-    vx: Math.cos(angle) * speed,
-    vy: Math.sin(angle) * speed,
-    len: Math.random() * 120 + 80,
-    alpha: 1,
-    fade: Math.random() * 0.012 + 0.008,
-    width: Math.random() * 1.2 + 0.6,
-    color: ['255,255,255','255,220,255','200,220,255'][Math.floor(Math.random()*3)]
-  });
-}
-// Fire one immediately, then every 7s
-spawnShootingStar();
-setInterval(spawnShootingStar, 7000);
-
 // ── NAV MENU STARS ──
 const navSc = document.getElementById('nav-stars-canvas');
 const navCtx = navSc.getContext('2d');
@@ -1664,31 +1641,6 @@ drawNavStars();
     sCtx.beginPath(); sCtx.arc(px,py,s.r,0,Math.PI*2);
     sCtx.fillStyle=`rgba(${s.rgb},${alpha})`; sCtx.fill();
   });
-
-  // Shooting stars
-  for (let i = shootingStars.length - 1; i >= 0; i--) {
-    const s = shootingStars[i];
-    const tailX = s.x - s.vx * (s.len / 12);
-    const tailY = s.y - s.vy * (s.len / 12);
-    const grad = sCtx.createLinearGradient(tailX, tailY, s.x, s.y);
-    grad.addColorStop(0, `rgba(${s.color},0)`);
-    grad.addColorStop(1, `rgba(${s.color},${s.alpha})`);
-    sCtx.beginPath();
-    sCtx.moveTo(tailX, tailY);
-    sCtx.lineTo(s.x, s.y);
-    sCtx.strokeStyle = grad;
-    sCtx.lineWidth = s.width;
-    sCtx.stroke();
-    // Tiny glow at head
-    const glow = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 3);
-    glow.addColorStop(0, `rgba(${s.color},${s.alpha * 0.8})`);
-    glow.addColorStop(1, 'rgba(255,255,255,0)');
-    sCtx.fillStyle = glow;
-    sCtx.beginPath(); sCtx.arc(s.x, s.y, 3, 0, Math.PI * 2); sCtx.fill();
-    // Move and fade
-    s.x += s.vx; s.y += s.vy; s.alpha -= s.fade;
-    if (s.alpha <= 0) shootingStars.splice(i, 1);
-  }
 
   requestAnimationFrame(anim);
 })();
