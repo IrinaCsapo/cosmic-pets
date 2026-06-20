@@ -922,7 +922,12 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         self.send_response(200); self._cors(); self.end_headers()
 
     def do_GET(self):
-        if self.path == "/api/config":
+        if self.path.startswith("/api/debug-share/"):
+            sid = self.path[17:]
+            row = pg_get_share(sid)
+            fs  = (SHARES_FOLDER / f"{sid}.jpg").exists()
+            self._json_response({"pg": bool(row), "fs": fs, "pg_available": _PG_AVAILABLE, "pg_url_set": bool(_PG_URL)})
+        elif self.path == "/api/config":
             self._json_response({"freeMode": is_free_mode()})
         elif self.path == "/api/gallery":
             self._gallery()
@@ -999,6 +1004,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
                         story    = meta.get("story", "")
                     except: pass
         if not exists:
+            print(f"  ❌ Share not found: {share_id} (pg_available={_PG_AVAILABLE}, pg_url={bool(_PG_URL)})")
             return self.send_error(404)
 
         # Build display strings
