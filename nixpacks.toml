@@ -8,4 +8,4 @@ cmds = [
 ]
 
 [start]
-cmd = "python server.py"
+cmd = "python -u server.py"
