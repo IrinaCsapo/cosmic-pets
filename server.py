@@ -1049,8 +1049,8 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         title_display = _html.escape(title)
         story_display = _html.escape(story)
 
-        img_url  = f"https://cosmicpets.love/shares/{share_id}.jpg"
-        page_url = f"https://cosmicpets.love/p/{share_id}"
+        img_url  = f"https://www.cosmicpets.love/shares/{share_id}.jpg"
+        page_url = f"https://www.cosmicpets.love/p/{share_id}"
         story_html = f'<p class="story">{story_display}</p>' if story else ""
 
         page = f"""<!DOCTYPE html>
@@ -1099,11 +1099,11 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 <body>
 <canvas id="stars-canvas"></canvas>
 <div class="page">
-  <a href="https://cosmicpets.love" class="logo-link"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
+  <a href="https://www.cosmicpets.love" class="logo-link"><img src="/logo/cosmic-pets-logo@2x.png" alt="Cosmic Pets"></a>
   <img class="portrait" src="/shares/{share_id}.jpg" alt="{title_attr}" loading="eager">
   <h1>{title_display}</h1>
   {story_html}
-  <a class="cta" href="https://cosmicpets.love">✦ Create your own</a>
+  <a class="cta" href="https://www.cosmicpets.love">✦ Create your own</a>
   <p class="tagline">cosmicpets.love</p>
 </div>
 <script>
