@@ -63,21 +63,30 @@ PACK_CREDITS = {"6": 6, "12": 12, "20": 20}
 DB_PATH = pathlib.Path(__file__).parent / "payments.db"
 
 # ── POSTGRES SHARES — persistent portrait storage across deploys ──────────────
-_PG_URL = os.environ.get("DATABASE_URL", "")
+_PG_URL_RAW = os.environ.get("DATABASE_URL", "")
+# psycopg2 requires postgresql:// not postgres:// (Railway uses the latter)
+_PG_URL = _PG_URL_RAW.replace("postgres://", "postgresql://", 1) if _PG_URL_RAW else ""
 
 def _pg_conn():
     """Return a psycopg2 connection, or None if unavailable."""
-    if not _PG_AVAILABLE or not _PG_URL:
+    if not _PG_AVAILABLE:
+        print("  ⚠️  psycopg2 not installed — Postgres unavailable")
+        return None
+    if not _PG_URL:
+        print("  ⚠️  DATABASE_URL not set — Postgres unavailable")
         return None
     try:
         return psycopg2.connect(_PG_URL, connect_timeout=5)
     except Exception as e:
-        print(f"  ⚠️  Postgres unavailable: {e}")
+        print(f"  ⚠️  Postgres connection failed: {e}")
         return None
 
 def _init_shares_table():
+    print(f"  🔌 Connecting to Postgres for shares table… (URL set: {bool(_PG_URL)})")
     conn = _pg_conn()
-    if not conn: return
+    if not conn:
+        print("  ⚠️  Shares will use filesystem fallback — links won't survive deploys")
+        return
     try:
         with conn.cursor() as cur:
             cur.execute("""
