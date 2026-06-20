@@ -76,7 +76,7 @@ def _pg_conn():
         print("  ⚠️  DATABASE_URL not set — Postgres unavailable")
         return None
     try:
-        return psycopg2.connect(_PG_URL, connect_timeout=5)
+        return psycopg2.connect(_PG_URL, connect_timeout=15)
     except Exception as e:
         print(f"  ⚠️  Postgres connection failed: {e}")
         return None
@@ -100,7 +100,11 @@ def _init_shares_table():
                 )
             """)
         conn.commit()
-        print("  ✅ Shares table ready (Postgres)")
+        # Count existing shares to confirm reads work too
+        with conn.cursor() as cur2:
+            cur2.execute("SELECT COUNT(*) FROM shares")
+            n = cur2.fetchone()[0]
+        print(f"  ✅ Shares table ready (Postgres) — {n} portrait(s) stored")
     except Exception as e:
         print(f"  ⚠️  Could not create shares table: {e}")
     finally:
@@ -137,22 +141,30 @@ def pg_update_story(share_id, story):
         conn.close()
 
 def pg_get_share(share_id):
-    """Returns (image_bytes, pet_name, vibe, story) or None."""
-    conn = _pg_conn()
-    if not conn: return None
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT image_data, pet_name, vibe, story FROM shares WHERE share_id=%s",
-                (share_id,)
-            )
-            row = cur.fetchone()
-        return row  # (memoryview, str, str, str) or None
-    except Exception as e:
-        print(f"  ⚠️  pg_get_share: {e}")
-        return None
-    finally:
-        conn.close()
+    """Returns (image_bytes, pet_name, vibe, story) or None. Retries up to 3× on failure."""
+    for attempt in range(3):
+        conn = _pg_conn()
+        if not conn:
+            print(f"  ⚠️  pg_get_share: no connection (attempt {attempt+1}/3)")
+            time.sleep(1)
+            continue
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT image_data, pet_name, vibe, story FROM shares WHERE share_id=%s",
+                    (share_id,)
+                )
+                row = cur.fetchone()
+            print(f"  🔍 pg_get_share({share_id[:8]}…): {'✅ found' if row else '❌ not found'}")
+            return row  # (memoryview, str, str, str) or None
+        except Exception as e:
+            print(f"  ⚠️  pg_get_share attempt {attempt+1}/3: {e}")
+        finally:
+            try: conn.close()
+            except: pass
+        time.sleep(1)
+    print(f"  ⚠️  pg_get_share: all 3 attempts failed for {share_id[:8]}…")
+    return None
 
 def check_nsfw(image_b64):
     """
@@ -923,7 +935,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith("/api/debug-share/"):
-            sid = self.path[17:]
+            sid = self.path.split("?")[0][17:]
             row = pg_get_share(sid)
             fs  = (SHARES_FOLDER / f"{sid}.jpg").exists()
             self._json_response({"pg": bool(row), "fs": fs, "pg_available": _PG_AVAILABLE, "pg_url_set": bool(_PG_URL)})
@@ -979,8 +991,12 @@ class CosmicHandler(SimpleHTTPRequestHandler):
 
     def _share_page(self):
         """Serve a beautiful shareable page for a portrait."""
-        share_id = self.path[3:].strip("/")  # strip /p/
+        # Strip /p/ prefix; also strip any query string so ?utm_source=... doesn't break lookup
+        raw_path = self.path.split("?")[0]
+        share_id = raw_path[3:].strip("/")
+        print(f"  🌐 Share page request: path={self.path!r} → id={share_id!r}")
         if not share_id or not share_id.replace("-","").isalnum():
+            print(f"  ❌ Share id failed validation: {share_id!r}")
             return self.send_error(404)
 
         # Try Postgres first, fall back to filesystem
