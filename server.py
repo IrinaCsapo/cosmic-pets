@@ -7,7 +7,7 @@ Run:   python3 server.py
 Open:  http://localhost:8080
 """
 
-import base64, glob, hashlib, hmac as hmaclib, html as _html, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
+import base64, concurrent.futures, glob, hashlib, hmac as hmaclib, html as _html, io, json, os, pathlib, secrets, sqlite3, tempfile, time, threading, urllib.error, urllib.parse, urllib.request
 try:
     import psycopg2, psycopg2.extras
     _PG_AVAILABLE = True
@@ -934,6 +934,7 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         self.send_response(200); self._cors(); self.end_headers()
 
     def do_GET(self):
+        print(f"  📥 GET {self.path!r}")
         if self.path.startswith("/api/debug-share/"):
             sid = self.path.split("?")[0][17:]
             row = pg_get_share(sid)
@@ -999,11 +1000,20 @@ class CosmicHandler(SimpleHTTPRequestHandler):
             print(f"  ❌ Share id failed validation: {share_id!r}")
             return self.send_error(404)
 
-        # Try Postgres first, fall back to filesystem
+        # Try Postgres first, fall back to filesystem.
+        # Use a hard 8s timeout so a hung Postgres never blocks Railway's proxy.
         pet_name = ""
         story    = ""
         exists   = False
-        row = pg_get_share(share_id)
+        row = None
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
+                _fut = _ex.submit(pg_get_share, share_id)
+                row = _fut.result(timeout=8)
+        except concurrent.futures.TimeoutError:
+            print(f"  ⚠️  pg_get_share timed out after 8s for {share_id[:8]}…")
+        except Exception as _pge:
+            print(f"  ⚠️  pg_get_share error: {_pge}")
         if row:
             exists   = True
             pet_name = row[1] or ""
