@@ -947,9 +947,9 @@ class CosmicHandler(SimpleHTTPRequestHandler):
         elif self.path.startswith("/api/verify-payment"):
             self._verify_payment()
         elif self.path == "/" or self.path == "" or self.path.startswith("/?"):
-            self.path = "/cosmic-pets-prototype.html"
+            self.path = "/previewcosmicpets.html"
             super().do_GET()
-        elif self.path == "/reset":
+        elif self.path == "/create" or self.path.startswith("/create?") or self.path == "/reset":
             self.path = "/cosmic-pets-prototype.html"
             super().do_GET()
         elif self.path == "/cookies":

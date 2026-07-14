@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Pets — your pet, as the universe sees them</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..500&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --space: oklch(16% 0.04 290);
+    --space-deep: oklch(13% 0.035 285);
+    --moon: oklch(94% 0.01 290);
+    --moon-soft: oklch(72% 0.03 290);
+    --aurora: oklch(78% 0.12 310);      /* lilac */
+    --gold: oklch(83% 0.12 85);         /* starlight gold */
+    --hairline: oklch(94% 0.01 290 / 0.16);
+    --paper: oklch(96.5% 0.012 85);
+    --ink: oklch(24% 0.018 55);
+    --seal: oklch(56% 0.185 29);
+
+    --display: 'Fraunces', Georgia, serif;
+    --text: 'Newsreader', Georgia, serif;
+    --mono: 'Fragment Mono', 'Courier New', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--space);
+    color: var(--moon);
+    font-family: var(--text);
+    font-size: 18px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* starfield — fixed, whole page lives in space */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 22%, oklch(95% 0.02 290 / 0.9) 50%, transparent 100%),
+      radial-gradient(1px 1px at 78% 12%, oklch(90% 0.04 85 / 0.8) 50%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 55% 68%, oklch(92% 0.03 310 / 0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 33% 84%, oklch(94% 0.02 290 / 0.75) 50%, transparent 100%),
+      radial-gradient(1.1px 1.1px at 90% 55%, oklch(90% 0.03 85 / 0.7) 50%, transparent 100%),
+      radial-gradient(0.9px 0.9px at 65% 35%, oklch(95% 0.02 290 / 0.8) 50%, transparent 100%),
+      radial-gradient(1.3px 1.3px at 22% 55%, oklch(92% 0.04 310 / 0.6) 50%, transparent 100%),
+      radial-gradient(1px 1px at 44% 8%, oklch(93% 0.02 290 / 0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 8% 70%, oklch(93% 0.02 290 / 0.6) 50%, transparent 100%),
+      radial-gradient(1.2px 1.2px at 84% 82%, oklch(92% 0.03 310 / 0.6) 50%, transparent 100%);
+    animation: twinkle 7s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.5; } to { opacity: 1; } }
+
+  /* nebula wash */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 45% at 85% 15%, oklch(32% 0.1 310 / 0.4) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 10% 80%, oklch(28% 0.09 260 / 0.35) 0%, transparent 70%);
+  }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 48px; position: relative; z-index: 1; }
+
+  .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  ::selection { background: oklch(78% 0.12 310 / 0.3); }
+
+  /* ── nav ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: oklch(16% 0.04 290 / 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .nav-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 16px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-logo {
+    font-family: var(--display);
+    font-size: 21px;
+    font-weight: 450;
+    color: var(--moon);
+    text-decoration: none;
+  }
+  .nav-logo em { font-style: italic; color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 28px; }
+  .nav-family {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--moon-soft);
+    text-decoration: none;
+  }
+  .nav-family:hover { color: var(--gold); }
+
+  .btn {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid oklch(83% 0.12 85 / 0.6);
+    border-radius: 999px;
+    padding: 11px 22px;
+    transition: background .25s, color .25s, box-shadow .25s;
+  }
+  .btn:hover {
+    background: var(--gold);
+    color: var(--space-deep);
+    box-shadow: 0 0 30px oklch(83% 0.12 85 / 0.35);
+  }
+  .btn-big { padding: 16px 34px; font-size: 12px; }
+
+  /* ── hero ── */
+  #hero { padding: 90px 0 110px; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 6fr 5fr;
+    gap: 72px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    color: var(--moon-soft);
+    margin-bottom: 30px;
+  }
+  .hero-eyebrow a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--hairline); }
+  .hero-eyebrow a:hover { color: var(--gold); }
+  .hero-eyebrow .fleuron { color: var(--gold); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(52px, 6.4vw, 92px);
+    font-weight: 380;
+    line-height: 1.0;
+    letter-spacing: -0.015em;
+    margin-bottom: 28px;
+  }
+  h1 em { font-style: italic; font-weight: 420; color: var(--aurora); }
+  .hero-sub {
+    font-size: 21px;
+    line-height: 1.6;
+    color: var(--moon-soft);
+    max-width: 42ch;
+    margin-bottom: 40px;
+  }
+  .hero-sub strong { color: var(--moon); font-weight: 450; font-style: italic; }
+  .hero-cta-row { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+  .hero-note { color: var(--moon-soft); font-size: 10px; }
+
+  .hero-media { position: relative; display: flex; justify-content: center; }
+  .orbit {
+    position: absolute;
+    width: 118%;
+    aspect-ratio: 1;
+    border: 1px dashed oklch(70% 0.08 310 / 0.25);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: orbit-spin 90s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes orbit-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  .portal {
+    width: min(430px, 100%);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid oklch(80% 0.11 310 / 0.5);
+    box-shadow:
+      0 0 60px oklch(60% 0.14 310 / 0.4),
+      0 0 140px oklch(50% 0.12 280 / 0.3),
+      inset 0 0 40px oklch(20% 0.06 290 / 0.6);
+  }
+  .portal img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero-caption { text-align: center; color: var(--moon-soft); margin-top: 24px; }
+
+  /* ── section head ── */
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 16px;
+    color: var(--moon-soft);
+  }
+  .section-head .roman { color: var(--gold); }
+
+  /* ── how it works ── */
+  #how { padding: 40px 0 110px; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+    padding-top: 56px;
+  }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 16px;
+  }
+  .step h3 {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 420;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .step h3 em { font-style: italic; color: var(--aurora); }
+  .step p { color: var(--moon-soft); font-size: 16.5px; max-width: 36ch; }
+
+  /* ── gallery ── */
+  #gallery { padding: 0 0 110px; }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px 32px;
+    padding-top: 56px;
+  }
+  .specimen-card { text-decoration: none; color: inherit; display: block; transition: transform .4s cubic-bezier(.23,1,.32,1); }
+  .specimen-card:hover { transform: translateY(-8px); }
+  .specimen-frame {
+    display: block;
+    position: relative;
+    aspect-ratio: 3/4;
+    border: 1px solid oklch(80% 0.11 310 / 0.4);
+    background: var(--space-deep);
+    padding: 10px;
+    box-shadow: 0 14px 44px oklch(10% 0.03 290 / 0.6);
+    transition: box-shadow .4s;
+  }
+  .specimen-card:hover .specimen-frame {
+    box-shadow: 0 20px 60px oklch(10% 0.03 290 / 0.7), 0 0 40px oklch(60% 0.14 310 / 0.25);
+  }
+  .specimen-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .specimen-caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+    color: var(--moon-soft);
+  }
+  .specimen-caption .name { color: var(--gold); }
+
+  /* placeholder slot (6th card) */
+  .specimen-frame.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: dashed;
+    border-color: oklch(80% 0.11 310 / 0.3);
+    background:
+      radial-gradient(circle at 50% 38%, oklch(30% 0.09 300 / 0.5) 0%, transparent 60%),
+      var(--space-deep);
+  }
+  .placeholder-inner {
+    text-align: center;
+    padding: 24px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--moon-soft);
+  }
+  .placeholder-inner .placeholder-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 14px;
+    opacity: 0.5;
+  }
+
+  /* ── the story ── */
+  #story { padding: 0 0 120px; }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 72px;
+    align-items: center;
+    padding-top: 64px;
+  }
+  /* a typed report card — one paper artifact floating in space */
+  .story-card {
+    background: var(--paper);
+    color: var(--ink);
+    padding: 44px 46px 40px;
+    transform: rotate(-1.2deg);
+    box-shadow: 0 24px 70px oklch(8% 0.03 290 / 0.7);
+    position: relative;
+  }
+  .story-card::before {
+    content: '';
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    width: 96px; height: 30px;
+    background: oklch(97% 0.01 90 / 0.4);
+    border-left: 1px solid oklch(90% 0.01 90 / 0.5);
+    border-right: 1px solid oklch(90% 0.01 90 / 0.5);
+  }
+  .story-card .story-meta { color: oklch(48% 0.03 55); margin-bottom: 20px; }
+  .story-card blockquote {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(21px, 2.2vw, 27px);
+    line-height: 1.45;
+    font-weight: 380;
+  }
+  .story-card blockquote strong { color: var(--seal); font-weight: 450; }
+  .story-card .story-sig {
+    margin-top: 22px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: oklch(48% 0.03 55);
+  }
+  .story-body h2 {
+    font-family: var(--display);
+    font-size: clamp(34px, 3.8vw, 50px);
+    font-weight: 390;
+    line-height: 1.08;
+    margin-bottom: 20px;
+  }
+  .story-body h2 em { font-style: italic; color: var(--aurora); }
+  .story-body p { color: var(--moon-soft); max-width: 44ch; }
+
+  /* ── the human option ── */
+  #human { padding: 0 0 120px; }
+  .human-strip {
+    border: 1px solid var(--hairline);
+    padding: 36px 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .human-strip .human-text {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 380;
+  }
+  .human-strip .human-text .seal-dot { color: var(--seal); font-style: normal; }
+  .human-strip .human-sub { color: var(--moon-soft); font-size: 15px; margin-top: 6px; font-style: normal; font-family: var(--text); }
+  .link-quiet {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--moon);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 3px;
+    white-space: nowrap;
+  }
+  .link-quiet:hover { color: var(--gold); }
+
+  /* ── final CTA ── */
+  #cta {
+    padding: 0 0 130px;
+    text-align: center;
+  }
+  #cta .wrap { max-width: 800px; }
+  #cta h2 {
+    font-family: var(--display);
+    font-size: clamp(38px, 5vw, 64px);
+    font-weight: 370;
+    line-height: 1.12;
+    margin-bottom: 22px;
+  }
+  #cta h2 em { font-style: italic; color: var(--aurora); }
+  #cta .cta-sub { color: var(--moon-soft); margin-bottom: 42px; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding: 34px 0 44px;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px 32px;
+    color: var(--moon-soft);
+  }
+  .footer-grid a { color: inherit; text-decoration: none; }
+  .footer-grid a:hover { color: var(--gold); }
+  .footer-grid .fleuron { color: var(--gold); }
+
+  /* reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .85s cubic-bezier(.23,1,.32,1), transform .85s cubic-bezier(.23,1,.32,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    body::before { animation: none; }
+    .orbit { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+
+  @media (max-width: 900px) {
+    .wrap { padding: 0 24px; }
+    .nav-inner { padding: 14px 24px; }
+    .nav-family { display: none; }
+    #hero { padding: 56px 0 72px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    .steps { grid-template-columns: 1fr; gap: 36px; }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
+    .story-grid { grid-template-columns: 1fr; gap: 52px; }
+    .human-strip { padding: 28px 24px; }
+    #how, #gallery, #story, #human { padding-bottom: 80px; }
+    #cta { padding-bottom: 90px; }
+  }
+  @media (max-width: 560px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- nav -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">cosmic<em>pets</em></a>
+    <div class="nav-right">
+      <a class="nav-family" href="https://irina.love">Specimen № 01 · irina.love — tools of delight</a>
+      <a class="btn" href="/create">Create a portrait</a>
+    </div>
+  </div>
+</nav>
+
+<!-- hero -->
+<header id="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="hero-eyebrow mono"><span class="fleuron">✳</span> From <a href="https://irina.love">Irina's cabinet of delights</a></p>
+        <h1>Your pet, as the <em>universe</em> sees them.</h1>
+        <p class="hero-sub">Upload one photo. Receive a cosmic portrait <strong>so eerily right that people cry a little</strong> — and a small adventure story to go with it. A universe that noticed your animal.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-big" href="/create">Create your pet's portrait</a>
+          <span class="hero-note mono">One photo · a few minutes</span>
+        </div>
+      </div>
+      <div class="hero-media">
+        <div class="orbit"></div>
+        <div>
+          <div class="portal">
+            <img src="/examples/portrait-01.jpg" alt="Griutz, a grey Russian Blue cat, portrayed as a cosmic being surrounded by a ringed planet">
+          </div>
+          <p class="hero-caption mono">Griutz · seen through the portal</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- how it works -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head mono reveal">
+      <span><span class="roman">I.</span>&ensp;How the universe does it</span>
+      <span>three small steps</span>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="step-num">Step 01</span>
+        <h3>Send one <em>photo</em></h3>
+        <p>Any photo where their face is visible. Phone snaps are perfect — the universe is not picky about lighting.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">Step 02</span>
+        <h3>The cosmos takes a <em>look</em></h3>
+        <p>A few minutes pass. Planets are arranged, flowers are gathered, one small moon is polished.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">Step 03</span>
+        <h3>Receive their <em>portrait</em></h3>
+        <p>A cosmic portrait plus their adventure story — who they are out there, and what trouble they cause.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- gallery -->
+<section id="gallery">
+  <div class="wrap">
+    <div class="section-head mono reveal">
+      <span><span class="roman">II.</span>&ensp;Recent arrivals from the cosmos</span>
+      <span>every portrait is one of one</span>
+    </div>
+    <div class="gallery-grid">
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame">
+          <img src="/examples/portrait-01.jpg" alt="Griutz, a grey Russian Blue cat, commander of the ringed world">
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Griutz</span>
+          <span>commander of the ringed world</span>
+        </span>
+      </a>
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame">
+          <img src="/examples/portrait-02.jpg" alt="Skip, a golden fluffy dog, captain of lost frequencies">
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Skip</span>
+          <span>captain of lost frequencies</span>
+        </span>
+      </a>
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame">
+          <img src="/examples/portrait-03.jpg" alt="Felix, a tuxedo cat, keeper of the great divide">
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Felix</span>
+          <span>keeper of the great divide</span>
+        </span>
+      </a>
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame">
+          <img src="/examples/portrait-04.jpg" alt="Crush, a grey tabby cat, navigator of cosmic tides">
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Crush</span>
+          <span>navigator of cosmic tides</span>
+        </span>
+      </a>
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame">
+          <img src="/examples/portrait-05.jpg" alt="Mochi, a tabby cat, empress of the wild nebula">
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Mochi</span>
+          <span>empress of the wild nebula</span>
+        </span>
+      </a>
+
+      <a class="specimen-card reveal" href="/create">
+        <span class="specimen-frame placeholder">
+          <span class="placeholder-inner">
+            <span class="placeholder-icon">✦</span>
+            Your pet<br>the next arrival
+          </span>
+        </span>
+        <span class="specimen-caption mono">
+          <span class="name">Your pet</span>
+          <span>the next arrival</span>
+        </span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- the story -->
+<section id="story">
+  <div class="wrap">
+    <div class="section-head mono reveal">
+      <span><span class="roman">III.</span>&ensp;Every portrait arrives with a story</span>
+      <span>written for an audience of one</span>
+    </div>
+    <div class="story-grid">
+      <figure class="story-card reveal">
+        <p class="story-meta mono">Field report · Griutz's cosmic adventure</p>
+        <blockquote>"We're pretty sure we spotted them last Tuesday commanding a ringed planet like they owned it — <strong>which, according to our records, they absolutely do.</strong> Welcome to the Cosmic Crew, Griutz. Don't let the pandas eat your fish."</blockquote>
+        <figcaption class="story-sig">— delivered with the portrait, as every story is</figcaption>
+      </figure>
+      <div class="story-body reveal">
+        <h2>Not just a picture. A <em>myth.</em></h2>
+        <p>Alongside the portrait, the universe files a short report on your pet's cosmic life — their post out there, their known offences, their perfect mix of curiosity and mischief. People frame the portrait. They read the story out loud.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- the human option -->
+<section id="human">
+  <div class="wrap">
+    <div class="human-strip reveal">
+      <div>
+        <p class="human-text"><span class="seal-dot">✳</span> Don't like AI? Perfectly reasonable.</p>
+        <p class="human-sub">A real human — me, Irina — will make your pet's portrait by hand instead.</p>
+      </div>
+      <a class="link-quiet" href="mailto:hello@irina.love">Ask for the human version →</a>
+    </div>
+  </div>
+</section>
+
+<!-- final CTA -->
+<section id="cta">
+  <div class="wrap">
+    <h2 class="reveal">Every pet deserves to be <em>noticed</em> by the universe.</h2>
+    <p class="cta-sub mono reveal">One photo · a few minutes · one of one</p>
+    <p class="reveal"><a class="btn btn-big" href="/create">Create your pet's portrait</a></p>
+  </div>
+</section>
+
+<!-- footer -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid mono">
+      <span>cosmicpets.love <span class="fleuron">✳</span> generated with love (and AI)</span>
+      <a href="https://irina.love">Specimen № 01 of tools of delight · irina.love</a>
+      <span>© 2026 · made with attention</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.12 });
+if (reduceMotion) {
+  document.querySelectorAll('.reveal').forEach(r => r.classList.add('in'));
+} else {
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+}
+</script>
+</body>
+</html>
