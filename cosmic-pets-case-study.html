@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Pets — Case Study · Irina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..500&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:        #1a1714;
+    --ink-soft:   #6b6560;
+    --paper:      #f7f4ef;
+    --rule:       rgba(26,23,20,0.12);
+    --accent:     #b85c2a;   /* warm terracotta — feels like old print */
+    --gold:       #8c6d3f;
+    --display:    'Fraunces', Georgia, serif;
+    --text:       'Newsreader', Georgia, serif;
+    --mono:       'Fragment Mono', 'Courier New', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 19px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: rgba(184,92,42,0.15); }
+
+  /* ── layout ── */
+  .page { max-width: 720px; margin: 0 auto; padding: 0 32px 120px; }
+
+  /* ── masthead ── */
+  .masthead {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 64px;
+  }
+  .masthead-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    display: block;
+  }
+  .masthead-label a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--rule); }
+  .masthead h1 {
+    font-family: var(--display);
+    font-size: clamp(42px, 7vw, 68px);
+    font-weight: 380;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .masthead h1 em { font-style: italic; color: var(--accent); font-weight: 420; }
+  .masthead-sub {
+    font-size: 20px;
+    color: var(--ink-soft);
+    max-width: 52ch;
+    line-height: 1.55;
+  }
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 40px;
+  }
+  .meta-item {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .meta-item strong { color: var(--ink); display: block; margin-bottom: 4px; }
+
+  /* ── hero image ── */
+  .hero-image {
+    width: calc(100% + 64px);
+    margin: 0 -32px 72px;
+    aspect-ratio: 3/2;
+    overflow: hidden;
+    background: #1a1520;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.92);
+  }
+
+  /* ── section ── */
+  section { margin-bottom: 72px; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(26px, 3.5vw, 36px);
+    font-weight: 390;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+  h2 em { font-style: italic; color: var(--accent); }
+  p { margin-bottom: 1.3em; color: var(--ink); }
+  p:last-child { margin-bottom: 0; }
+  p.lead { font-size: 21px; line-height: 1.6; color: var(--ink); font-style: italic; }
+
+  /* ── pull quote ── */
+  blockquote {
+    border-left: 2px solid var(--accent);
+    margin: 44px 0;
+    padding: 4px 0 4px 28px;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 360;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  /* ── steps grid ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 40px;
+    margin-top: 36px;
+  }
+  .step { border-top: 1px solid var(--rule); padding-top: 20px; }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 10px;
+  }
+  .step h3 {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 420;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .step h3 em { font-style: italic; color: var(--accent); }
+  .step p { font-size: 16px; color: var(--ink-soft); margin: 0; line-height: 1.6; }
+
+  /* ── references grid ── */
+  .refs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .ref-card {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 20px 22px;
+  }
+  .ref-card .ref-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .ref-card h4 {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 440;
+    font-style: italic;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .ref-card p { font-size: 14.5px; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+
+  /* ── tech list ── */
+  .tech-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    margin-top: 32px;
+  }
+  .tech-item {
+    padding: 20px 22px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .tech-item:nth-child(3n) { border-right: none; }
+  .tech-item:nth-last-child(-n+3) { border-bottom: none; }
+  .tech-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .tech-item strong {
+    font-family: var(--display);
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 440;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .tech-item p { font-size: 13.5px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+
+  /* ── portrait strip ── */
+  .portrait-strip {
+    width: calc(100% + 64px);
+    margin: 48px -32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    overflow: hidden;
+  }
+  .portrait-strip img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── closer ── */
+  .closer {
+    border-top: 1px solid var(--rule);
+    padding-top: 48px;
+    margin-top: 72px;
+  }
+  .closer a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 2px;
+  }
+  .closer a:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .page { padding: 0 20px 80px; }
+    .hero-image { width: calc(100% + 40px); margin: 0 -20px 56px; grid-template-columns: repeat(2, 1fr); }
+    .portrait-strip { width: calc(100% + 40px); margin: 40px -20px; grid-template-columns: repeat(2, 1fr); }
+    .steps { grid-template-columns: 1fr; gap: 24px; }
+    .refs { grid-template-columns: 1fr; }
+    .tech-list { grid-template-columns: repeat(2, 1fr); }
+    .tech-item:nth-child(3n) { border-right: 1px solid var(--rule); }
+    .tech-item:nth-child(2n) { border-right: none; }
+  }
+</style>
+<script defer src="https://irina-umami.vercel.app/script.js" data-website-id="96d3ecaa-2180-4425-b71a-0cf60f2a060e"></script>
+<script defer src="https://irina-umami.vercel.app/recorder.js" data-website-id="96d3ecaa-2180-4425-b71a-0cf60f2a060e"></script>
+</head>
+<body>
+<div class="page">
+
+  <!-- masthead -->
+  <header class="masthead">
+    <span class="masthead-label"><a href="https://irina.love">irina.love</a> &ensp;✳&ensp; Case Study</span>
+    <h1>Cosmic<br><em>Pets.</em></h1>
+    <p class="masthead-sub">A one-photo tool that turns any pet into a cosmic portrait — and files a small adventure report on what they get up to out there.</p>
+    <div class="masthead-meta">
+      <div class="meta-item"><strong>Role</strong>Product Designer &amp; Builder</div>
+      <div class="meta-item"><strong>Year</strong>2026</div>
+      <div class="meta-item"><strong>Type</strong>Consumer tool</div>
+      <div class="meta-item"><strong>Link</strong><a href="https://www.cosmicpets.love" style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule);">cosmicpets.love</a></div>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <div class="hero-image" aria-hidden="true">
+    <img src="examples/portrait-01.jpg" alt="">
+    <img src="examples/portrait-06.jpg" alt="">
+    <img src="examples/portrait-04.jpg" alt="">
+    <img src="examples/portrait-03.jpg" alt="">
+  </div>
+
+  <!-- origin -->
+  <section>
+    <span class="section-label">01 — Origin</span>
+    <h2>I make pet portraits <em>by hand.</em></h2>
+    <p class="lead">That's where this started — not with AI, but with a brush. For years I've been making illustrated animal portraits as a side practice, and the response was always the same: people cried a little. Sometimes a lot.</p>
+    <p>The problem was time. A hand-made portrait takes days. I could only make so many, and the waiting list kept people waiting too long for something that mattered to them. Their pet was getting older. Some of them didn't have that much time left.</p>
+    <p>I wanted to scale the feeling without losing it — to make something that still felt intentional, ceremonial, like the universe had actually <em>noticed</em> your animal. Cosmic Pets is my answer to that question.</p>
+
+    <blockquote>"A universe that noticed your animal."</blockquote>
+
+    <p>The name came first, which is unusual for me. Once I had it, the whole concept snapped into place: every pet as a cosmic being, rendered with the kind of specificity that makes people say <em>that's exactly her.</em></p>
+  </section>
+
+  <!-- references -->
+  <section>
+    <span class="section-label">02 — References</span>
+    <h2>The <em>visual language</em> had to come from somewhere real.</h2>
+    <p>I'm a designer but I'm also a collector of images — I've been pulling references for years before I ever knew what I'd use them for. For this project, four bodies of work shaped every visual decision: the palette, the composition rules I gave the AI, even the typography of the landing page.</p>
+
+    <div class="refs">
+      <div class="ref-card">
+        <span class="ref-num">Reference 01</span>
+        <h4>Vintage celestial maps &amp; astrology prints</h4>
+        <p>Old star charts have a peculiar quality — they treat the cosmos as something knowable, almost domestic. That's the tone I wanted. Not vast and cold, but intimate and charted.</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 02</span>
+        <h4>Botanical illustration</h4>
+        <p>The precision of specimen plates — the way each flower is arranged like it's being formally introduced — gave me the framing device. Every portrait is a specimen. Every pet, a documented discovery.</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 03</span>
+        <h4>70s–90s collage &amp; magazine art</h4>
+        <p>The cut-and-paste energy. Mixed media that feels assembled with love rather than generated. I used this as a check: does the output look intentional? Does it look like someone cared what was in the frame?</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 04</span>
+        <h4>Fine art portraiture</h4>
+        <p>The composition rules of painted portraits — subject centred, surrounded by objects that say something about them — are exactly what I wanted the AI to produce. Every cosmic portrait is, structurally, a Renaissance commission.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- portrait strip -->
+  <div class="portrait-strip" aria-hidden="true">
+    <img src="examples/portrait-02.jpg" alt="">
+    <img src="examples/portrait-07.jpg" alt="">
+    <img src="examples/portrait-05.jpg" alt="">
+    <img src="examples/portrait-08.jpg" alt="">
+  </div>
+
+  <!-- ux -->
+  <section>
+    <span class="section-label">03 — The Experience</span>
+    <h2>Every screen had to <em>earn its place.</em></h2>
+    <p>The core flow is six screens. I treated each one as a micro-moment — it either builds anticipation or it's in the way. There's no room for neutral screens when someone's about to hand you a photo of their dog.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">Step 01</span>
+        <h3>The <em>upload</em></h3>
+        <p>The first screen sets the register: slightly ceremonial, warm. It explains what's coming without over-explaining. A photo guide shows good versus bad examples — this turned out to be the most important piece of copy on the page. Bad inputs were the biggest source of disappointing outputs.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">Step 02</span>
+        <h3>The <em>editor</em></h3>
+        <p>A full crop-and-rotate tool before anything is sent off. This is a meaningful pause — it asks the user to choose how their pet is framed. In testing, people spent more time here than I expected. They were already imagining the portrait.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">Step 03</span>
+        <h3>The <em>wait</em></h3>
+        <p>The generation takes a few minutes. The processing screen doesn't pretend otherwise — it uses that time to build the idea that something real is happening. Planets being arranged. A small moon being polished. The wait is part of the ceremony.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">Step 04</span>
+        <h3>The <em>portrait</em></h3>
+        <p>The result screen is quiet. The portrait at full size, the adventure story beneath it. No distractions. The share button appears small, below the fold — I didn't want the first thing people saw to be a push to share. I wanted them to just look first.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">Step 05</span>
+        <h3>The <em>story</em></h3>
+        <p>Every portrait ships with a short written report on the pet's cosmic life — their title, their known offences, the trouble they cause out there. This was the part I wasn't sure would land. It's the part people quote back to me most.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">Step 06</span>
+        <h3>The <em>share link</em></h3>
+        <p>A permanent, beautiful URL for each portrait: <span style="font-family:var(--mono);font-size:14px;">cosmicpets.love/p/[id]</span>. The share page is designed to stand alone — no app chrome, just the portrait, the story, and a quiet invitation to make one of your own.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- tech -->
+  <section>
+    <span class="section-label">04 — Under the Hood</span>
+    <h2>The stack had to be <em>simple enough to ship.</em></h2>
+    <p>I built this end-to-end, which meant every technology choice was also a personal commitment to maintain it. The principle: reach for a managed service before writing custom code, and write custom code before adding a framework.</p>
+
+    <div class="tech-list">
+      <div class="tech-item">
+        <span class="tech-label">Background removal</span>
+        <strong>rembg</strong>
+        <p>Local model, runs on-server. No third-party API call — the pet is extracted without leaving the pipeline.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Image generation</span>
+        <strong>FLUX via Replicate</strong>
+        <p>The cosmic background is generated from a prompt built around the pet's appearance. Each result is genuinely one of one.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Compositing</span>
+        <strong>Pillow</strong>
+        <p>Background, extracted pet, and reference elements are composited together at 1440×2016 — print-quality from the start.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Story generation</span>
+        <strong>Claude (Anthropic)</strong>
+        <p>The adventure story is written fresh for each pet, informed by what the AI sees in the image.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Server &amp; hosting</span>
+        <strong>Python + Railway</strong>
+        <p>A single Python HTTP server handles everything — no framework overhead. Deployed on Railway with a Postgres volume for share persistence.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Photo editing</span>
+        <strong>Cropper.js</strong>
+        <p>The in-browser crop tool. Lets users frame their pet before anything is sent to the server — the quality of the crop directly affects the quality of the output.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- reflection -->
+  <section>
+    <span class="section-label">05 — What I Learned</span>
+    <h2>The hardest part was <em>tone.</em></h2>
+    <p>Getting the images right took iteration — prompt engineering, reference tuning, compositing adjustments. But the hardest design problem was quieter than that. It was tone.</p>
+    <p>AI tools tend toward either clinical neutrality or aggressive delight. I wanted something neither of those — something that felt like a small, private thing that had been made with care specifically for you. That's almost impossible to engineer. It has to live in every piece of copy, every transition, every pause.</p>
+    <p>The "don't like AI? perfectly reasonable" line on the landing page is the one I'm most proud of. It makes space for scepticism, which makes the people who do trust the tool trust it more. I kept the human option — me, making portraits by hand — because that's where this started, and I didn't want to pretend otherwise.</p>
+
+    <blockquote>A tool is only as good as what it makes people feel. Not about the tool — about themselves, their pet, the thing they made together.</blockquote>
+
+    <p>When people send me their share links — and they do, unprompted — they're not saying "the AI was impressive." They're saying <em>look at Biscuit, she's been spotted commanding a ringed planet.</em> That's the thing. That's what I was trying to make.</p>
+  </section>
+
+  <!-- closer -->
+  <div class="closer">
+    <span class="masthead-label" style="margin-bottom:16px;">Specimen № 01 of tools of delight</span>
+    <p style="color:var(--ink-soft);font-size:16px;margin-bottom:24px;">Try it at <a href="https://www.cosmicpets.love">cosmicpets.love</a> — or <a href="mailto:hello@irina.love">commission a hand-made version</a> if you'd prefer a human touch.</p>
+    <a href="https://irina.love">← Back to irina.love</a>
+  </div>
+
+</div>
+</body>
+</html>
