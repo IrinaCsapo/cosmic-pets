@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Pets — Case Study · Irina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..500&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:        #1a1714;
+    --ink-soft:   #6b6560;
+    --paper:      #f7f4ef;
+    --rule:       rgba(26,23,20,0.12);
+    --accent:     #6b5cb5;   /* cosmic purple */
+    --gold:       #8c6d3f;
+    --space:      oklch(17% 0.045 290);
+    --moon:       oklch(94% 0.01 290);
+    --moon-soft:  oklch(72% 0.03 290);
+    --aurora:     oklch(80% 0.11 310);
+    --starlight:  oklch(83% 0.12 85);
+    --display:    'Fraunces', Georgia, serif;
+    --text:       'Newsreader', Georgia, serif;
+    --mono:       'Fragment Mono', 'Courier New', monospace;
+  }
+
+  html { scroll-behavior: smooth; overflow-x: clip; }
+  body { overflow-x: clip; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 19px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(107,92,181,0.15); }
+
+  .mono {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* reading progress */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--accent);
+    z-index: 100;
+  }
+
+  /* grain everywhere, gently */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+  }
+
+  /* ── cosmic opening ── */
+  #opening {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--space);
+    color: var(--moon);
+    overflow: hidden;
+    padding: 80px 32px;
+  }
+  /* parallax image layer */
+  .hero-bg-img {
+    position: absolute;
+    top: 0; right: 0; bottom: -320px; left: 0;
+    background: url('examples/hero-bg.webp') center 30% / cover no-repeat;
+    will-change: transform;
+    z-index: 0;
+  }
+  /* dark gradient overlay on top of parallax image */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, oklch(17% 0.045 290 / 0.45) 0%, oklch(17% 0.045 290 / 0.72) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  #opening::before {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 2;
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 22%, oklch(95% 0.02 290 / 0.9) 50%, transparent 100%),
+      radial-gradient(1px 1px at 78% 12%, oklch(90% 0.04 85 / 0.8) 50%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 55% 68%, oklch(92% 0.03 310 / 0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 33% 84%, oklch(94% 0.02 290 / 0.75) 50%, transparent 100%),
+      radial-gradient(1.1px 1.1px at 90% 55%, oklch(90% 0.03 85 / 0.7) 50%, transparent 100%),
+      radial-gradient(0.9px 0.9px at 65% 35%, oklch(95% 0.02 290 / 0.8) 50%, transparent 100%),
+      radial-gradient(1.3px 1.3px at 22% 55%, oklch(92% 0.04 310 / 0.6) 50%, transparent 100%);
+    animation: twinkle 7s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.5; } to { opacity: 1; } }
+  #opening::after {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 2;
+    background:
+      radial-gradient(ellipse 60% 50% at 82% 25%, oklch(35% 0.1 310 / 0.4) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 45% at 12% 80%, oklch(30% 0.09 260 / 0.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .opening-inner {
+    position: relative;
+    z-index: 3;
+    max-width: 860px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .opening-label { color: var(--moon-soft); display: block; margin-bottom: 36px; }
+  .opening-label a { color: inherit; text-decoration: none; border-bottom: 1px dotted oklch(72% 0.03 290 / 0.5); }
+  .opening-label .fleuron { color: var(--starlight); }
+  #opening h1 {
+    font-family: var(--display);
+    font-size: clamp(64px, 11vw, 140px);
+    font-weight: 380;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 30px;
+  }
+  #opening h1 em { font-style: italic; font-weight: 420; color: var(--aurora); }
+  .opening-sub {
+    font-size: 21px;
+    line-height: 1.6;
+    color: var(--moon-soft);
+    max-width: 46ch;
+    margin: 0 auto 48px;
+  }
+  .opening-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px 40px;
+    color: var(--moon-soft);
+  }
+  .opening-meta strong { color: var(--moon); display: block; margin-bottom: 4px; font-weight: 400; }
+  .opening-meta a { color: var(--moon); text-decoration: none; border-bottom: 1px solid var(--starlight); }
+  .opening-scroll {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .scroll-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: 1px solid oklch(82% 0.04 290 / 0.45);
+    background: oklch(100% 0 0 / 0.05);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--moon);
+    text-decoration: none;
+    animation: scrollBob 2.6s ease-in-out infinite;
+    transition: border-color 0.3s, background 0.3s;
+    cursor: pointer;
+  }
+  .scroll-circle:hover {
+    border-color: var(--accent);
+    background: oklch(100% 0 0 / 0.10);
+    animation-play-state: paused;
+  }
+  .scroll-circle svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+  .scroll-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: oklch(80% 0.04 290 / 0.6);
+  }
+  @keyframes scrollBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(9px); }
+  }
+
+  /* ── the paper story ── */
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 32px 120px;
+  }
+
+  /* chapters */
+  section { margin-bottom: 96px; }
+  .chapter-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 40px;
+    color: var(--ink-soft);
+  }
+  .chapter-head .roman { color: var(--accent); }
+
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(30px, 4.2vw, 44px);
+    font-weight: 390;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin-bottom: 26px;
+  }
+  h2 em { font-style: italic; color: var(--accent); }
+  p { margin-bottom: 1.3em; }
+  p:last-child { margin-bottom: 0; }
+  p.lead { font-size: 22px; line-height: 1.6; font-style: italic; }
+
+  /* drop cap for the origin chapter */
+  .dropcap::first-letter {
+    font-family: var(--display);
+    font-style: normal;
+    font-size: 4.1em;
+    font-weight: 420;
+    color: var(--accent);
+    float: left;
+    line-height: 0.82;
+    padding: 6px 12px 0 0;
+  }
+
+  /* ── pull-quote moments ── */
+  .moment {
+    margin: 72px 0;
+    text-align: center;
+  }
+  .moment .fleuron { color: var(--accent); font-size: 18px; display: block; margin-bottom: 22px; }
+  .moment blockquote {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 360;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.3;
+    max-width: 24ch;
+    margin: 0 auto;
+  }
+  .moment .attribution {
+    margin-top: 20px;
+    color: var(--ink-soft);
+  }
+
+  /* ── placeholder plates ── */
+  figure.plate-figure { margin: 56px 0; }
+  .breakout {
+    width: min(1040px, calc(100vw - 48px));
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+  .plate-grid { display: grid; gap: 14px; }
+  .plate-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .plate-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .ph {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: flex-end;
+    padding: 14px;
+    min-height: 100px;
+  }
+  .ph .ph-label {
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,0.85);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .ph.light .ph-label { color: rgba(26,23,20,0.55); }
+  .ph-a { background: radial-gradient(ellipse 90% 80% at 20% 15%, oklch(45% 0.12 300), oklch(24% 0.06 285) 75%); }
+  .ph-b { background: radial-gradient(ellipse 85% 90% at 80% 20%, oklch(55% 0.14 340), oklch(28% 0.08 310) 75%); }
+  .ph-c { background: radial-gradient(ellipse 90% 85% at 30% 85%, oklch(52% 0.13 250), oklch(23% 0.06 270) 75%); }
+  .ph-d { background: radial-gradient(ellipse 85% 80% at 75% 80%, oklch(50% 0.11 195), oklch(25% 0.06 240) 75%); }
+  .ph-e { background: radial-gradient(ellipse 90% 80% at 25% 20%, oklch(88% 0.05 85), oklch(80% 0.06 45) 80%); }
+  .ph-f { background: radial-gradient(ellipse 90% 80% at 70% 30%, oklch(87% 0.04 200), oklch(80% 0.05 280) 80%); }
+  .ratio-34 { aspect-ratio: 3/4; }
+  .ratio-32 { aspect-ratio: 3/2; }
+  .ratio-169 { aspect-ratio: 16/9; }
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 12px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  figcaption .fig-no { color: var(--accent); }
+
+  /* ── reference cards ── */
+  .refs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .ref-card {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 24px 24px 22px;
+  }
+  .ref-card .ref-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 12px;
+  }
+  .ref-card h4 {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 440;
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .ref-card p { font-size: 14.5px; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+
+  /* ── the six screens: a story timeline ── */
+  .timeline { margin-top: 44px; }
+  .tl-step {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 28px;
+    padding: 30px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .tl-step:last-child { border-bottom: 1px solid var(--rule); }
+  .tl-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding-top: 6px;
+  }
+  .tl-step h3 {
+    font-family: var(--display);
+    font-size: 24px;
+    font-weight: 420;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .tl-step h3 em { font-style: italic; color: var(--accent); }
+  .tl-step p { font-size: 16.5px; color: var(--ink-soft); margin: 0; line-height: 1.65; }
+  .tl-step .code { font-family: var(--mono); font-size: 13.5px; color: var(--ink); }
+
+  /* ── tech list ── */
+  .tech-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--rule);
+    margin-top: 36px;
+    background: white;
+  }
+  .tech-item {
+    padding: 22px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .tech-item:nth-child(3n) { border-right: none; }
+  .tech-item:nth-last-child(-n+3) { border-bottom: none; }
+  .tech-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .tech-item strong {
+    font-family: var(--display);
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 440;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .tech-item p { font-size: 13.5px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+
+  /* ── closer: back to space ── */
+  #closer {
+    position: relative;
+    background: var(--space);
+    color: var(--moon);
+    text-align: center;
+    padding: 110px 32px 120px;
+    overflow: hidden;
+  }
+  #closer::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1.2px 1.2px at 18% 30%, oklch(95% 0.02 290 / 0.9) 50%, transparent 100%),
+      radial-gradient(1px 1px at 72% 18%, oklch(90% 0.04 85 / 0.8) 50%, transparent 100%),
+      radial-gradient(1.3px 1.3px at 48% 70%, oklch(92% 0.03 310 / 0.7) 50%, transparent 100%),
+      radial-gradient(1px 1px at 85% 60%, oklch(94% 0.02 290 / 0.7) 50%, transparent 100%);
+    animation: twinkle 7s ease-in-out infinite alternate;
+  }
+  .closer-inner { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+  #closer .opening-label { margin-bottom: 26px; }
+  #closer h2 {
+    color: var(--moon);
+    font-weight: 360;
+    margin-bottom: 18px;
+  }
+  #closer h2 em { color: var(--aurora); }
+  #closer p { color: var(--moon-soft); font-size: 17px; margin-bottom: 40px; }
+  #closer p a { color: var(--moon); text-decoration: none; border-bottom: 1px solid var(--starlight); }
+  .closer-links { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; }
+  .closer-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--moon);
+    text-decoration: none;
+    border-bottom: 1px solid var(--starlight);
+    padding-bottom: 3px;
+  }
+  .closer-links a:hover { color: var(--starlight); }
+
+  /* ── carousel band (full-width, lives outside .page) ── */
+  .carousel-band {
+    overflow: hidden;
+    padding: 56px 0 0;
+  }
+
+  /* ── carousel ── */
+  .carousel-wrap { position: relative; overflow: hidden; }
+  .carousel-track {
+    display: flex;
+    gap: 10px;
+    will-change: transform;
+    transition: transform 0.75s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .carousel-track img {
+    flex: 0 0 calc(20% - 8px);
+    width: calc(20% - 8px);
+    height: auto;
+    display: block;
+  }
+  .c-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: oklch(97% 0.005 290 / 0.88);
+    border: 1px solid rgba(26,23,20,0.1);
+    color: var(--ink);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    font-family: Georgia, serif;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
+  }
+  .c-btn:hover { background: oklch(93% 0.01 290); }
+  .c-prev { left: 12px; }
+  .c-next { right: 12px; }
+  .c-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .c-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--rule);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.3s;
+  }
+  .c-dot.active { background: var(--accent); }
+  @media (max-width: 860px) {
+    .carousel-track img { flex: 0 0 calc(33.33% - 7px); width: calc(33.33% - 7px); }
+  }
+  @media (max-width: 560px) {
+    .carousel-track img { flex: 0 0 calc(50% - 5px); width: calc(50% - 5px); }
+  }
+
+  /* reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .85s cubic-bezier(.23,1,.32,1), transform .85s cubic-bezier(.23,1,.32,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    #opening::before, #closer::before { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+
+  @media (max-width: 680px) {
+    .page { padding: 56px 20px 80px; }
+    #opening { padding: 64px 20px; min-height: 84vh; }
+    .plate-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+    .plate-grid.cols-3 { grid-template-columns: 1fr; }
+    .refs { grid-template-columns: 1fr; }
+    .tech-list { grid-template-columns: 1fr 1fr; }
+    .tech-item:nth-child(3n) { border-right: 1px solid var(--rule); }
+    .tech-item:nth-child(2n) { border-right: none; }
+    .tl-step { grid-template-columns: 1fr; gap: 8px; }
+    section { margin-bottom: 72px; }
+    .moment { margin: 56px 0; }
+  }
+</style>
+<script defer src="https://irina-umami.vercel.app/script.js" data-website-id="96d3ecaa-2180-4425-b71a-0cf60f2a060e"></script>
+<script defer src="https://irina-umami.vercel.app/recorder.js" data-website-id="96d3ecaa-2180-4425-b71a-0cf60f2a060e"></script>
+</head>
+<body>
+
+<div id="progress" aria-hidden="true"></div>
+
+<!-- ══ the story opens in space ══ -->
+<header id="opening" class="grain">
+  <div class="hero-bg-img" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+  <div class="opening-inner">
+    <span class="opening-label mono"><a href="https://irina.love">irina.love</a> <span class="fleuron">✳</span> Case study · Specimen № 01</span>
+    <h1>Cosmic <em>Pets.</em></h1>
+    <p class="opening-sub">A one-photo tool that turns any pet into a cosmic portrait — and files a small adventure report on what they get up to out there.</p>
+    <div class="opening-meta mono">
+      <span><strong>Role</strong>Product designer &amp; builder</span>
+      <span><strong>Year</strong>2026</span>
+      <span><strong>Type</strong>Consumer tool</span>
+      <span><strong>Live</strong><a href="https://www.cosmicpets.love">cosmicpets.love</a></span>
+    </div>
+  </div>
+  <div class="opening-scroll">
+    <a class="scroll-circle" id="scrollDown" aria-label="Read case study">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+      </svg>
+    </a>
+    <span class="scroll-label">Read case study</span>
+  </div>
+</header>
+
+<div class="carousel-band">
+  <figure class="plate-figure reveal" style="margin-top:0;margin-bottom:0;">
+    <div class="carousel-wrap" id="c1">
+      <div class="carousel-track">
+        <img src="examples/hand-01.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-02.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-03.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-04.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-05.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-06.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-07.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-08.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-09.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-10.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-11.webp" alt="Handmade cosmic pet portrait">
+        <img src="examples/hand-12.webp" alt="Handmade cosmic pet portrait">
+      </div>
+      <button class="c-btn c-prev" aria-label="Previous">‹</button>
+      <button class="c-btn c-next" aria-label="Next">›</button>
+    </div>
+    <div class="c-dots" id="c1-dots" style="margin-top:14px;"></div>
+    <figcaption style="max-width:760px;margin:12px auto 0;padding:0 32px;"><span class="fig-no">Fig. 01</span><span>Hand-made portraits — where it all started, before AI entered the room</span></figcaption>
+  </figure>
+</div>
+
+<div class="page">
+
+  <!-- I · origin -->
+  <section>
+    <div class="chapter-head mono reveal">
+      <span><span class="roman">I.</span>&ensp;Origin</span>
+      <span>where it started</span>
+    </div>
+    <h2 class="reveal">I make pet portraits <em>by hand.</em></h2>
+    <p class="lead dropcap">That's where this started — not with AI, but with a brush. For years I've been making illustrated animal portraits as a side practice, and the response was always the same: people cried a little. Sometimes a lot.</p>
+    <p>The problem was time. A hand-made portrait takes days. I could only make so many, and the waiting list kept people waiting too long for something that mattered to them. Their pet was getting older. Some of them didn't have that much time left.</p>
+    <p>I wanted to scale the feeling without losing it — to make something that still felt intentional, ceremonial, like the universe had actually <em>noticed</em> your animal. Cosmic Pets is my answer to that question.</p>
+
+    <div class="moment reveal">
+      <span class="fleuron">✳</span>
+      <blockquote>"A universe that noticed your beloved pet."</blockquote>
+    </div>
+
+    <p>The name came first, which is unusual for me. Once I had it, the whole concept snapped into place: every pet as a cosmic being, rendered with the kind of specificity that makes people say <em>that's exactly her.</em></p>
+  </section>
+
+  <!-- II · references -->
+  <section>
+    <div class="chapter-head mono reveal">
+      <span><span class="roman">II.</span>&ensp;References</span>
+      <span>the images behind the images</span>
+    </div>
+    <h2 class="reveal">The <em>visual language</em> had to come from somewhere real.</h2>
+    <p>I'm a designer but I'm also a collector of images — I've been pulling references for years before I ever knew what I'd use them for. For this project, four bodies of work shaped every visual decision: the palette, the composition rules I gave the AI, even the typography of the landing page.</p>
+
+    <div class="refs reveal">
+      <div class="ref-card">
+        <span class="ref-num">Reference 01</span>
+        <h4>Vintage celestial maps &amp; astrology prints</h4>
+        <p>Old star charts have a peculiar quality — they treat the cosmos as something knowable, almost domestic. That's the tone I wanted. Not vast and cold, but intimate and charted.</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 02</span>
+        <h4>Botanical illustration</h4>
+        <p>The precision of specimen plates — the way each flower is arranged like it's being formally introduced — gave me the framing device. Every portrait is a specimen. Every pet, a documented discovery.</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 03</span>
+        <h4>70s–90s collage &amp; magazine art</h4>
+        <p>The cut-and-paste energy. Mixed media that feels assembled with love rather than generated. I used this as a check: does the output look intentional? Does it look like someone cared what was in the frame?</p>
+      </div>
+      <div class="ref-card">
+        <span class="ref-num">Reference 04</span>
+        <h4>Fine art portraiture</h4>
+        <p>The composition rules of painted portraits — subject centred, surrounded by objects that say something about them — are exactly what I wanted the AI to produce. Every cosmic portrait is, structurally, a Renaissance commission.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /page -->
+
+<div class="carousel-band">
+  <figure class="plate-figure reveal" style="margin-top:0;margin-bottom:0;">
+    <div class="carousel-wrap" id="c2">
+      <div class="carousel-track">
+        <img src="examples/cs-01.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-02.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-03.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-04.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-06.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-07.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-08.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-09.webp" alt="AI cosmic pet portrait">
+        <img src="examples/cs-10.webp" alt="AI cosmic pet portrait">
+      </div>
+      <button class="c-btn c-prev" aria-label="Previous">‹</button>
+      <button class="c-btn c-next" aria-label="Next">›</button>
+    </div>
+    <div class="c-dots" id="c2-dots" style="margin-top:14px;"></div>
+    <figcaption style="max-width:760px;margin:12px auto 0;padding:0 32px;"><span class="fig-no">Fig. 02</span><span>A selection from the cosmos — the range of what one photo can become</span></figcaption>
+  </figure>
+</div>
+
+<div class="page">
+
+  <!-- III · the experience -->
+  <section>
+    <div class="chapter-head mono reveal">
+      <span><span class="roman">III.</span>&ensp;The experience</span>
+      <span>six screens, no neutral ones</span>
+    </div>
+    <h2 class="reveal">Every screen had to <em>earn its place.</em></h2>
+    <p>The core flow is six screens. I treated each one as a micro-moment — it either builds anticipation or it's in the way. There's no room for neutral screens when someone's about to hand you a photo of their dog.</p>
+
+    <div class="timeline reveal">
+      <div class="tl-step">
+        <span class="tl-num">Step 01</span>
+        <div>
+          <h3>The <em>upload</em></h3>
+          <p>The first screen sets the register: slightly ceremonial, warm. It explains what's coming without over-explaining. A photo guide shows good versus bad examples — this turned out to be the most important piece of copy on the page. Bad inputs were the biggest source of disappointing outputs.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <span class="tl-num">Step 02</span>
+        <div>
+          <h3>The <em>editor</em></h3>
+          <p>A full crop-and-rotate tool before anything is sent off. This is a meaningful pause — it asks the user to choose how their pet is framed. In testing, people spent more time here than I expected. They were already imagining the portrait.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <span class="tl-num">Step 03</span>
+        <div>
+          <h3>The <em>wait</em></h3>
+          <p>The generation takes a few minutes. The processing screen doesn't pretend otherwise — it uses that time to build the idea that something real is happening. Planets being arranged. A small moon being polished. The wait is part of the ceremony.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <span class="tl-num">Step 04</span>
+        <div>
+          <h3>The <em>portrait</em></h3>
+          <p>The result screen is quiet. The portrait at full size, the adventure story beneath it. No distractions. The share button appears small, below the fold — I didn't want the first thing people saw to be a push to share. I wanted them to just look first.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <span class="tl-num">Step 05</span>
+        <div>
+          <h3>The <em>story</em></h3>
+          <p>Every portrait ships with a short written report on the pet's cosmic life — their title, their known offences, the trouble they cause out there. This was the part I wasn't sure would land. It's the part people quote back to me most.</p>
+        </div>
+      </div>
+      <div class="tl-step">
+        <span class="tl-num">Step 06</span>
+        <div>
+          <h3>The <em>share link</em></h3>
+          <p>A permanent, beautiful URL for each portrait: <span class="code">cosmicpets.love/p/[id]</span>. The share page is designed to stand alone — no app chrome, just the portrait, the story, and a quiet invitation to make one of your own.</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="plate-figure breakout reveal">
+      <div class="plate-grid cols-3">
+        <div class="ph ph-e ratio-32 light grain"><span class="ph-label">Screen · the upload</span></div>
+        <div class="ph ph-f ratio-32 light grain"><span class="ph-label">Screen · the wait</span></div>
+        <div class="ph ph-a ratio-32 grain"><span class="ph-label">Screen · the portrait</span></div>
+      </div>
+      <figcaption><span class="fig-no">Fig. 03</span><span>Three of the six screens — upload, wait, reveal</span></figcaption>
+    </figure>
+  </section>
+
+  <!-- IV · under the hood -->
+  <section>
+    <div class="chapter-head mono reveal">
+      <span><span class="roman">IV.</span>&ensp;Under the hood</span>
+      <span>every choice, a commitment</span>
+    </div>
+    <h2 class="reveal">The stack had to be <em>simple enough to ship.</em></h2>
+    <p>I built this end-to-end, which meant every technology choice was also a personal commitment to maintain it. The principle: reach for a managed service before writing custom code, and write custom code before adding a framework.</p>
+
+    <div class="tech-list reveal">
+      <div class="tech-item">
+        <span class="tech-label">Background removal</span>
+        <strong>rembg</strong>
+        <p>Local model, runs on-server. No third-party API call — the pet is extracted without leaving the pipeline.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Image generation</span>
+        <strong>FLUX via Replicate</strong>
+        <p>The cosmic background is generated from a prompt built around the pet's appearance. Each result is genuinely one of one.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Compositing</span>
+        <strong>Pillow</strong>
+        <p>Background, extracted pet, and reference elements are composited together at 1440×2016 — print-quality from the start.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Story generation</span>
+        <strong>Claude (Anthropic)</strong>
+        <p>The adventure story is written fresh for each pet, informed by what the AI sees in the image.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Server &amp; hosting</span>
+        <strong>Python + Railway</strong>
+        <p>A single Python HTTP server handles everything — no framework overhead. Deployed on Railway with a Postgres volume for share persistence.</p>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">Photo editing</span>
+        <strong>Cropper.js</strong>
+        <p>The in-browser crop tool. Lets users frame their pet before anything is sent to the server — the quality of the crop directly affects the quality of the output.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- V · what I learned -->
+  <section>
+    <div class="chapter-head mono reveal">
+      <span><span class="roman">V.</span>&ensp;What I learned</span>
+      <span>the quiet problem</span>
+    </div>
+    <h2 class="reveal">The hardest part was <em>tone.</em></h2>
+    <p>Getting the images right took iteration — prompt engineering, reference tuning, compositing adjustments. But the hardest design problem was quieter than that. It was tone.</p>
+    <p>AI tools tend toward either clinical neutrality or aggressive delight. I wanted something neither of those — something that felt like a small, private thing that had been made with care specifically for you. That's almost impossible to engineer. It has to live in every piece of copy, every transition, every pause.</p>
+    <p>The "don't like AI? perfectly reasonable" line on the landing page is the one I'm most proud of. It makes space for scepticism, which makes the people who do trust the tool trust it more. I kept the human option — me, making portraits by hand — because that's where this started, and I didn't want to pretend otherwise.</p>
+
+    <div class="moment reveal">
+      <span class="fleuron">✳</span>
+      <blockquote>A tool is only as good as what it makes people feel.</blockquote>
+      <p class="attribution mono">Not about the tool — about themselves, their pet, the thing they made together</p>
+    </div>
+
+    <p>When people send me their share links — and they do, unprompted — they're not saying "the AI was impressive." They're saying <em>look at Biscuit, she's been spotted commanding a ringed planet.</em> That's the thing. That's what I was trying to make.</p>
+  </section>
+
+</div>
+
+<!-- ══ the story closes in space ══ -->
+<footer id="closer" class="grain">
+  <div class="closer-inner">
+    <span class="opening-label mono">Specimen № 01 of tools of delight</span>
+    <h2>Every pet deserves to be <em>noticed.</em></h2>
+    <p>Try it at <a href="https://www.cosmicpets.love">cosmicpets.love</a> — or <a href="mailto:hello@irina.love">commission a hand-made version</a> if you'd prefer a human touch.</p>
+    <div class="closer-links">
+      <a href="https://www.cosmicpets.love">Make a portrait →</a>
+      <a href="https://irina.love">← Back to irina.love</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// carousel
+(function () {
+  const VISIBLE = window.innerWidth <= 560 ? 2 : window.innerWidth <= 860 ? 3 : 5;
+  const GAP = 10;
+  const INTERVAL = 3800;
+
+  const wrap  = document.getElementById('c1');
+  const track = wrap.querySelector('.carousel-track');
+  const imgs  = [...track.querySelectorAll('img')];
+  const total = imgs.length;
+  const steps = total - VISIBLE; // max index
+  let idx = 0, timer, paused = false;
+
+  // build dots
+  const dotsEl = document.getElementById('c1-dots');
+  for (let i = 0; i <= steps; i++) {
+    const d = document.createElement('button');
+    d.className = 'c-dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Go to ' + (i + 1));
+    d.addEventListener('click', () => { goTo(i); resetTimer(); });
+    dotsEl.appendChild(d);
+  }
+
+  function itemStep() {
+    return imgs[0].getBoundingClientRect().width + GAP;
+  }
+
+  function goTo(n) {
+    idx = Math.max(0, Math.min(n, steps));
+    track.style.transform = `translateX(-${idx * itemStep()}px)`;
+    dotsEl.querySelectorAll('.c-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  wrap.querySelector('.c-next').addEventListener('click', () => { goTo(idx < steps ? idx + 1 : 0); resetTimer(); });
+  wrap.querySelector('.c-prev').addEventListener('click', () => { goTo(idx > 0 ? idx - 1 : steps); resetTimer(); });
+  wrap.addEventListener('mouseenter', () => paused = true);
+  wrap.addEventListener('mouseleave', () => paused = false);
+  wrap.addEventListener('touchstart', () => paused = true, { passive: true });
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => { if (!paused) goTo(idx < steps ? idx + 1 : 0); }, INTERVAL);
+  }
+  resetTimer();
+})();
+
+// carousel — AI portraits
+(function () {
+  const VISIBLE = window.innerWidth <= 560 ? 2 : window.innerWidth <= 860 ? 3 : 5;
+  const GAP = 10;
+  const INTERVAL = 4200;
+
+  const wrap  = document.getElementById('c2');
+  const track = wrap.querySelector('.carousel-track');
+  const imgs  = [...track.querySelectorAll('img')];
+  const total = imgs.length;
+  const steps = total - VISIBLE;
+  let idx = 0, timer, paused = false;
+
+  const dotsEl = document.getElementById('c2-dots');
+  for (let i = 0; i <= steps; i++) {
+    const d = document.createElement('button');
+    d.className = 'c-dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Go to ' + (i + 1));
+    d.addEventListener('click', () => { goTo(i); resetTimer(); });
+    dotsEl.appendChild(d);
+  }
+
+  function itemStep() { return imgs[0].getBoundingClientRect().width + GAP; }
+
+  function goTo(n) {
+    idx = Math.max(0, Math.min(n, steps));
+    track.style.transform = `translateX(-${idx * itemStep()}px)`;
+    dotsEl.querySelectorAll('.c-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  wrap.querySelector('.c-next').addEventListener('click', () => { goTo(idx < steps ? idx + 1 : 0); resetTimer(); });
+  wrap.querySelector('.c-prev').addEventListener('click', () => { goTo(idx > 0 ? idx - 1 : steps); resetTimer(); });
+  wrap.addEventListener('mouseenter', () => paused = true);
+  wrap.addEventListener('mouseleave', () => paused = false);
+  wrap.addEventListener('touchstart', () => paused = true, { passive: true });
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => { if (!paused) goTo(idx < steps ? idx + 1 : 0); }, INTERVAL);
+  }
+  resetTimer();
+})();
+
+// hero parallax
+(function () {
+  const heroBg = document.getElementById('heroBg');
+  const hero   = document.getElementById('opening');
+  if (!heroBg) return;
+  window.addEventListener('scroll', function () {
+    const y = window.scrollY;
+    if (y < hero.offsetHeight + 300) {
+      heroBg.style.transform = 'translateY(' + (y * 0.3) + 'px)';
+    }
+  }, { passive: true });
+})();
+
+// scroll-down button
+(function () {
+  const btn = document.getElementById('scrollDown');
+  if (!btn) return;
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector('.carousel-band');
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+})();
+
+// reading progress
+const bar = document.getElementById('progress');
+addEventListener('scroll', () => {
+  const h = document.documentElement;
+  bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+}, { passive: true });
+
+// reveals
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.12 });
+if (reduceMotion) {
+  document.querySelectorAll('.reveal').forEach(r => r.classList.add('in'));
+} else {
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+}
+</script>
+</body>
+</html>

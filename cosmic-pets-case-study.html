@@ -248,6 +248,25 @@
     display: block;
   }
 
+  @media (max-width: 640px) {
+    .portrait-gallery { grid-template-columns: repeat(2, 1fr); width: calc(100% + 40px); margin: 40px -20px; }
+  }
+
+  /* ── portrait gallery ── */
+  .portrait-gallery {
+    width: calc(100% + 64px);
+    margin: 56px -32px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+  }
+  .portrait-gallery img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+  }
+
   /* ── closer ── */
   .closer {
     border-top: 1px solid var(--rule);
@@ -298,10 +317,10 @@
 
   <!-- hero -->
   <div class="hero-image" aria-hidden="true">
-    <img src="examples/portrait-01.jpg" alt="">
-    <img src="examples/portrait-06.jpg" alt="">
-    <img src="examples/portrait-04.jpg" alt="">
-    <img src="examples/portrait-03.jpg" alt="">
+    <img src="examples/cs-01.webp" alt="">
+    <img src="examples/cs-05.webp" alt="">
+    <img src="examples/cs-08.webp" alt="">
+    <img src="examples/cs-03.webp" alt="">
   </div>
 
   <!-- origin -->
@@ -349,10 +368,10 @@
 
   <!-- portrait strip -->
   <div class="portrait-strip" aria-hidden="true">
-    <img src="examples/portrait-02.jpg" alt="">
-    <img src="examples/portrait-07.jpg" alt="">
-    <img src="examples/portrait-05.jpg" alt="">
-    <img src="examples/portrait-08.jpg" alt="">
+    <img src="examples/cs-02.webp" alt="">
+    <img src="examples/cs-07.webp" alt="">
+    <img src="examples/cs-06.webp" alt="">
+    <img src="examples/cs-10.webp" alt="">
   </div>
 
   <!-- ux -->
@@ -434,6 +453,20 @@
       </div>
     </div>
   </section>
+
+  <!-- portrait gallery -->
+  <div class="portrait-gallery" aria-label="Sample portraits">
+    <img src="examples/cs-01.webp" alt="Cosmic pet portrait — tabby cat with gothic roses and moon">
+    <img src="examples/cs-02.webp" alt="Cosmic pet portrait — French Bulldog with crystals and planets">
+    <img src="examples/cs-03.webp" alt="Cosmic pet portrait — Cavalier with rainbow planet">
+    <img src="examples/cs-04.webp" alt="Cosmic pet portrait — pointer dog with dark roses">
+    <img src="examples/cs-05.webp" alt="Cosmic pet portrait — pointer dog with roses variation">
+    <img src="examples/cs-06.webp" alt="Cosmic pet portrait — Cavalier with Egyptian columns">
+    <img src="examples/cs-07.webp" alt="Cosmic pet portrait — black cat with roses">
+    <img src="examples/cs-08.webp" alt="Cosmic pet portrait — cockatiel with coral reef">
+    <img src="examples/cs-09.webp" alt="Cosmic pet portrait — black cat with ancient columns and flowers">
+    <img src="examples/cs-10.webp" alt="Cosmic pet portrait — Australian Shepherd puppy with planets">
+  </div>
 
   <!-- reflection -->
   <section>

@@ -392,6 +392,75 @@
   }
   .link-quiet:hover { color: var(--gold); }
 
+  /* ── behind the portal (case study) ── */
+  #behind { padding: 0 0 120px; }
+  .behind-card {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+    margin-top: 56px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .4s;
+  }
+  .behind-card:hover { border-color: oklch(80% 0.11 310 / 0.45); }
+  .behind-img {
+    overflow: hidden;
+    min-height: 280px;
+    position: relative;
+  }
+  .behind-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.8) saturate(1.1);
+    transition: transform .7s cubic-bezier(.23,1,.32,1), filter .7s;
+  }
+  .behind-card:hover .behind-img img {
+    transform: scale(1.05);
+    filter: brightness(0.95) saturate(1.2);
+  }
+  .behind-body {
+    padding: 48px 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    border-left: 1px solid var(--hairline);
+  }
+  .behind-label { color: var(--gold); }
+  .behind-body h3 {
+    font-family: var(--display);
+    font-size: clamp(26px, 2.8vw, 40px);
+    font-weight: 390;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+  .behind-body h3 em { font-style: italic; color: var(--aurora); }
+  .behind-body p { color: var(--moon-soft); max-width: 42ch; font-size: 16.5px; }
+  .behind-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--moon);
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 3px;
+    width: fit-content;
+    transition: color .25s;
+  }
+  .behind-card:hover .behind-cta { color: var(--gold); }
+  @media (max-width: 900px) {
+    .behind-card { grid-template-columns: 1fr; }
+    .behind-img { min-height: 220px; }
+    .behind-body { padding: 36px 28px; border-left: none; border-top: 1px solid var(--hairline); }
+    #behind { padding-bottom: 80px; }
+  }
+
   /* ── final CTA ── */
   #cta {
     padding: 0 0 130px;
@@ -469,7 +538,8 @@
   <div class="nav-inner">
     <a class="nav-logo" href="#">cosmic<em>pets</em></a>
     <div class="nav-right">
-      <a class="nav-family" href="https://irina.love">Specimen № 01 · irina.love — tools of delight</a>
+      <a class="nav-family" href="https://irina.love">irina.love</a>
+      <a class="nav-family" href="/case-study">Case study</a>
       <a class="btn" href="/create">Create a portrait</a>
     </div>
   </div>
@@ -665,6 +735,27 @@
       </div>
       <a class="link-quiet" href="mailto:hello@irina.love">Ask for the human version →</a>
     </div>
+  </div>
+</section>
+
+<!-- behind the portal — case study -->
+<section id="behind">
+  <div class="wrap">
+    <div class="section-head mono reveal">
+      <span><span class="roman">IV.</span>&ensp;Behind the portal</span>
+      <span>how it was made</span>
+    </div>
+    <a class="behind-card reveal" href="/case-study">
+      <div class="behind-img">
+        <img src="/examples/hero-bg.webp" alt="Cosmic Pets case study — behind the portal">
+      </div>
+      <div class="behind-body">
+        <p class="behind-label mono">Case study · Specimen № 01</p>
+        <h3>From hand-made portraits to a one-photo tool — the full <em>story.</em></h3>
+        <p>How a decade of pet portraiture became this. Design decisions, prompt engineering, UX, and the hardest part: getting the tone exactly right.</p>
+        <span class="behind-cta">Read the case study →</span>
+      </div>
+    </a>
   </div>
 </section>
 
