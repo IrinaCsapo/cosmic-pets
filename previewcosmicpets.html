@@ -39,37 +39,8 @@
     overflow-x: hidden;
   }
 
-  /* starfield — fixed, whole page lives in space */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image:
-      radial-gradient(1.2px 1.2px at 12% 22%, oklch(95% 0.02 290 / 0.9) 50%, transparent 100%),
-      radial-gradient(1px 1px at 78% 12%, oklch(90% 0.04 85 / 0.8) 50%, transparent 100%),
-      radial-gradient(1.4px 1.4px at 55% 68%, oklch(92% 0.03 310 / 0.7) 50%, transparent 100%),
-      radial-gradient(1px 1px at 33% 84%, oklch(94% 0.02 290 / 0.75) 50%, transparent 100%),
-      radial-gradient(1.1px 1.1px at 90% 55%, oklch(90% 0.03 85 / 0.7) 50%, transparent 100%),
-      radial-gradient(0.9px 0.9px at 65% 35%, oklch(95% 0.02 290 / 0.8) 50%, transparent 100%),
-      radial-gradient(1.3px 1.3px at 22% 55%, oklch(92% 0.04 310 / 0.6) 50%, transparent 100%),
-      radial-gradient(1px 1px at 44% 8%, oklch(93% 0.02 290 / 0.7) 50%, transparent 100%),
-      radial-gradient(1px 1px at 8% 70%, oklch(93% 0.02 290 / 0.6) 50%, transparent 100%),
-      radial-gradient(1.2px 1.2px at 84% 82%, oklch(92% 0.03 310 / 0.6) 50%, transparent 100%);
-    animation: twinkle 7s ease-in-out infinite alternate;
-  }
-  @keyframes twinkle { from { opacity: 0.5; } to { opacity: 1; } }
-
-  /* nebula wash */
-  body::after {
-    content: '';
-    position: fixed; inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 55% 45% at 85% 15%, oklch(32% 0.1 310 / 0.4) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 40% at 10% 80%, oklch(28% 0.09 260 / 0.35) 0%, transparent 70%);
-  }
+  /* canvas starfield */
+  #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
   .wrap { max-width: 1160px; margin: 0 auto; padding: 0 48px; position: relative; z-index: 1; }
 
@@ -533,6 +504,8 @@
 </head>
 <body>
 
+<canvas id="stars-canvas"></canvas>
+
 <!-- nav -->
 <nav>
   <div class="nav-inner">
@@ -780,6 +753,137 @@
 </footer>
 
 <script>
+// ── STARFIELD CANVAS ──
+(function () {
+  const sc = document.getElementById('stars-canvas');
+  const sCtx = sc.getContext('2d');
+
+  // Offscreen nebula — painted once, blitted every frame
+  const nebCanvas = document.createElement('canvas');
+  const nebCtx = nebCanvas.getContext('2d');
+
+  function buildNebula(w, h) {
+    nebCanvas.width = w; nebCanvas.height = h;
+    nebCtx.clearRect(0, 0, w, h);
+    const blobs = [
+      { x:w*0.10, y:h*0.05, r:w*0.55, c:'rgba(80,50,160,0.28)' },
+      { x:w*0.30, y:h*0.22, r:w*0.48, c:'rgba(50,70,190,0.22)' },
+      { x:w*0.52, y:h*0.42, r:w*0.52, c:'rgba(100,40,160,0.20)' },
+      { x:w*0.72, y:h*0.60, r:w*0.44, c:'rgba(55,80,180,0.18)' },
+      { x:w*0.90, y:h*0.82, r:w*0.48, c:'rgba(60,50,150,0.25)' },
+      { x:w*0.18, y:h*0.55, r:w*0.30, c:'rgba(210,40,150,0.14)' },
+      { x:w*0.65, y:h*0.30, r:w*0.26, c:'rgba(190,30,120,0.12)' },
+      { x:w*0.40, y:h*0.85, r:w*0.28, c:'rgba(220,60,140,0.11)' },
+      { x:w*0.78, y:h*0.18, r:w*0.26, c:'rgba(30,140,230,0.13)' },
+      { x:w*0.08, y:h*0.70, r:w*0.22, c:'rgba(40,110,210,0.11)' },
+      { x:w*0.55, y:h*0.12, r:w*0.22, c:'rgba(150,40,220,0.12)' },
+      { x:w*0.85, y:h*0.55, r:w*0.24, c:'rgba(120,50,200,0.10)' },
+      { x:w*0.25, y:h*0.38, r:w*0.18, c:'rgba(160,60,210,0.09)' },
+    ];
+    blobs.forEach(b => {
+      const g = nebCtx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0, b.c); g.addColorStop(1, 'rgba(0,0,0,0)');
+      nebCtx.fillStyle = g; nebCtx.fillRect(0, 0, w, h);
+    });
+  }
+
+  let stars = [];
+  function resizeStars() {
+    sc.width = window.innerWidth; sc.height = window.innerHeight;
+    buildNebula(sc.width, sc.height);
+    const w = sc.width, h = sc.height;
+    stars = [];
+    const tinyT = ['255,255,255','255,255,255','255,255,255','200,190,255','190,210,255','255,200,230'];
+    const medT  = ['255,255,255','180,200,255','255,180,220','200,160,255','160,210,255','255,220,200','230,170,255','170,230,255'];
+    const glintT= ['255,255,255','210,190,255','255,190,220','180,210,255'];
+    for (let i = 0; i < 320; i++) stars.push({
+      x:Math.random()*w, y:Math.random()*h, r:Math.random()*0.75+0.15,
+      a:Math.random()*Math.PI*2, sp:Math.random()*0.018+0.008,
+      dx:(Math.random()-0.5)*0.025, dy:(Math.random()-0.5)*0.025,
+      rgb:tinyT[Math.floor(Math.random()*tinyT.length)], layer:0
+    });
+    for (let i = 0; i < 90; i++) stars.push({
+      x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.1+0.7,
+      a:Math.random()*Math.PI*2, sp:Math.random()*0.025+0.012,
+      dx:(Math.random()-0.5)*0.018, dy:(Math.random()-0.5)*0.018,
+      rgb:medT[Math.floor(Math.random()*medT.length)], layer:1
+    });
+    for (let i = 0; i < 16; i++) stars.push({
+      x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.4+2.0,
+      a:Math.random()*Math.PI*2, sp:Math.random()*0.020+0.010,
+      dx:(Math.random()-0.5)*0.012, dy:(Math.random()-0.5)*0.012,
+      rgb:glintT[Math.floor(Math.random()*glintT.length)], layer:2,
+      glintAngle:Math.random()*Math.PI
+    });
+  }
+  resizeStars();
+  window.addEventListener('resize', resizeStars);
+
+  // Mouse / touch parallax
+  let mX = 0, mY = 0, tMX = 0, tMY = 0;
+  window.addEventListener('mousemove', e => {
+    tMX = (e.clientX / window.innerWidth  - 0.5) * 2;
+    tMY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+  window.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    tMX = (t.clientX / window.innerWidth  - 0.5) * 2;
+    tMY = (t.clientY / window.innerHeight - 0.5) * 2;
+  }, { passive: true });
+
+  (function anim() {
+    mX += (tMX - mX) * 0.05;
+    mY += (tMY - mY) * 0.05;
+    sCtx.clearRect(0, 0, sc.width, sc.height);
+
+    // Nebula with parallax
+    sCtx.save();
+    sCtx.translate(mX * 8, mY * 8);
+    sCtx.drawImage(nebCanvas, -8, -8, sc.width + 16, sc.height + 16);
+    sCtx.restore();
+
+    stars.forEach(s => {
+      const depth = s.layer === 0 ? 4 : s.layer === 1 ? 10 : 18;
+      const px = s.x + mX * depth;
+      const py = s.y + mY * depth;
+      s.x += s.dx; s.y += s.dy;
+      if (s.x < -4) s.x = sc.width + 4; else if (s.x > sc.width + 4) s.x = -4;
+      if (s.y < -4) s.y = sc.height + 4; else if (s.y > sc.height + 4) s.y = -4;
+      s.a += s.sp;
+      const alpha = (Math.sin(s.a) * 0.55 + 0.45) * 0.95 + 0.05;
+
+      if (s.layer === 2) {
+        const halo = sCtx.createRadialGradient(px, py, 0, px, py, s.r * 4);
+        halo.addColorStop(0, `rgba(${s.rgb},${alpha * 0.5})`);
+        halo.addColorStop(1, 'rgba(0,0,0,0)');
+        sCtx.fillStyle = halo;
+        sCtx.beginPath(); sCtx.arc(px, py, s.r * 4, 0, Math.PI * 2); sCtx.fill();
+        const gl = s.r * 6;
+        for (let ang = 0; ang < Math.PI; ang += Math.PI / 2) {
+          const a2 = ang + s.glintAngle;
+          const grd = sCtx.createLinearGradient(
+            px - Math.cos(a2) * gl, py - Math.sin(a2) * gl,
+            px + Math.cos(a2) * gl, py + Math.sin(a2) * gl
+          );
+          grd.addColorStop(0, 'rgba(255,255,255,0)');
+          grd.addColorStop(0.5, `rgba(255,255,255,${alpha * 0.55})`);
+          grd.addColorStop(1, 'rgba(255,255,255,0)');
+          sCtx.strokeStyle = grd; sCtx.lineWidth = 0.7;
+          sCtx.beginPath();
+          sCtx.moveTo(px - Math.cos(a2) * gl, py - Math.sin(a2) * gl);
+          sCtx.lineTo(px + Math.cos(a2) * gl, py + Math.sin(a2) * gl);
+          sCtx.stroke();
+        }
+      }
+      sCtx.beginPath(); sCtx.arc(px, py, s.r, 0, Math.PI * 2);
+      sCtx.fillStyle = `rgba(${s.rgb},${alpha})`; sCtx.fill();
+    });
+
+    requestAnimationFrame(anim);
+  })();
+})();
+
+// ── SCROLL REVEALS ──
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
