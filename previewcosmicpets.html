@@ -172,6 +172,10 @@
       inset 0 0 40px oklch(20% 0.06 290 / 0.6);
   }
   .portal img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .portal-sq {
+    border-radius: 18px;
+    aspect-ratio: 1;
+  }
   .hero-caption { text-align: center; color: var(--moon-soft); margin-top: 24px; }
 
   /* ── section head ── */
@@ -245,9 +249,11 @@
     justify-content: space-between;
     gap: 12px;
     padding-top: 14px;
-    color: var(--moon-soft);
+    color: var(--moon);
+    font-weight: 500;
+    letter-spacing: 0.10em;
   }
-  .specimen-caption .name { color: var(--gold); }
+  .specimen-caption .name { color: oklch(90% 0.14 85); font-weight: 600; }
 
   /* placeholder slot (6th card) */
   .specimen-frame.placeholder {
@@ -486,8 +492,15 @@
     .wrap { padding: 0 24px; }
     .nav-inner { padding: 14px 24px; }
     .nav-family { display: none; }
-    #hero { padding: 56px 0 72px; }
-    .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    #hero { padding: 28px 0 60px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 24px; }
+    .hero-media { order: -1; justify-content: flex-start; }
+    .portal { width: min(220px, 62%); }
+    .portal-sq { aspect-ratio: 1; border-radius: 14px; }
+    .orbit { width: 130%; }
+    .hero-caption { margin-top: 10px; font-size: 9px; text-align: left; }
+    .hero-eyebrow { margin-bottom: 12px; }
+    .hero-sub { font-size: 15px; line-height: 1.55; margin-bottom: 28px; }
     .steps { grid-template-columns: 1fr; gap: 36px; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
     .story-grid { grid-template-columns: 1fr; gap: 52px; }
@@ -497,6 +510,7 @@
   }
   @media (max-width: 560px) {
     .gallery-grid { grid-template-columns: 1fr; }
+    h1 { font-size: clamp(32px, 9vw, 46px); margin-bottom: 14px; }
   }
 </style>
 <script defer src="https://irina-umami.vercel.app/script.js" data-website-id="96d3ecaa-2180-4425-b71a-0cf60f2a060e"></script>
@@ -534,10 +548,10 @@
       <div class="hero-media">
         <div class="orbit"></div>
         <div>
-          <div class="portal">
-            <img src="/examples/portrait-01.jpg" alt="Mina, a black cat, portrayed as a cosmic being surrounded by planets and flowers">
+          <div class="portal portal-sq">
+            <img src="/examples/otto.webp" alt="Otto, a Cavalier King Charles Spaniel, sovereign of the crystal court">
           </div>
-          <p class="hero-caption mono">Mina · seen through the portal</p>
+          <p class="hero-caption mono">Otto · seen through the portal</p>
         </div>
       </div>
     </div>
@@ -602,11 +616,11 @@
 
       <a class="specimen-card reveal" href="/create">
         <span class="specimen-frame">
-          <img src="/examples/portrait-03.jpg" alt="Nyx, a black cat, mistress of the midnight court">
+          <img src="/examples/hamish.webp" alt="Hamish, a dog, guardian of the obsidian gate">
         </span>
         <span class="specimen-caption mono">
-          <span class="name">Nyx</span>
-          <span>mistress of the midnight court</span>
+          <span class="name">Hamish</span>
+          <span>guardian of the obsidian gate</span>
         </span>
       </a>
 
@@ -642,11 +656,11 @@
 
       <a class="specimen-card reveal" href="/create">
         <span class="specimen-frame">
-          <img src="/examples/portrait-07.jpg" alt="Luna, a black cat, cartographer of the void">
+          <img src="/examples/otto.webp" alt="Otto, a Cavalier King Charles Spaniel, sovereign of the crystal court">
         </span>
         <span class="specimen-caption mono">
-          <span class="name">Luna</span>
-          <span>cartographer of the void</span>
+          <span class="name">Otto</span>
+          <span>sovereign of the crystal court</span>
         </span>
       </a>
 
