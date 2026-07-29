@@ -110,7 +110,27 @@
     color: var(--space-deep);
     box-shadow: 0 0 30px oklch(83% 0.12 85 / 0.35);
   }
-  .btn-big { padding: 16px 34px; font-size: 12px; }
+  .btn-big {
+    padding: 16px 34px;
+    font-size: 12px;
+    background: linear-gradient(
+      105deg,
+      oklch(50% 0.24 308) 0%,
+      oklch(65% 0.20 290) 28%,
+      oklch(72% 0.14 278) 46%,
+      oklch(62% 0.22 298) 54%,
+      oklch(48% 0.26 312) 72%,
+      oklch(60% 0.18 294) 100%
+    );
+    background-size: 250% 250%;
+    border-color: transparent;
+    color: oklch(97% 0.01 290);
+    animation: free-shine 3.2s ease-in-out infinite;
+  }
+  .btn-big:hover {
+    box-shadow: 0 0 36px oklch(55% 0.22 305 / 0.5);
+    color: oklch(100% 0 0);
+  }
 
   /* ── hero ── */
   #hero { padding: 90px 0 110px; }
@@ -136,6 +156,30 @@
     margin-bottom: 28px;
   }
   h1 em { font-style: italic; font-weight: 420; color: var(--aurora); }
+  .free-shimmer {
+    font-style: italic;
+    font-weight: 500;
+    background: linear-gradient(
+      105deg,
+      oklch(68% 0.22 305) 0%,
+      oklch(82% 0.16 290) 28%,
+      oklch(97% 0.04 275) 46%,
+      oklch(88% 0.18 285) 54%,
+      oklch(72% 0.24 308) 72%,
+      oklch(84% 0.14 292) 100%
+    );
+    background-size: 250% 250%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: free-shine 3.2s ease-in-out infinite;
+  }
+  @keyframes free-shine {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
   .hero-sub {
     font-size: 21px;
     line-height: 1.6;
@@ -175,6 +219,35 @@
   .portal-sq {
     border-radius: 18px;
     aspect-ratio: 3/4;
+  }
+  /* hero portrait strip (mobile only — hidden on desktop) */
+  .hero-strip { display: none; }
+
+  /* hero portrait reel */
+  .hero-reel-wrap {
+    width: min(430px, 100%);
+    aspect-ratio: 3/4;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid oklch(80% 0.11 310 / 0.5);
+    box-shadow:
+      0 0 60px oklch(60% 0.14 310 / 0.4),
+      0 0 140px oklch(50% 0.12 280 / 0.3),
+      inset 0 0 40px oklch(20% 0.06 290 / 0.6);
+    margin: 0 auto;
+  }
+  .hero-reel-track {
+    display: flex;
+    height: 100%;
+  }
+  .hero-reel-track .portal {
+    flex: 0 0 100%;
+    width: 100%;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    aspect-ratio: unset;
+    height: 100%;
   }
   .hero-caption { text-align: center; color: var(--moon-soft); margin-top: 24px; }
 
@@ -492,15 +565,50 @@
     .wrap { padding: 0 24px; }
     .nav-inner { padding: 14px 24px; }
     .nav-family { display: none; }
-    #hero { padding: 28px 0 60px; }
-    .hero-grid { grid-template-columns: 1fr; gap: 24px; }
-    .hero-media { order: -1; justify-content: flex-start; }
-    .portal { width: min(220px, 62%); }
-    .portal-sq { aspect-ratio: 3/4; border-radius: 14px; }
-    .orbit { width: 130%; }
-    .hero-caption { margin-top: 10px; font-size: 9px; text-align: left; }
-    .hero-eyebrow { margin-bottom: 12px; }
-    .hero-sub { font-size: 15px; line-height: 1.55; margin-bottom: 28px; }
+    #hero { padding: 0 0 40px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
+    .hero-media { display: none; }
+    /* portrait strip */
+    .hero-strip {
+      display: block;
+      overflow: hidden;
+      padding: 18px 0 6px;
+    }
+    .hero-strip-track {
+      display: flex;
+      animation: strip-scroll 32s linear infinite;
+    }
+    .hero-strip-card {
+      flex: 0 0 375px;
+      width: 375px;
+      height: 500px;
+      margin-right: 14px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid oklch(80% 0.11 310 / 0.45);
+      box-shadow: 0 0 32px oklch(60% 0.14 310 / 0.3);
+    }
+    .hero-strip-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .strip-name {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 32px 16px 14px;
+      background: linear-gradient(to top, oklch(10% 0.04 290 / 0.75) 0%, transparent 100%);
+      color: oklch(96% 0.05 290);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    @keyframes strip-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    #hero .hero-grid > div { text-align: center; }
+    h1 { text-align: center; }
+    .hero-sub { font-size: 15px; line-height: 1.55; margin-bottom: 20px; text-align: center; max-width: 100%; }
+    .hero-cta-row { justify-content: center; }
     .steps { grid-template-columns: 1fr; gap: 36px; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
     .story-grid { grid-template-columns: 1fr; gap: 52px; }
@@ -534,62 +642,55 @@
 
 <!-- hero -->
 <header id="hero">
+  <!-- mobile-only portrait strip — duplicated for seamless loop -->
+  <div class="hero-strip" aria-hidden="true">
+    <div class="hero-strip-track">
+      <div class="hero-strip-card"><img src="/examples/portrait-01.jpg" alt=""><span class="strip-name">Mina</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-02.jpg" alt=""><span class="strip-name">Bruno</span></div>
+      <div class="hero-strip-card"><img src="/examples/hamish.webp"     alt=""><span class="strip-name">Hamish</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-04.jpg" alt=""><span class="strip-name">Kiwi</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-08.jpg" alt=""><span class="strip-name">Griutz</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-06.jpg" alt=""><span class="strip-name">Tango</span></div>
+      <!-- duplicate for seamless infinite scroll -->
+      <div class="hero-strip-card"><img src="/examples/portrait-01.jpg" alt=""><span class="strip-name">Mina</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-02.jpg" alt=""><span class="strip-name">Bruno</span></div>
+      <div class="hero-strip-card"><img src="/examples/hamish.webp"     alt=""><span class="strip-name">Hamish</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-04.jpg" alt=""><span class="strip-name">Kiwi</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-08.jpg" alt=""><span class="strip-name">Griutz</span></div>
+      <div class="hero-strip-card"><img src="/examples/portrait-06.jpg" alt=""><span class="strip-name">Tango</span></div>
+    </div>
+  </div>
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <p class="hero-eyebrow mono"><span class="fleuron">✳</span> From <a href="https://irina.love">Irina's cabinet of delights</a></p>
-        <h1>Your pet, as the <em>universe</em> sees them.</h1>
-        <p class="hero-sub">Upload one photo. Receive a cosmic portrait <strong>so eerily right that people cry a little</strong> — and a small adventure story to go with it. A universe that noticed your animal.</p>
+<h1>Create a <span class="free-shimmer">FREE</span> cosmic portrait of your pet</h1>
+        <p class="hero-sub">Upload a pet photo. Receive a free whimsical cosmic pet portrait and a small adventure story to go with it. Share it with your friends and family.</p>
         <div class="hero-cta-row">
           <a class="btn btn-big" href="/create">Create your pet's portrait</a>
-          <span class="hero-note mono">One photo · a few minutes</span>
         </div>
       </div>
       <div class="hero-media">
         <div class="orbit"></div>
-        <div>
-          <div class="portal portal-sq">
-            <img src="/examples/otto.webp" alt="Otto, a Cavalier King Charles Spaniel, sovereign of the crystal court">
+        <div class="hero-reel-wrap">
+          <div class="hero-reel-track" id="heroReel">
+            <div class="portal portal-sq"><img src="/examples/portrait-01.jpg" alt="Mina"></div>
+            <div class="portal portal-sq"><img src="/examples/portrait-02.jpg" alt="Bruno"></div>
+            <div class="portal portal-sq"><img src="/examples/hamish.webp"     alt="Hamish"></div>
+            <div class="portal portal-sq"><img src="/examples/portrait-04.jpg" alt="Kiwi"></div>
+            <div class="portal portal-sq"><img src="/examples/portrait-08.jpg" alt="Griutz"></div>
+            <div class="portal portal-sq"><img src="/examples/portrait-06.jpg" alt="Tango"></div>
           </div>
-          <p class="hero-caption mono">Otto · seen through the portal</p>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<!-- how it works -->
-<section id="how">
-  <div class="wrap">
-    <div class="section-head mono reveal">
-      <span><span class="roman">I.</span>&ensp;How the universe does it</span>
-      <span>three small steps</span>
-    </div>
-    <div class="steps">
-      <div class="step reveal">
-        <span class="step-num">Step 01</span>
-        <h3>Send one <em>photo</em></h3>
-        <p>Any photo where their face is visible. Phone snaps are perfect — the universe is not picky about lighting.</p>
-      </div>
-      <div class="step reveal">
-        <span class="step-num">Step 02</span>
-        <h3>The cosmos takes a <em>look</em></h3>
-        <p>A few minutes pass. Planets are arranged, flowers are gathered, one small moon is polished.</p>
-      </div>
-      <div class="step reveal">
-        <span class="step-num">Step 03</span>
-        <h3>Receive their <em>portrait</em></h3>
-        <p>A cosmic portrait plus their adventure story — who they are out there, and what trouble they cause.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- gallery -->
 <section id="gallery">
   <div class="wrap">
     <div class="section-head mono reveal">
-      <span><span class="roman">II.</span>&ensp;Recent arrivals from the cosmos</span>
+      <span><span class="roman">I.</span>&ensp;Recent arrivals from the cosmos</span>
       <span>every portrait is one of one</span>
     </div>
     <div class="gallery-grid">
@@ -687,6 +788,33 @@
         </span>
       </a>
 
+    </div>
+  </div>
+</section>
+
+<!-- how it works -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head mono reveal">
+      <span><span class="roman">II.</span>&ensp;How the universe does it</span>
+      <span>three small steps</span>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="step-num">Step 01</span>
+        <h3>Send one <em>photo</em></h3>
+        <p>Any photo where their face is visible. Phone snaps are perfect — the universe is not picky about lighting.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">Step 02</span>
+        <h3>The cosmos takes a <em>look</em></h3>
+        <p>A few minutes pass. Planets are arranged, flowers are gathered, one small moon is polished.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">Step 03</span>
+        <h3>Receive their <em>portrait</em></h3>
+        <p>A cosmic portrait plus their adventure story — who they are out there, and what trouble they cause.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -895,6 +1023,43 @@
 
     requestAnimationFrame(anim);
   })();
+})();
+
+// ── HERO PORTRAIT REEL (seamless infinite loop) ──
+(function () {
+  const track = document.getElementById('heroReel');
+  if (!track) return;
+
+  // Clone first slide and append so the loop can snap back invisibly
+  const slides = track.querySelectorAll('.portal');
+  const total  = slides.length; // 6 real slides
+  track.appendChild(slides[0].cloneNode(true));
+
+  let idx = 0;
+  let busy = false;
+
+  function goTo(i, animated) {
+    track.style.transition = animated
+      ? 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)'
+      : 'none';
+    track.style.transform = 'translateX(-' + (i * 100) + '%)';
+  }
+
+  track.addEventListener('transitionend', function () {
+    busy = false;
+    if (idx >= total) {
+      // Landed on clone — snap silently back to real first slide
+      idx = 0;
+      goTo(0, false);
+    }
+  });
+
+  setInterval(function () {
+    if (busy) return;
+    busy = true;
+    idx++;
+    goTo(idx, true);
+  }, 2000);
 })();
 
 // ── SCROLL REVEALS ──
