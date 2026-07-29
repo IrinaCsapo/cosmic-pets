@@ -225,7 +225,7 @@
 
   /* hero portrait reel */
   .hero-reel-wrap {
-    width: min(240px, 100%);
+    width: min(210px, 100%);
     aspect-ratio: 3/4;
     border-radius: 18px;
     overflow: hidden;
@@ -691,7 +691,6 @@
   <div class="wrap">
     <div class="section-head mono reveal">
       <span><span class="roman">I.</span>&ensp;Recent arrivals from the cosmos</span>
-      <span>every portrait is one of one</span>
     </div>
     <div class="gallery-grid">
 
@@ -1025,41 +1024,81 @@
   })();
 })();
 
-// ── HERO PORTRAIT REEL (seamless infinite loop) ──
+// ── HERO PORTRAIT REEL (seamless infinite loop + swipe) ──
 (function () {
+  const wrap  = document.querySelector('.hero-reel-wrap');
   const track = document.getElementById('heroReel');
-  if (!track) return;
+  if (!track || !wrap) return;
 
-  // Clone first slide and append so the loop can snap back invisibly
+  // Clone first slide (forward loop) and last slide (backward loop)
   const slides = track.querySelectorAll('.portal');
   const total  = slides.length; // 6 real slides
-  track.appendChild(slides[0].cloneNode(true));
+  track.appendChild(slides[0].cloneNode(true));           // clone at end   (idx = total)
+  track.insertBefore(slides[total - 1].cloneNode(true), slides[0]); // clone at start (idx = -1 → total+1 items)
 
-  let idx = 0;
+  // Start at idx 1 (first real slide, after the prepended clone)
+  let idx = 1;
   let busy = false;
+  let timer;
 
   function goTo(i, animated) {
     track.style.transition = animated
-      ? 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+      ? 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
       : 'none';
     track.style.transform = 'translateX(-' + (i * 100) + '%)';
   }
 
+  // Jump to idx 1 instantly (skip the prepended clone)
+  goTo(1, false);
+
   track.addEventListener('transitionend', function () {
     busy = false;
-    if (idx >= total) {
-      // Landed on clone — snap silently back to real first slide
-      idx = 0;
-      goTo(0, false);
-    }
+    if (idx >= total + 1) { idx = 1; goTo(1, false); }   // overshot end → snap to real first
+    if (idx <= 0)          { idx = total; goTo(total, false); } // undershot start → snap to real last
   });
 
-  setInterval(function () {
+  function advance() {
     if (busy) return;
     busy = true;
     idx++;
     goTo(idx, true);
-  }, 15000);
+  }
+
+  function retreat() {
+    if (busy) return;
+    busy = true;
+    idx--;
+    goTo(idx, true);
+  }
+
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(advance, 300);
+  }
+  startTimer();
+
+  // ── SWIPE & DRAG ──
+  let startX = null;
+  const THRESHOLD = 40;
+
+  wrap.style.userSelect = 'none';
+  wrap.querySelectorAll('img').forEach(img => img.setAttribute('draggable', 'false'));
+
+  wrap.addEventListener('touchstart',  e => { startX = e.touches[0].clientX; },        { passive: true });
+  wrap.addEventListener('touchend',    e => { handleEnd(e.changedTouches[0].clientX); });
+  wrap.addEventListener('mousedown',   e => { startX = e.clientX; });
+  wrap.addEventListener('mouseup',     e => { handleEnd(e.clientX); });
+  wrap.addEventListener('mouseleave',  () => { startX = null; });
+
+  function handleEnd(x) {
+    if (startX === null) return;
+    const delta = x - startX;
+    startX = null;
+    if (Math.abs(delta) < THRESHOLD) return;
+    clearInterval(timer);
+    if (delta < 0) advance(); else retreat();
+    startTimer();
+  }
 })();
 
 // ── SCROLL REVEALS ──
