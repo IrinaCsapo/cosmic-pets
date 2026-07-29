@@ -225,7 +225,7 @@
 
   /* hero portrait reel */
   .hero-reel-wrap {
-    width: min(430px, 100%);
+    width: min(300px, 100%);
     aspect-ratio: 3/4;
     border-radius: 18px;
     overflow: hidden;
@@ -1040,7 +1040,7 @@
 
   function goTo(i, animated) {
     track.style.transition = animated
-      ? 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)'
+      ? 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)'
       : 'none';
     track.style.transform = 'translateX(-' + (i * 100) + '%)';
   }
@@ -1059,7 +1059,7 @@
     busy = true;
     idx++;
     goTo(idx, true);
-  }, 2000);
+  }, 1400);
 })();
 
 // ── SCROLL REVEALS ──
