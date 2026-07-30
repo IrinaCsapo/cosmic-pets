@@ -276,6 +276,32 @@
   .plate-grid { display: grid; gap: 14px; }
   .plate-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
   .plate-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .screen-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    background: oklch(12% 0.06 290);
+    aspect-ratio: 3/2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .screen-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .screen-frame .ph-label {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    color: rgba(255,255,255,0.7);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
   .ph {
     position: relative;
     overflow: hidden;
@@ -740,11 +766,20 @@
 
     <figure class="plate-figure breakout reveal">
       <div class="plate-grid cols-3">
-        <div class="ph ph-e ratio-32 light grain"><span class="ph-label">Screen · the upload</span></div>
-        <div class="ph ph-f ratio-32 light grain"><span class="ph-label">Screen · the wait</span></div>
-        <div class="ph ph-a ratio-32 grain"><span class="ph-label">Screen · the portrait</span></div>
+        <div class="screen-frame">
+          <img src="/examples/screen-upload.png" alt="The upload screen" class="screen-img">
+          <span class="ph-label">Screen · the upload</span>
+        </div>
+        <div class="screen-frame">
+          <img src="/examples/screen-portrait.png" alt="The portrait reveal" class="screen-img">
+          <span class="ph-label">Screen · the portrait</span>
+        </div>
+        <div class="screen-frame">
+          <img src="/examples/screen-story.png" alt="The adventure story" class="screen-img">
+          <span class="ph-label">Screen · the story</span>
+        </div>
       </div>
-      <figcaption><span class="fig-no">Fig. 03</span><span>Three of the six screens — upload, wait, reveal</span></figcaption>
+      <figcaption><span class="fig-no">Fig. 03</span><span>Three of the six screens — upload, portrait, story</span></figcaption>
     </figure>
   </section>
 
