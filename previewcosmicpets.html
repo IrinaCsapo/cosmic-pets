@@ -602,11 +602,12 @@
     .hero-strip-track {
       display: flex;
       animation: strip-scroll 5s linear infinite;
+      will-change: transform;
     }
     .hero-strip-card {
-      flex: 0 0 240px;
-      width: 240px;
-      height: 320px;
+      flex: 0 0 263px;
+      width: 263px;
+      height: 350px;
       margin-right: 10px;
       border-radius: 14px;
       overflow: hidden;
@@ -628,7 +629,7 @@
     }
     @keyframes strip-scroll {
       from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+      to   { transform: translateX(-1638px); }
     }
     #hero .hero-grid > div { text-align: center; }
     h1 { text-align: center; }
