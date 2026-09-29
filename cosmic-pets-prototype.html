@@ -359,6 +359,39 @@
     .orbit-core img { width: 52px; height: 52px; object-fit: contain; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── progress ── */
+    .progress-block {
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 14px;
+      margin-top: -16px; /* pull up under the heading so they read as one unit */
+    }
+    .progress-pct {
+      font-size: 2.4rem; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums; /* stops digit-width jitter */
+      background: linear-gradient(135deg, var(--blue), var(--pink));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .progress-track {
+      width: 100%; height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--purple), var(--pink), var(--blue), var(--pink), var(--purple));
+      background-size: 200% 100%;
+      animation: progress-sheen 2.4s linear infinite;
+      transition: width .3s ease-out;
+    }
+    @keyframes progress-sheen { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .progress-fill { animation: none; transition: none; }
+    }
+
     .steps-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .step-item {
       display: flex; align-items: center; gap: 14px;
@@ -1049,6 +1082,10 @@
       <div class="orbit-core"><img src="/logo/cosmic-pets-logo.svg" alt="Cosmic Pets"></div>
     </div>
     <h2 style="font-size:1.3rem;font-weight:700;text-align:center;">Creating your portrait…</h2>
+    <div class="progress-block">
+      <div class="progress-pct" id="progress-pct" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Portrait generation progress">0%</div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
     <ul class="steps-list">
       <li class="step-item">
         <div class="step-icon" id="s1-icon">🖼️</div>
@@ -2045,12 +2082,98 @@ document.getElementById('crop-cancel-btn').addEventListener('click', () => {
 function setStep(n, state, txt) {
   const icon = document.getElementById(`s${n}-icon`);
   const status = document.getElementById(`s${n}-status`);
-  if(icon) icon.className = 'step-icon ' + state;
+  if(icon) icon.className = ('step-icon ' + (state || '')).trim();
   if(status) status.textContent = txt;
+}
+
+// Clear every step back to "waiting". Without this, a second run inherits the
+// previous run's finished states — e.g. step 4 still reading "Portrait complete"
+// while steps 2 and 3 are genuinely still working.
+function resetSteps() {
+  for (let n = 1; n <= 4; n++) setStep(n, '', 'Waiting…');
 }
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
+// ── PROGRESS ──
+// Each phase has a [floor, ceiling]. A real pipeline event sets the floor;
+// between events the bar eases toward the ceiling on a decaying curve, so it
+// keeps moving during long waits but never arrives early or overtakes reality.
+// Ranges are weighted by observed duration — steps 2+3 (rembg ~9-12s, in
+// parallel with generation) own most of the bar because they own most of the time.
+const PROGRESS_PHASES = {
+  start:  [0,   6],
+  step1:  [6,  18],   // analysing the photo (~400ms)
+  step23: [18, 82],   // background removal + world generation (the long one)
+  step4:  [82, 97],   // compositing
+};
+
+let _pct = 0, _pctCeil = 0, _pctTimer = null;
+
+function renderProgress() {
+  const v = Math.min(100, Math.max(0, _pct));
+  const fill  = document.getElementById('progress-fill');
+  const label = document.getElementById('progress-pct');
+  if (fill)  fill.style.width = v.toFixed(1) + '%';
+  if (label) {
+    label.textContent = Math.round(v) + '%';
+    label.setAttribute('aria-valuenow', Math.round(v));
+  }
+}
+
+function setProgressPhase(name) {
+  const phase = PROGRESS_PHASES[name];
+  if (!phase) return;
+  const [floor, ceil] = phase;
+  _pctCeil = ceil;
+  if (_pct < floor) _pct = floor;   // never move backwards
+  renderProgress();
+}
+
+function startProgress() {
+  stopProgress();
+  _pct = 0;
+  setProgressPhase('start');
+  _pctTimer = setInterval(() => {
+    _pct += (_pctCeil - _pct) * 0.025;  // ~92% of the way to the ceiling over 10s
+    renderProgress();
+  }, 100);
+}
+
+function finishProgress() {
+  stopProgress();
+  _pct = 100;
+  renderProgress();
+}
+
+function stopProgress() {
+  if (_pctTimer) { clearInterval(_pctTimer); _pctTimer = null; }
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+// cosmic-pets-<pet name>-<vibe>-<YYYY-MM-DD>.jpg
+// Pet name is optional — it's skipped if the user didn't enter one.
+function slugify(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')  // strip accents: Zoë → Zoe
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')                       // anything else → hyphen
+    .replace(/^-+|-+$/g, '');                          // trim stray hyphens
+}
+
+function buildPortraitFilename(petName, vibe) {
+  const d = new Date();
+  const date = [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0')
+  ].join('-');
+
+  return ['cosmic-pets', slugify(petName), slugify(vibe && vibe.name), date]
+    .filter(Boolean)   // drops the pet name segment when it's empty
+    .join('-') + '.jpg';
+}
+
 function fileToDataURI(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -2140,16 +2263,21 @@ async function startProcessing() {
   let finalResultB64 = null;
   let shareId = null;
 
+  resetSteps();
+  startProgress();
+
   try {
     const imageB64 = await fileToDataURI(uploadedFile);
 
     setStep(1,'active','Preparing your photo…');
+    setProgressPhase('step1');
     await delay(400);
     setStep(1,'done','✓ Photo ready');
 
     // Steps 2 & 3 run in parallel
     setStep(2,'active','Removing background…');
     setStep(3,'active',`Painting the ${vibe.name} world…`);
+    setProgressPhase('step23');
 
     const [bgResult, genResult] = await Promise.all([
       fetch('/api/remove-bg', {
@@ -2178,6 +2306,7 @@ async function startProcessing() {
     setStep(3,'done',`✓ Cosmic world painted${genResult.time != null ? ' (' + Math.round(genResult.time) + 's)' : ''}`);
 
     setStep(4,'active','Compositing your portrait…');
+    setProgressPhase('step4');
     const compResult = await fetch('/api/composite', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -2188,9 +2317,11 @@ async function startProcessing() {
     finalResultB64 = compResult.result;
     shareId = compResult.share_id || null;
     setStep(4,'done','✓ Portrait complete');
+    finishProgress();
 
   } catch(err) {
     if (err.nsfw) {
+      stopProgress();
       // Restore the credit — NSFW uploads shouldn't cost a try
       if (paidToken) {
         paidCredits++;
@@ -2209,8 +2340,10 @@ async function startProcessing() {
     setStep(2,'done','✓ Photo processed');
     setStep(3,'done','✓ Cosmic world ready');
     setStep(4,'active','Placing your pet in the cosmos…');
+    setProgressPhase('step4');
     finalResultB64 = await canvasFallback(vibe);
     setStep(4,'done','✓ Portrait complete');
+    finishProgress();
   }
 
   await delay(400);
@@ -2272,7 +2405,7 @@ async function startProcessing() {
     dlBtn.textContent = '✦ Save portrait';
     dlBtn.onclick = () => {
       const link = document.createElement('a');
-      link.download = `cosmic-pets-${vibe.id}.jpg`;
+      link.download = buildPortraitFilename(petName, vibe);
       link.href = blobUrl;
       link.click();
       showToast(`Your ${vibe.name} portrait downloaded! ✦`);
